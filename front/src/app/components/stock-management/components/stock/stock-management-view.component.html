@@ -1,0 +1,638 @@
+<div class="stock-management">
+  <div class="section-header">
+    <h2>Gestion des Stocks</h2>
+    <div class="header-actions">
+      <button class="btn-primary" (click)="showAddStockModal()" [disabled]="loading">
+        <span class="icon">+</span>
+        Nouveau Stock
+      </button>
+      <button class="btn-secondary" (click)="exportStocks()" [disabled]="loading">
+        <span class="icon">📤</span>
+        Exporter
+      </button>
+    </div>
+  </div>
+
+  <div class="alert alert-error" *ngIf="error">
+    {{ error }}
+  </div>
+
+  <div class="loading-indicator" *ngIf="loading">
+    <span>Chargement...</span>
+  </div>
+
+  <div class="search-filters">
+    <div class="search-box">
+      <input type="text" placeholder="Rechercher un stock..." [(ngModel)]="searchStock" (input)="onSearch()"
+        class="search-input">
+    </div>
+
+    <select [(ngModel)]="categoryFilter" (change)="onSearch()" class="filter-select">
+      <option value="">Toutes les catégories</option>
+      <option *ngFor="let category of categories" [value]="category.id">{{ category.nom }}</option>
+    </select>
+
+    <select [(ngModel)]="marqueFilter" (change)="onSearch()" class="filter-select">
+      <option value="">Toutes les marques</option>
+      <option *ngFor="let marque of marques" [value]="marque.id">{{ marque.nom }}</option>
+    </select>
+
+    <select [(ngModel)]="fournisseurFilter" (change)="onSearch()" class="filter-select">
+      <option value="">Tous les fournisseurs</option>
+      <option *ngFor="let fournisseur of fournisseurs" [value]="fournisseur.id">{{ fournisseur.nom }}</option>
+    </select>
+
+    <select [(ngModel)]="entrepotFilter" (change)="onSearch()" class="filter-select">
+      <option value="">Tous les entrepôts</option>
+      <option *ngFor="let entrepot of entrepots" [value]="entrepot.id">{{ entrepot.nom }}</option>
+    </select>
+
+    <select [(ngModel)]="alertFilter" (change)="onSearch()" class="filter-select">
+      <option value="">Tous les statuts</option>
+      <option value="low">Stock faible</option>
+      <option value="out">Rupture</option>
+      <option value="excess">Stock excessif</option>
+    </select>
+
+    <button class="btn-secondary" (click)="loadStocks()" [disabled]="loading">
+      Actualiser
+    </button>
+  </div>
+
+  <div class="stock-table-container" *ngIf="!loading">
+    <table class="stock-table">
+      <thead>
+        <tr>
+          <th>Article</th>
+          <th>Code Barre</th>
+          <th>Catégorie</th>
+          <th>Fournisseur</th>
+          <th>Quantité</th>
+          <th>Min / Max</th>
+          <th>Prix Unitaire</th>
+          <th>Valeur Totale</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let stock of getFilteredStockItems()" class="stock-row">
+          <td class="nom-cell">
+            <div class="article-name">{{ getStockName(stock) }}</div>
+            <div class="article-description">{{ getStockDescription(stock) }}</div>
+          </td>
+          <td class="sku-cell">
+            <div class="sku-text">{{ getStockBarcode(stock) || '-' }}</div>
+          </td>
+          <td class="categorie-cell">
+            <div class="categorie-text">{{ getStockCategory(stock) }}</div>
+          </td>
+          <td class="fournisseur-cell">
+            <div class="fournisseur-text">{{ getStockFournisseur(stock) }}</div>
+          </td>
+          <td class="stock-cell">
+            <div class="stock-quantity">{{ getStockQuantity(stock) }}</div>
+          </td>
+          <td class="limits-cell">
+            <div class="stock-limits">{{ getStockMin(stock) }} / {{ getStockMax(stock) }}</div>
+          </td>
+          <td class="prix-cell">
+            <div class="prix-text">{{ getStockPrice(stock) | number:'1.2-2' }} DT</div>
+          </td>
+          <td class="value-cell">
+            <div class="stock-value">{{ getStockItemValue(stock) | number:'1.2-2' }} DT</div>
+          </td>
+          <td class="status-cell">
+            <span class="status-badge" [ngClass]="getStockItemStatusClass(stock)">
+              {{ getStockItemStatus(stock) }}
+            </span>
+          </td>
+          <td class="actions-cell">
+            <div class="action-buttons">
+              <button class="btn-icon" (click)="viewStockDetails(stock)" title="Détails" [disabled]="loading">
+                👁️
+              </button>
+              <button class="btn-icon" (click)="openOperationsModal(stock)" title="Opérations" [disabled]="loading">
+                📦
+              </button>
+              <button class="btn-icon" (click)="viewStockTrace(stock.articleId || stock.article_id || stock.id)" title="Traçabilité" [disabled]="loading">
+                📈
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="stockItems.length === 0">
+          <td colspan="10" class="no-data">
+            Aucun stock trouvé
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-container">
+    <div class="pagination-info">
+      Affichage de {{ currentPage * pageSize + 1 }} à {{ Math.min((currentPage + 1) * pageSize, totalElements) }} sur {{ totalElements }} résultats
+    </div>
+    <div class="pagination-controls">
+      <div class="page-size-selector">
+        <label>Afficher:</label>
+        <select [(ngModel)]="pageSize" (change)="onPageSizeChange()" class="page-size-select">
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+        </select>
+      </div>
+      <div class="page-buttons">
+        <button class="btn-page" [disabled]="currentPage === 0" (click)="onPageChange(0)">
+          Premier
+        </button>
+        <button class="btn-page" [disabled]="currentPage === 0" (click)="onPageChange(currentPage - 1)">
+          Précédent
+        </button>
+        <span class="page-info">Page {{ currentPage + 1 }} sur {{ totalPages }}</span>
+        <button class="btn-page" [disabled]="currentPage >= totalPages - 1" (click)="onPageChange(currentPage + 1)">
+          Suivant
+        </button>
+        <button class="btn-page" [disabled]="currentPage >= totalPages - 1" (click)="onPageChange(totalPages - 1)">
+          Dernier
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Nouveau Stock -->
+  <div class="modal-overlay" *ngIf="showAddModal" (click)="closeAddStockModal()">
+    <div class="modal-content large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Nouveau Stock</h3>
+        <button class="btn-close" (click)="closeAddStockModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <form (ngSubmit)="addNewStock()" #addStockForm="ngForm">
+          <!-- Article Selection -->
+          <div class="section-divider">
+            <h4>Article</h4>
+          </div>
+
+          <div class="form-group">
+            <div class="radio-group">
+              <label class="radio-label">
+                <input type="radio" name="articleMode" [value]="true" [ngModel]="isNewArticle"
+                  (ngModelChange)="setArticleMode($event)">
+                Nouvel Article
+              </label>
+              <label class="radio-label">
+                <input type="radio" name="articleMode" [value]="false" [ngModel]="isNewArticle"
+                  (ngModelChange)="setArticleMode($event)">
+                Article Existant
+              </label>
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="!isNewArticle">
+            <label for="existingArticle">Sélectionner un article *</label>
+            <select id="existingArticle" [(ngModel)]="selectedArticleId" name="selectedArticleId"
+              (change)="onArticleSelected()" class="form-control" required>
+              <option value="">Choisir un article...</option>
+              <option *ngFor="let article of articles" [value]="article.id">{{ article.nom }} ({{ article.code ||
+                article.sku }})</option>
+            </select>
+          </div>
+
+          <div class="form-row" *ngIf="isNewArticle">
+            <div class="form-group">
+              <label for="nom">Nom de l'article *</label>
+              <input type="text" id="nom" [(ngModel)]="newStockData.nom" name="nom" required class="form-control"
+                placeholder="Nom de l'article">
+            </div>
+            <div class="form-group">
+              <label for="codeBarres">Code Barres / SKU</label>
+              <input type="text" id="codeBarres" [(ngModel)]="newStockData.codeBarres" name="codeBarres"
+                class="form-control" placeholder="Code unique">
+            </div>
+          </div>
+
+          <div class="form-group" *ngIf="isNewArticle">
+            <label for="description">Description</label>
+            <textarea id="description" [(ngModel)]="newStockData.description" name="description" class="form-control"
+              rows="2"></textarea>
+          </div>
+
+          <div class="form-row" *ngIf="isNewArticle">
+            <div class="form-group">
+              <label for="categorie">Catégorie *</label>
+              <select id="categorie" [(ngModel)]="newStockData.categorie" name="categorie" required
+                class="form-control">
+                <option [ngValue]="undefined">Sélectionner une catégorie</option>
+                <option *ngFor="let cat of categories" [value]="cat.nom">{{ cat.nom }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Stock Min/Max for New Articles -->
+          <div class="form-row" *ngIf="isNewArticle">
+            <div class="form-group">
+              <label for="quantiteMinimale">Stock Minimum *</label>
+              <input type="number" id="quantiteMinimale" [(ngModel)]="newStockData.quantiteMinimale"
+                name="quantiteMinimale" required min="0" class="form-control">
+            </div>
+            <div class="form-group">
+              <label for="quantiteMaximale">Stock Maximum *</label>
+              <input type="number" id="quantiteMaximale" [(ngModel)]="newStockData.quantiteMaximale"
+                name="quantiteMaximale" required min="0" class="form-control">
+            </div>
+          </div>
+
+          <!-- Stock Details -->
+          <div class="section-divider">
+            <h4>Détails du Stock</h4>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="entrepot">Entrepôt *</label>
+              <select id="entrepot" [(ngModel)]="selectedEntrepotId" name="selectedEntrepotId" required
+                class="form-control">
+                <option value="">Sélectionner un entrepôt</option>
+                <option *ngFor="let entrepot of entrepots" [value]="entrepot.id">{{ entrepot.nom }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="emplacement">Emplacement</label>
+              <input type="text" id="emplacement" [(ngModel)]="newStockData.emplacement" name="emplacement"
+                class="form-control" placeholder="Ex: A1-001">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="quantiteStock">Quantité Initiale *</label>
+            <input type="number" id="quantiteStock" [(ngModel)]="newStockData.quantiteStock" name="quantiteStock"
+              required min="0" class="form-control">
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="fournisseur">Fournisseur</label>
+              <div class="fournisseur-select-container">
+                <input 
+                  type="text" 
+                  id="fournisseurSearch" 
+                  [(ngModel)]="fournisseurSearch" 
+                  name="fournisseurSearch"
+                  (input)="onFournisseurInput()"
+                  (focus)="onFournisseurFocus()"
+                  (click)="$event.stopPropagation()"
+                  class="form-control" 
+                  placeholder="Rechercher ou créer un fournisseur..."
+                  autocomplete="off">
+                
+                <div class="fournisseur-dropdown" *ngIf="showFournisseurDropdown" (click)="$event.stopPropagation()">
+                  <ng-container *ngIf="filteredFournisseurs && filteredFournisseurs.length > 0">
+                    <div class="dropdown-item" 
+                         *ngFor="let f of filteredFournisseurs" 
+                         (click)="selectFournisseur(f)">
+                      <strong>{{ f.nom }}</strong>
+                      <small *ngIf="f.infoContact"> - {{ f.infoContact }}</small>
+                    </div>
+                  </ng-container>
+                  
+                  <div class="dropdown-item create-new" 
+                       *ngIf="canCreateNewFournisseur()"
+                       (click)="createNewFournisseur()">
+                    <i class="bi bi-plus-circle"></i> Créer "{{ fournisseurSearch }}"
+                  </div>
+                  
+                  <div class="dropdown-item no-results" 
+                       *ngIf="(!filteredFournisseurs || filteredFournisseurs.length === 0) && !fournisseurSearch">
+                    Aucun fournisseur disponible. Tapez pour créer.
+                  </div>
+                </div>
+                
+                <div class="selected-fournisseur" *ngIf="selectedFournisseur && !showFournisseurDropdown">
+                  <span>{{ selectedFournisseur.nom }}</span>
+                  <button type="button" class="btn-clear" (click)="clearFournisseur(); $event.stopPropagation()">
+                    <i class="bi bi-x"></i>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Lot/Batch Information Section -->
+          <div class="section-divider" *ngIf="newStockData.quantiteStock > 0">
+            <h4>💰 Informations du Lot (Facture & Prix)</h4>
+          </div>
+
+          <div *ngIf="newStockData.quantiteStock > 0">
+            <div class="form-row">
+              <div class="form-group">
+                <label for="prixAchatUnitaire">Prix d'achat unitaire (DT) *</label>
+                <input type="number" id="prixAchatUnitaire" [(ngModel)]="newStockData.prixAchatUnitaire" 
+                       name="prixAchatUnitaire" min="0" step="0.01" class="form-control" placeholder="Ex: 25.50"
+                       required>
+              </div>
+              <div class="form-group">
+                <label for="prixVenteUnitaire">Prix de vente unitaire (DT) *</label>
+                <input type="number" id="prixVenteUnitaire" [(ngModel)]="newStockData.prixVenteUnitaire" 
+                       name="prixVenteUnitaire" min="0" step="0.01" class="form-control" placeholder="Ex: 35.00"
+                       required>
+              </div>
+            </div>
+
+            <div class="info-box" *ngIf="newStockData.quantiteStock && newStockData.prixAchatUnitaire">
+              <strong>💵 Valeur totale d'achat:</strong> 
+              {{ (newStockData.quantiteStock * newStockData.prixAchatUnitaire) | number:'1.2-2' }} DT
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="dateAchatLot">Date d'achat</label>
+                <input type="date" id="dateAchatLot" [(ngModel)]="newStockData.dateAchat" 
+                       name="dateAchatLot" class="form-control">
+              </div>
+              <div class="form-group">
+                <label for="dateExpirationLot">Date d'expiration</label>
+                <input type="date" id="dateExpirationLot" [(ngModel)]="newStockData.dateExpirationLot" 
+                       name="dateExpirationLot" class="form-control">
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="numeroFacture">Numéro de facture</label>
+                <input type="text" id="numeroFacture" [(ngModel)]="newStockData.numeroFacture" 
+                       name="numeroFacture" class="form-control" placeholder="Ex: FACT-2024-001">
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label>Fichier facture (PDF, JPG, PNG - Max 5MB)</label>
+              <div class="file-upload-wrapper">
+                <input type="file" id="factureFileAdd" accept=".pdf,.jpg,.jpeg,.png" 
+                       (change)="onFactureFileSelected($event)" class="file-input" #factureFileInput>
+                <label for="factureFileAdd" class="file-label">
+                  <span class="icon">📎</span>
+                  {{ uploadedFactureFile ? uploadedFactureFile.name : 'Choisir un fichier' }}
+                </label>
+              </div>
+              <div class="helper-text" *ngIf="uploadedFactureFile">
+                Fichier sélectionné: {{ uploadedFactureFile.name }} ({{ (uploadedFactureFile.size / 1024 / 1024).toFixed(2) }} MB)
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" (click)="closeAddStockModal()"
+              [disabled]="loading">Annuler</button>
+            <button type="submit" class="btn-primary" [disabled]="!isFormValidForSubmission() || loading">
+              {{ loading ? 'Ajout en cours...' : 'Ajouter le Stock' }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stock Operations Modal -->
+  <app-stock-operations [stock]="selectedStockForOperations" [isVisible]="showOperationsModal"
+    (close)="closeOperationsModal()" (operationCompleted)="onOperationCompleted()">
+  </app-stock-operations>
+
+  <!-- Stock Trace Modal -->
+  <div class="modal-overlay" *ngIf="showTraceModal" (click)="closeTraceModal()">
+    <div class="modal-content trace-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>📊 Traçabilité du Stock</h3>
+        <button class="btn-close" (click)="closeTraceModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <app-stock-trace [stockId]="selectedStockForTrace"></app-stock-trace>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Ajustement Stock -->
+  <div class="modal-overlay" *ngIf="showAdjustModal" (click)="closeAdjustModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>⚖️ Ajustement de Stock</h3>
+        <button class="btn-close" (click)="closeAdjustModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="current-stock-info" *ngIf="selectedStockItem">
+          <div class="stock-item">
+            <h4>{{ getStockName(selectedStockItem) }}</h4>
+            <div class="current-quantity">
+              Stock actuel: <strong>{{ getStockQuantity(selectedStockItem) }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <form (ngSubmit)="saveAdjustment()" #adjustForm="ngForm">
+          <div class="form-group">
+            <label for="adjustmentType">Type d'ajustement</label>
+            <select id="adjustmentType" [(ngModel)]="adjustmentData.type" name="adjustmentType" required
+              class="form-control">
+              <option value="">Sélectionner un type</option>
+              <option value="increase">Augmentation</option>
+              <option value="decrease">Diminution</option>
+              <option value="set">Définir quantité exacte</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="quantity">Quantité</label>
+            <input type="number" id="quantity" [(ngModel)]="adjustmentData.quantity" name="quantity" required min="0"
+              step="1" class="form-control">
+          </div>
+
+          <div class="form-group">
+            <label for="reason">Motif de l'ajustement *</label>
+            <select id="reason" [(ngModel)]="adjustmentData.reason" name="reason" required class="form-control">
+              <option value="">Sélectionner un motif</option>
+              <option value="INVENTAIRE">Inventaire physique</option>
+              <option value="CORRECTION">Correction d'erreur</option>
+              <option value="PERTE">Perte ou casse</option>
+              <option value="PEREMPTION">Péremption</option>
+              <option value="VOL">Vol ou disparition</option>
+              <option value="AUTRE">Autre</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="comment">Commentaire</label>
+            <textarea id="comment" [(ngModel)]="adjustmentData.comment" name="comment" class="form-control" rows="3"
+              placeholder="Détails sur l'ajustement..."></textarea>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" class="btn-secondary" (click)="closeAdjustModal()">Annuler</button>
+            <button type="submit" class="btn-primary" [disabled]="!adjustForm.valid || loading">
+              Confirmer l'ajustement
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Détails Stock -->
+  <div class="modal-overlay" *ngIf="showDetailsModal" (click)="closeDetailsModal()">
+    <div class="modal-content large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>Détails du Stock</h3>
+        <button class="btn-close" (click)="closeDetailsModal()">×</button>
+      </div>
+      <div class="modal-body" *ngIf="selectedStockItem">
+        <div class="details-grid">
+          <!-- Article Information -->
+          <div class="section-divider">
+            <h4>Article</h4>
+          </div>
+          
+          <div class="detail-row">
+            <label>Nom:</label>
+            <span>{{ getStockName(selectedStockItem) }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <label>Description:</label>
+            <span>{{ getStockDescription(selectedStockItem) || 'N/A' }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <label>Code Barre:</label>
+            <span>{{ getStockBarcode(selectedStockItem) || 'N/A' }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <label>Catégorie:</label>
+            <span>{{ getStockCategory(selectedStockItem) }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <label>Marque:</label>
+            <span>{{ getStockMarque(selectedStockItem) || 'N/A' }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <label>Fournisseur:</label>
+            <span>{{ getStockFournisseur(selectedStockItem) }}</span>
+          </div>
+          
+          <!-- Stock Information -->
+          <div class="section-divider">
+            <h4>Stock</h4>
+          </div>
+          
+          <div class="detail-row">
+            <label>Entrepôt:</label>
+            <span>{{ getStockEntrepot(selectedStockItem) }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <label>Quantité Actuelle:</label>
+            <span class="stock-quantity-large">
+              {{ getStockQuantity(selectedStockItem) }}
+              <small class="quantity-source" *ngIf="stockLots.length > 0">(calculé depuis {{ stockLots.length }} lot(s))</small>
+            </span>
+          </div>
+          
+          <div class="detail-row">
+            <label>Stock Minimum:</label>
+            <span>{{ getStockMin(selectedStockItem) }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <label>Stock Maximum:</label>
+            <span>{{ getStockMax(selectedStockItem) }}</span>
+          </div>
+          
+          <div class="detail-row">
+            <label>Statut:</label>
+            <span class="status-badge" [ngClass]="getStockItemStatusClass(selectedStockItem)">
+              {{ getStockItemStatus(selectedStockItem) }}
+            </span>
+          </div>
+          
+          <!-- Pricing Information -->
+          <div class="section-divider">
+            <h4>Prix</h4>
+          </div>
+          
+          <div class="detail-row">
+            <label>Prix Unitaire:</label>
+            <span>{{ getStockPrice(selectedStockItem) | number:'1.2-2' }} DT
+              <small class="price-source" *ngIf="stockLots.length > 0">(moyenne pondérée des lots)</small>
+            </span>
+          </div>
+          
+          <div class="detail-row">
+            <label>Valeur Totale:</label>
+            <span class="total-value">{{ getStockItemValue(selectedStockItem) | number:'1.2-2' }} DT
+              <small class="price-source" *ngIf="stockLots.length > 0">(basé sur les prix d'achat des lots)</small>
+            </span>
+          </div>
+          
+          <!-- Lots/Batches Information -->
+          <div class="section-divider" *ngIf="stockLots.length > 0">
+            <h4>📦 Lots Disponibles ({{ stockLots.length }})</h4>
+          </div>
+          
+          <div class="lots-list" *ngIf="stockLots.length > 0">
+            <div class="lot-card" *ngFor="let lot of stockLots">
+              <div class="lot-header">
+                <span class="lot-number">{{ lot.numeroLot }}</span>
+                <span class="lot-status" [class.active]="lot.estActif">{{ lot.estActif ? 'Actif' : 'Inactif' }}</span>
+              </div>
+              <div class="lot-details">
+                <div class="lot-detail-row">
+                  <label>Quantité disponible:</label>
+                  <span class="lot-qty">{{ lot.quantiteDisponible }}</span>
+                </div>
+                <div class="lot-detail-row">
+                  <label>Prix d'achat:</label>
+                  <span>{{ lot.prixAchatUnitaire | number:'1.2-2' }} DT</span>
+                </div>
+                <div class="lot-detail-row">
+                  <label>Prix de vente:</label>
+                  <span>{{ lot.prixVenteUnitaire | number:'1.2-2' }} DT</span>
+                </div>
+                <div class="lot-detail-row">
+                  <label>Date d'achat:</label>
+                  <span>{{ lot.dateAchat | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <div class="lot-detail-row" *ngIf="lot.dateExpiration">
+                  <label>Date d'expiration:</label>
+                  <span [class.text-warning]="isExpiringSoon(lot)" [class.text-danger]="isExpired(lot)">
+                    {{ lot.dateExpiration | date:'dd/MM/yyyy' }}
+                  </span>
+                </div>
+                <div class="lot-detail-row" *ngIf="lot.numeroFacture">
+                  <label>N° Facture:</label>
+                  <span>{{ lot.numeroFacture }}</span>
+                </div>
+              </div>
+              <div class="lot-actions" *ngIf="lot.factureUrl">
+                <button type="button" class="btn-download-facture" (click)="downloadLotFacture(lot)" title="Télécharger la facture">
+                  <i class="bi bi-file-earmark-arrow-down"></i> Télécharger Facture
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="no-lots" *ngIf="stockLots.length === 0">
+            <p>Aucun lot disponible pour cet article dans cet entrepôt.</p>
+          </div>
+        </div>
+        
+        <div class="modal-actions">
+          <button type="button" class="btn-secondary" (click)="closeDetailsModal()">Fermer</button>
+          <button type="button" class="btn-primary" (click)="openOperationsModal(selectedStockItem); closeDetailsModal()">
+            Gérer les Opérations
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

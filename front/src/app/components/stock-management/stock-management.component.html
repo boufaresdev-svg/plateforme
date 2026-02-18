@@ -1,0 +1,70 @@
+<div class="stock-management">
+  <app-notification></app-notification>
+  <!-- Header moderne -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="header-title">
+        <h1>📦 Gestion du Stock</h1>
+        <p class="subtitle">Gérez votre inventaire, catégories, marques et entrepôts</p>
+      </div>
+      <div class="header-actions">
+        <button class="nav-pill" [class.active]="currentView === 'dashboard'" (click)="setView('dashboard')">
+          <span class="icon">📊</span>
+          Dashboard
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'categories'" (click)="setView('categories')">
+          <span class="icon">🏷️</span>
+          Catégories
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'marques'" (click)="setView('marques')">
+          <span class="icon">🏭</span>
+          Marques
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'articles'" (click)="setView('articles')">
+          <span class="icon">📦</span>
+          Articles
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'entrepots'" (click)="setView('entrepots')">
+          <span class="icon">🏢</span>
+          Entrepôts
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'stock'" (click)="setView('stock')">
+          <span class="icon">📋</span>
+          Stock
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'mouvements'" (click)="setView('mouvements')">
+          <span class="icon">🔄</span>
+          Mouvements
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'ajustements'" (click)="setView('ajustements')">
+          <span class="icon">⚖️</span>
+          Ajustements
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'tracabilite'" (click)="setView('tracabilite')">
+          <span class="icon">📊</span>
+          Traçabilité
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'alertes'" (click)="setView('alertes')">
+          <span class="icon">🚨</span>
+          Alertes
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Contenu dynamique -->
+  <div class="content-area">
+    <div class="content-wrapper">
+      <app-stock-dashboard *ngIf="currentView === 'dashboard'"></app-stock-dashboard>
+      <app-categories-management *ngIf="currentView === 'categories'"></app-categories-management>
+      <app-marques-management *ngIf="currentView === 'marques'"></app-marques-management>
+      <app-articles-management *ngIf="currentView === 'articles'"></app-articles-management>
+      <app-entrepots-management *ngIf="currentView === 'entrepots'"></app-entrepots-management>
+      <app-stock-management-view *ngIf="currentView === 'stock'"></app-stock-management-view>
+      <app-mouvements-management *ngIf="currentView === 'mouvements'"></app-mouvements-management>
+      <app-ajustement-stock *ngIf="currentView === 'ajustements'"></app-ajustement-stock>
+      <app-stock-trace *ngIf="currentView === 'tracabilite'"></app-stock-trace>
+      <app-stock-alerts *ngIf="currentView === 'alertes'"></app-stock-alerts>
+    </div>
+  </div>
+</div>

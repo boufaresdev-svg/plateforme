@@ -1,0 +1,2016 @@
+<div class="projet-management">
+  <!-- Header moderne -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="header-title">
+        <h1>📊 Gestion Projets</h1>
+        <p class="subtitle">Gérez vos projets avec missions et tâches structurées</p>
+      </div>
+      <div class="header-actions">
+        <button class="nav-pill" [class.active]="currentView === 'dashboard'" (click)="setView('dashboard')">
+          <span class="icon">📊</span>
+          Dashboard
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'projets'" (click)="setView('projets')">
+          <span class="icon">📋</span>
+          Projets
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'phases'" (click)="setView('phases')">
+          <span class="icon">🔄</span>
+          Phases
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'missions'" (click)="setView('missions')">
+          <span class="icon">🎯</span>
+          Missions
+        </button>
+        <!-- <button class="nav-pill" [class.active]="currentView === 'charges'" (click)="setView('charges')">
+          <span class="icon">👥</span>
+          Charges
+        </button> -->
+        <button class="btn-primary" (click)="showAddProjetForm()" *ngIf="currentView === 'projets'">
+          <span class="icon">➕</span>
+          Nouveau Projet
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard-view" *ngIf="currentView === 'dashboard'">
+    <div class="stats-container">
+      <div class="stat-card primary">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ totalProjet }}</div>
+          <div class="stat-label">Total Projets</div>
+        </div>
+      </div>
+
+      <div class="stat-card warning">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ encours }}</div>
+          <div class="stat-label">Projets en Cours</div>
+        </div>
+      </div>
+
+      <div class="stat-card info">
+        <div class="stat-icon">📅</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ planifie }}</div>
+          <div class="stat-label">Projets Planifiés</div>
+        </div>
+      </div>
+
+      <div class="stat-card success">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ termine }}</div>
+          <div class="stat-label">Projets Terminés</div>
+        </div>
+      </div>
+
+      <div class="stat-card danger" *ngIf=" projetsEnRetard > 0">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ projetsEnRetard }}</div>
+          <div class="stat-label">Projets en Retard</div>
+        </div>
+      </div>
+
+      <div class="stat-card info">
+        <div class="stat-icon">💰</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ budgetTotal | number }}</div>
+          <div class="stat-label">Budget Total (DT)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Projets récents -->
+    <div class="recent-section">
+      <div class="section-header">
+        <h2>Projets Récents</h2>
+        <button class="btn-outline" (click)="setView('projets')">
+          Voir tout
+          <span class="icon">→</span>
+        </button>
+      </div>
+
+      <div class="projets-grid">
+        <div *ngFor="let projet of projets.slice(0, 6)" class="projet-card modern" (click)="viewProjetDetails(projet)">
+          <div class="card-header">
+            <div class="projet-info">
+              <h3>{{ projet.nom }}</h3>
+              <span class="projet-type" [class]="getTypeClass(projet.type)">
+                {{ projet.type }}
+              </span>
+            </div>
+            <div class="priority-indicator">
+              <span class="priority-dot" [class]="getPriorityClass(projet.priorite)"></span>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <div class="projet-client">Client: {{ projet.client.nom }}</div>
+            <div class="projet-chef">Chef: {{ projet.chefProjet }}</div>
+            <div class="projet-missions">{{ projet.phases.length || 0 }} phase(s)</div>
+            <div class="projet-progress">
+              <div class="progress-bar">
+                <div class="progress-fill" [style.width.%]="projet.progression"></div>
+              </div>
+              <span class="progress-text">{{ projet.progression }}%</span>
+            </div>
+            <div class="projet-status">
+              <span class="status-badge" [class]="getStatusClass(projet.statut)">
+                {{ projet.statut }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste des projets -->
+  <div class="projets-view" *ngIf="currentView === 'projets'">
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Rechercher un projet..." [(ngModel)]="searchTerm" class="search-input" (input)="filterProjets()">
+        </div>
+        <div class="table-actions">
+          <button class="btn-outline">
+            <span class="icon">📊</span>
+            Exporter
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Projet</div>
+          <div class="table-cell">Client</div>
+          <div class="table-cell">Chef de Projet</div>
+          <div class="table-cell">Budget (DT)</div>
+          <div class="table-cell">Progression</div>
+          <div class="table-cell">Statut</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let projet of filteredProjets" class="table-row clickable" (click)="viewProjetDetails(projet)">
+          <div class="table-cell projet-info">
+            <div class="projet-avatar">📊</div>
+            <div class="projet-details">
+              <div class="projet-name">{{ projet.nom }}</div>
+              <div class="projet-type-small">{{ projet.type }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">{{ projet.client.nom }}</div>
+
+          <div class="table-cell">{{ projet.chefProjet }}</div>
+
+          <div class="table-cell">
+            <span class="budget-value">{{ projet.budget | number }}</span>
+          </div>
+
+          <div class="table-cell">
+            <div class="progress-container">
+              <div class="progress-bar-small">
+                <div class="progress-fill" [style.width.%]="projet.progression"></div>
+              </div>
+              <span class="progress-text-small">{{ projet.progression }}%</span>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="status-badge" [class]="getStatusClass(projet.statut)">
+              {{ projet.statut }}
+            </span>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editProjet(projet)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn" (click)="viewProjetDetails(projet)" title="Détails">
+                👁️
+              </button>
+              <button class="action-btn danger" (click)="deleteProjet(projet.id)" title="Supprimer">
+                🗑️
+              </button>
+              <button class="action-btn danger" (click)="PDF(projet.id)" title="PDF">
+                📚
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredProjets.length === 0" class="empty-state-table">
+          <div class="empty-icon">📊</div>
+          <p>Aucun projet trouvé</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vue Phases -->
+  <div class="phases-view" *ngIf="currentView === 'phases'">
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Rechercher une phase..." [(ngModel)]="searchTermPhase"
+            (input)="applyPhaseFilters()" class="search-input">
+        </div>
+        <div class="filters-section">
+          <div class="filter-group">
+            <label class="filter-label">Projet</label>
+            <select class="filter-select" [(ngModel)]="filterProjetIdPhase" (change)="applyPhaseFilters()">
+              <option value="">Tous les projets</option>
+              <option *ngFor="let projet of projets" [value]="projet.id">
+                {{ projet.nom }}
+              </option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Statut</label>
+            <select class="filter-select" [(ngModel)]="filterStatutPhase" (change)="applyPhaseFilters()">
+              <option value="">Tous les statuts</option>
+              <option value="PLANIFIEE">Planifiée</option>
+              <option value="EN_COURS">En Cours</option>
+              <option value="EN_PAUSE">En Pause</option>
+              <option value="TERMINEE">Terminée</option>
+              <option value="ANNULEE">Annulée</option>
+            </select>
+          </div>
+          <button class="btn-outline" (click)="clearPhaseFilters()">
+            <span class="icon">🗑️</span>
+            Effacer
+          </button>
+        </div>
+        <div class="table-actions">
+          <button class="btn-primary" (click)="showAddPhaseForm()">
+            <span class="icon">➕</span>
+            Nouvelle Phase
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Phase</div>
+          <div class="table-cell">Projet</div>
+          <div class="table-cell">Ordre</div>
+          <div class="table-cell">Progression</div>
+          <div class="table-cell">Budget (DT)</div>
+          <div class="table-cell">Statut</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let phase of filteredPhases" class="table-row clickable" (click)="viewPhaseDetails(phase)">
+          <div class="table-cell phase-info">
+            <div class="phase-avatar">🔄</div>
+            <div class="phase-details">
+              <div class="phase-name">{{ phase.nom }}</div>
+              <div class="phase-description-short">{{ phase.description }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="projet-name">{{ phase.projet.nom }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="ordre-value">{{ phase.ordre }}</span>
+          </div>
+
+          <div class="table-cell">
+            <div class="progress-container">
+              <div class="progress-bar-small">
+                <div class="progress-fill" [style.width.%]="phase.progression"></div>
+              </div>
+              <span class="progress-text-small">{{ phase.progression }}%</span>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="budget-value">{{ phase.budget | number }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="status-badge" [class]="getStatusClass(phase.statut)">
+              {{ phase.statut }}
+            </span>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editPhase(phase)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn" (click)="viewPhaseDetails(phase)" title="Détails">
+                👁️
+              </button>
+              <button class="action-btn danger" (click)="deletePhase(phase.id)" title="Supprimer">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredPhases.length === 0" class="empty-state-table">
+          <div class="empty-icon">🔄</div>
+          <p>Aucune phase trouvée</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vue Missions -->
+  <div class="missions-view" *ngIf="currentView === 'missions'">
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Rechercher une mission..." [(ngModel)]="searchTermMission"
+            (input)="applyMissionFilters()" class="search-input">
+        </div>
+        <div class="filters-section">
+          <div class="filter-group">
+            <label class="filter-label">Projet</label>
+            <select class="filter-select" [(ngModel)]="filterProjetIdMission" (change)="applyMissionFilters()">
+              <option value="">Tous les projets</option>
+              <option *ngFor="let projet of projets" [value]="projet.id">
+                {{ projet.nom }}
+              </option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Phase</label>
+            <select class="filter-select" [(ngModel)]="filterPhaseIdMission" (change)="applyMissionFilters()">
+              <option value="">Toutes les phases</option>
+              <option *ngFor="let phase of phases" [value]="phase.id">
+                {{ phase.nom }}
+              </option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Statut</label>
+            <select class="filter-select" [(ngModel)]="filterStatutMission" (change)="applyMissionFilters()">
+              <option value="">Tous les statuts</option>
+              <option *ngFor="let statut of statutsMissions" [value]="statut">
+                {{ statut }}
+              </option>
+            </select>
+          </div>
+          <button class="btn-outline" (click)="clearMissionFilters()">
+            <span class="icon">🗑️</span>
+            Effacer
+          </button>
+        </div>
+        <div class="table-actions">
+          <button class="btn-primary" (click)="showAddMissionForm()">
+            <span class="icon">➕</span>
+            Nouvelle Mission
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Mission</div>
+          <div class="table-cell">Projet</div>
+          <div class="table-cell">Phase</div>
+          <div class="table-cell">Objectif</div>
+          <div class="table-cell">Progression</div>
+          <div class="table-cell">Employés</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let mission of filteredMissions" class="table-row clickable" (click)="viewMissionDetails(mission)">
+          <div class="table-cell mission-info">
+            <div class="mission-avatar">🎯</div>
+            <div class="mission-details">
+              <div class="mission-name">{{ mission.nom }}</div>
+              <div class="mission-description-short">{{ mission.description }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="projet-name">{{ mission.projet.nom}}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="phase-name">{{ mission.phase.nom }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="objectif-text">{{ mission.objectif }}</span>
+          </div>
+
+          <div class="table-cell">
+            <div class="progress-container">
+              <div class="progress-bar-small">
+                <div class="progress-fill" [style.width.%]="mission.progression"></div>
+              </div>
+              <span class="progress-text-small">{{ mission.progression }}%</span>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="assignes-count">{{ mission.employesAffectes.length|| 0 }} employé(s)</span>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editMission(mission)" title="Modifier">
+                ✏️
+              </button>
+              <!-- <button class="action-btn" (click)="openAffectationForm('mission', mission.id)" title="Affecter">
+                👥
+              </button> -->
+              <button class="action-btn" (click)="viewMissionDetails(mission)" title="Détails">
+                👁️
+              </button>
+              <button class="action-btn danger" (click)="deleteMission(mission.id)" title="Supprimer">
+                🗑️
+              </button>
+
+              <button class="action-btn danger" (click)="PDFMission(mission.id)" title="PDF">
+                📚
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredMissions.length === 0" class="empty-state-table">
+          <div class="empty-icon">🎯</div>
+          <p>Aucune mission trouvée</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vue Charges -->
+  <div class="charges-view" *ngIf="currentView === 'charges'">
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Rechercher une charge..." [(ngModel)]="searchTermCharge"
+            (input)="applyChargeFilters()" class="search-input">
+        </div>
+        <div class="filters-section">
+          <div class="filter-group">
+            <label class="filter-label">Tâche</label>
+            <select class="filter-select" [(ngModel)]="filterTacheIdCharge" (change)="applyChargeFilters()">
+              <option value="">Toutes les tâches</option>
+              <option *ngFor="let tache of taches" [value]="tache.id">
+                {{ tache.nom }}
+              </option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Employé</label>
+            <select class="filter-select" [(ngModel)]="filterEmployeIdCharge" (change)="applyChargeFilters()">
+              <option value="">Tous les employés</option>
+              <option *ngFor="let employe of getEmployesDisponibles()" [value]="employe.employeId">
+                <!-- {{ employe.prenom }} {{ employe.nom }} -->
+              </option>
+            </select>
+          </div>
+          <button class="btn-outline" (click)="clearChargeFilters()">
+            <span class="icon">🗑️</span>
+            Effacer
+          </button>
+        </div>
+        <div class="table-actions">
+          <button class="btn-primary" (click)="showAddChargeForm()">
+            <span class="icon">➕</span>
+            Nouvelle Charge
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Employé</div>
+          <div class="table-cell">Tâche</div>
+          <div class="table-cell">Taux Horaire</div>
+          <div class="table-cell">Heures Allouées</div>
+          <div class="table-cell">Heures Réalisées</div>
+          <div class="table-cell">Période</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let charge of filteredCharges" class="table-row clickable">
+          <div class="table-cell employe-info">
+            <div class="employe-avatar">{{ getChargeEmployeeInitials(charge) }}</div>
+            <div class="employe-details">
+              <!-- <div class="employe-name">{{ charge.prenom }} {{ charge.nom }}</div>
+              <div class="employe-poste">{{ charge.poste }}</div> -->
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="tache-name">{{ getTacheName(charge.tacheId) }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="taux-value">{{ charge.montant }} DT</span>
+          </div>
+
+          <div class="table-cell">
+            <!-- <span class="heures-value">{{ charge.heuresAllouees }}h</span> -->
+          </div>
+
+          <div class="table-cell">
+            <!-- <span class="heures-value">{{ charge.heuresRealisees }}h</span> -->
+          </div>
+
+          <div class="table-cell">
+            <div class="periode-info">
+              <!-- <span class="date-debut">{{ charge.dateDebut | date:'dd/MM' }}</span>
+              <span class="date-separator">→</span>
+              <span class="date-fin">{{ charge.dateFin | date:'dd/MM' }}</span> -->
+            </div>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editCharge(charge)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn danger" (click)="deleteCharge(charge.id)" title="Supprimer">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredCharges.length === 0" class="empty-state-table">
+          <div class="empty-icon">👥</div>
+          <p>Aucune charge trouvée</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Détails projet -->
+  <div class="details-view" *ngIf="currentView === 'details' && selectedProjet">
+    <div class="details-header">
+      <button class="btn-back" (click)="goBack()">
+        <span class="icon">←</span>
+        Retour
+      </button>
+      <div class="projet-title">
+        <h1>{{ selectedProjet.nom }}</h1>
+        <span class="projet-type-large">{{ selectedProjet.type }}</span>
+      </div>
+      <button class="btn-primary" (click)="editProjet(selectedProjet)">
+        <span class="icon">✏️</span>
+        Modifier
+      </button>
+    </div>
+
+    <div class="details-grid">
+      <!-- Informations générales -->
+      <div class="info-card">
+        <h3>Arborescence</h3>
+        <div class="tree">
+          <ul>
+            <li>
+              <span class="projet">📁 {{ projetTree?.nom }}</span>
+              <ul *ngIf="projetTree.phases?.length">
+                <li *ngFor="let phase of projetTree.phases">
+                  <span class="phase">📂 {{ phase.nom }}</span>
+                  <ul *ngIf="phase.missions?.length">
+                    <li *ngFor="let mission of phase.missions">
+                      <span class="mission">🧩 {{ mission.nom }}</span>
+                      <ul *ngIf="mission.taches?.length">
+                        <li *ngFor="let tache of mission.taches">
+                          <span class="tache">✅ {{ tache.nom }}</span>
+                        </li>
+                      </ul>
+                    </li>
+                  </ul>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="info-card">
+        <h3>Informations Générales</h3>
+        <div class="info-list">
+          <div class="info-item">
+            <span class="info-label">Client</span>
+            <span class="info-value">{{ selectedProjet.client.nom }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Chef de projet</span>
+            <span class="info-value">{{ selectedProjet.chefProjet }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Budget</span>
+            <span class="info-value highlight">{{ selectedProjet.budget | number }} DT</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Coût réel</span>
+            <span class="info-value" [class.warning]="(selectedProjet.coutReel || 0) > selectedProjet.budget">
+              {{ selectedProjet.coutReel | number }} DT
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Progression</span>
+            <span class="info-value highlight">{{ selectedProjet.progression }}%</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Phases du projet -->
+      <div class="missions-card">
+        <div class="card-header-with-action">
+          <h3>Phases du Projet</h3>
+          <button class="btn-primary" (click)="showAddPhaseForm()">
+            <span class="icon">➕</span>
+            Ajouter Phase
+          </button>
+        </div>
+
+        <div class="missions-list">
+          <div *ngFor="let phase of selectedProjetPhases  " class="mission-item" (click)="viewPhaseDetails(phase)">
+            <div class="mission-icon">🔄</div>
+            <div class="mission-content">
+              <div class="mission-title">{{ phase.nom }}</div>
+              <div class="mission-description">{{ phase.description }}</div>
+              <div class="mission-meta">
+                <span>Ordre: {{ phase.ordre }}</span>
+                <span>Budget: {{ phase.budget | number }} DT</span>
+              </div>
+              <div class="mission-progress">
+                <div class="progress-bar-small">
+                  <div class="progress-fill" [style.width.%]="phase.progression"></div>
+                </div>
+                <span class="progress-text-small">{{ phase.progression }}%</span>
+              </div>
+            </div>
+            <div class="mission-status">
+              <span class="status-badge" [class]="getStatusClass(phase.statut)">
+                {{ phase.statut }}
+              </span>
+            </div>
+          </div>
+
+          <div *ngIf="  selectedProjetPhases.length === 0" class="empty-state">
+            <div class="empty-icon">🔄</div>
+            <p>Aucune phase définie</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Détails phase -->
+  <div class="phase-details-view" *ngIf="currentView === 'phase-details' && selectedPhase">
+    <div class="details-header">
+      <button class="btn-back" (click)="goBack()">
+        <span class="icon">←</span>
+        Retour
+      </button>
+      <div class="phase-title">
+        <h1>{{ selectedPhase.nom }}</h1>
+        <span class="phase-description-large">{{ selectedPhase.description }}</span>
+      </div>
+      <button class="btn-primary" (click)="editPhase(selectedPhase)">
+        <span class="icon">✏️</span>
+        Modifier
+      </button>
+    </div>
+
+    <div class="details-grid">
+      <!-- Informations de la phase -->
+      <div class="info-card">
+        <h3>Informations de la Phase</h3>
+        <div class="info-list">
+          <div class="info-item">
+            <span class="info-label">Projet</span>
+            <span class="info-value">{{ selectedPhase.projet.nom }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Ordre</span>
+            <span class="info-value">{{ selectedPhase.ordre }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Budget</span>
+            <span class="info-value highlight">{{ selectedPhase.budget | number }} DT</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Progression</span>
+            <span class="info-value highlight">{{ selectedPhase.progression }}%</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Période</span>
+            <span class="info-value">
+              {{ selectedPhase.dateDebut | date:'dd/MM/yyyy' }} - {{ selectedPhase.dateFin | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Missions de la phase -->
+      <div class="missions-card">
+        <div class="card-header-with-action">
+          <h3>Missions de la Phase</h3>
+          <button class="btn-primary" (click)="showAddMissionForm()">
+            <span class="icon">➕</span>
+            Ajouter Mission
+          </button>
+        </div>
+
+        <div class="missions-list">
+          <div *ngFor="let mission of selectedPhaseMission ?? []" class="mission-item"
+            (click)="viewMissionDetails(mission)">
+            <div class="mission-icon">🎯</div>
+            <div class="mission-content">
+              <div class="mission-title">{{ mission.nom }}</div>
+              <div class="mission-description">{{ mission.description }}</div>
+              <div class="mission-meta">
+                <span>Budget: {{ mission.budget | number }} DT</span>
+                <!-- <span>{{ mission.employesAffectes.length }} employé(s)</span> -->
+              </div>
+              <div class="mission-progress">
+                <div class="progress-bar-small">
+                  <div class="progress-fill" [style.width.%]="mission.progression"></div>
+                </div>
+                <span class="progress-text-small">{{ mission.progression }}%</span>
+              </div>
+            </div>
+            <div class="mission-status">
+              <span class="status-badge" [class]="getStatusClass(mission.statut)">
+                {{ mission.statut }}
+              </span>
+            </div>
+          </div>
+
+          <div *ngIf="selectedPhaseMission.length === 0" class="empty-state">
+            <div class="empty-icon">🎯</div>
+            <p>Aucune mission définie</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Détails mission -->
+  <div class="mission-details-view" *ngIf="currentView === 'mission-details' && selectedMission">
+    <div class="details-header">
+      <button class="btn-back" (click)="goBack()">
+        <span class="icon">←</span>
+        Retour
+      </button>
+      <div class="mission-title">
+        <h1>{{ selectedMission.nom }}</h1>
+        <span class="mission-objectif">{{ selectedMission.objectif }}</span>
+      </div>
+      <button class="btn-primary" (click)="editMission(selectedMission)">
+        <span class="icon">✏️</span>
+        Modifier
+      </button>
+    </div>
+
+    <div class="details-grid">
+      <!-- Informations de la mission -->
+      <div class="info-card">
+        <h3>Informations de la Mission</h3>
+        <div class="info-list">
+          <div class="info-item">
+            <span class="info-label">Projet</span>
+            <span class="info-value">{{ selectedMission.projet.nom }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Phase</span>
+            <span class="info-value">{{ selectedMission.phase.nom }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Budget</span>
+            <span class="info-value highlight">{{ selectedMission.budget | number }} DT</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Progression</span>
+            <span class="info-value highlight">{{ selectedMission.progression }}%</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Période</span>
+            <span class="info-value">
+              {{ selectedMission.dateDebut | date:'dd/MM/yyyy' }} - {{ selectedMission.dateFin | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Employés affectés -->
+      <div class="employes-card">
+        <div class="card-header-with-action">
+          <h3>Employés Affectés</h3>
+          <button class="btn-primary" (click)="openAffectationForm('mission', selectedMission.id)">
+            <span class="icon">➕</span>
+            Affecter
+          </button>
+        </div>
+
+        <div class="employes-list">
+          <div *ngFor="let employe of selectedMissionEmployee" class="employe-item">
+            <div class="employe-avatar">{{ getEmployeInitials(employe) }}</div>
+            <div class="employe-content">
+              <div class="employe-name">{{ employe.employee?.nom }} {{ employe.employee?.prenom }}</div>
+              <div class="employe-role">{{ employe.role }}</div>
+              <div class="employe-heures">
+                {{ employe.heuresRealisees || 0 }}h / {{ employe.heuresAllouees || 0 }}h
+              </div>
+            </div>
+            <div class="employe-actions">
+              <button class="action-btn danger" (click)="desaffecterEmploye( employe.id)" title="Désaffecter">
+                🗑️
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="selectedMission.employesAffectes.length === 0" class="empty-state">
+            <div class="empty-icon">👥</div>
+            <p>Aucun employé affecté</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tâches de la mission -->
+      <div class="taches-card">
+        <div class="card-header-with-action">
+          <h3>Tâches de la Mission</h3>
+          <button class="btn-primary" (click)="showAddTacheForm()">
+            <span class="icon">➕</span>
+            Ajouter Tâche
+          </button>
+        </div>
+
+        <div class="taches-list">
+          <div *ngFor="let tache of selectedMissionTaches ?? []" class="tache-item" (click)="viewTacheDetails(tache)">
+            <div class="tache-icon">📋</div>
+            <div class="tache-content">
+              <div class="tache-title">{{ tache.nom }}</div>
+              <div class="tache-description">{{ tache.description }}</div>
+              <div class="tache-meta">
+                <span>{{ tache.dureeEstimee }}h estimées</span>
+                <!-- <span>{{ tache.employesAffectes.length }} employé(s)</span> -->
+              </div>
+              <div class="tache-progress">
+                <div class="progress-bar-small">
+                  <div class="progress-fill" [style.width.%]="tache.progression"></div>
+                </div>
+                <span class="progress-text-small">{{ tache.progression }}%</span>
+              </div>
+            </div>
+            <div class="tache-status">
+              <span class="status-badge" [class]="getStatusClass(tache.statut)">
+                {{ tache.statut }}
+              </span>
+            </div>
+            <button class="action-btn danger" (click)="deleteTache( tache.id)" title="Désaffecter">
+              🗑️
+            </button>
+          </div>
+
+          <div *ngIf="selectedMissionTaches.length === 0" class="empty-state">
+            <div class="empty-icon">📋</div>
+            <p>Aucune tâche définie</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Détails tâche -->
+  <div class="tache-details-view" *ngIf="currentView === 'tache-details' && selectedTache">
+    <div class="details-header">
+      <button class="btn-back" (click)="goBack()">
+        <span class="icon">←</span>
+        Retour
+      </button>
+      <div class="tache-title">
+        <h1>{{ selectedTache.nom }}</h1>
+        <span class="tache-description-large">{{ selectedTache.description }}</span>
+      </div>
+      <button class="btn-primary" (click)="editTache(selectedTache)">
+        <span class="icon">✏️</span>
+        Modifier
+      </button>
+    </div>
+
+    <div class="details-grid">
+      <!-- Informations de la tâche -->
+      <div class="info-card">
+        <h3>Informations de la Tâche</h3>
+        <div class="info-list">
+          <div class="info-item">
+            <span class="info-label">Mission</span>
+            <span class="info-value">{{ selectedTache.mission?.nom }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Durée estimée</span>
+            <span class="info-value">{{ selectedTache.dureeEstimee }}h</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Durée réelle</span>
+            <span class="info-value">{{ selectedTache.dureeReelle || 0 }}h</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Progression</span>
+            <span class="info-value highlight">{{ selectedTache.progression }}%</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Période</span>
+            <span class="info-value">
+              {{ selectedTache.dateDebut | date:'dd/MM/yyyy' }} - {{ selectedTache.dateFin | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+
+      <!-- <div class="employes-card">
+        <div class="card-header-with-action">
+          <h3>Employée Affecté</h3>
+          <button class="btn-primary" (click)="openAffectationForm('tache', selectedTache.id)">
+            <span class="icon">➕</span>
+            Affecter
+          </button>
+        </div>
+
+      <div class="info-list">
+          <div class="info-item">
+            <span class="info-label">Nom</span>
+            <span class="info-value">{{ selectedTache.employee?.nom }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Prenom</span>
+            <span class="info-value">{{ selectedTache.employee?.prenom}}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Poste</span>
+            <span class="info-value">{{ selectedTache.employee?.poste   }}</span>
+          </div>
+           <div class="info-item">
+            <span class="info-label">Email</span>
+            <span class="info-value">{{ selectedTache.employee?.email   }}</span>
+          </div>
+           <div class="info-item">
+            <span class="info-label">Telephone</span>
+            <span class="info-value">{{ selectedTache.employee?.telephone   }}</span>
+          </div>
+         
+        </div>
+      </div> -->
+
+      <!-- Charges de la tâche -->
+      <div class="taches-card">
+        <div class="card-header-with-action">
+          <h3>Charges de la Tâche</h3>
+          <button class="btn-primary" (click)="addCharge(selectedTache)">
+            <span class="icon">➕</span>
+            Ajouter Charge
+          </button>
+        </div>
+
+        <div class="taches-list">
+          <div *ngFor="let charge of selectedTache.charges" class="tache-item">
+            <div class="tache-icon">👤</div>
+            <div class="tache-content">
+              <div class="tache-title"> {{ charge.nom }}</div>
+              <div class="tache-description">{{ charge.description }}</div>
+              <div class="tache-meta">
+                <span>{{ charge.montant }} DT</span>
+                <!-- <span>{{ charge.heuresRealisees }}h / {{ charge.heuresAllouees }}h</span> -->
+              </div>
+              <!-- <button class="btn-primary" (click)="editCharge(charge)">
+                <span class="icon">✏️</span>
+                Modifier
+              </button> -->
+              <button class="action-btn danger" (click)="deleteCharge( charge.id)" title="Désaffecter">
+                🗑️
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="selectedTache.charges.length === 0" class="empty-state">
+            <div class="empty-icon">👤</div>
+            <p>Aucune charge définie</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Commentaires -->
+      <div class="commentaires-card">
+        <div class="card-header-with-action">
+          <h3>Commentaires</h3>
+          <button class="btn-primary" (click)="showAddCommentaireForm()">
+            <span class="icon">➕</span>
+            Ajouter
+          </button>
+        </div>
+
+        <div class="commentaires-list">
+          <div *ngFor="let commentaire of selectedTache.commentaires" class="commentaire-item">
+            <div class="commentaire-icon">💬</div>
+            <div class="commentaire-content">
+              <div class="commentaire-header">
+                <span class="commentaire-auteur">{{ commentaire.auteur }}</span>
+                <span class="commentaire-date">{{ commentaire.date | date:'dd/MM/yyyy HH:mm' }}</span>
+              </div>
+              <div class="commentaire-text">{{ commentaire.contenu }}</div>
+              <div class="commentaire-type">{{ commentaire.type }}</div>
+              <button class="action-btn danger" (click)="deleteCommentaire( commentaire.id)" title="Désaffecter">
+                🗑️
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="selectedTache.commentaires.length === 0" class="empty-state">
+            <div class="empty-icon">💬</div>
+            <p>Aucun commentaire</p>
+          </div>
+        </div>
+      </div>
+
+
+
+      <!-- LIVRABLES -->
+      <div class="commentaires-card">
+        <div class="card-header-with-action">
+          <h3>Livrables</h3>
+          <button class="btn-primary" (click)="showAddLivrableForm()">
+            <span class="icon">➕</span> Ajouter
+          </button>
+        </div>
+
+        <div class="commentaires-list">
+          <div *ngFor="let livrable of selectedTache.livrables" class="commentaire-item">
+            <div class="commentaire-icon">📦</div>
+            <div class="commentaire-content">
+              <div class="commentaire-header">
+                <span class="commentaire-auteur">{{ livrable.nom }}</span>
+              </div>
+              <p class="commentaire-texte">{{ livrable.description }}</p>
+              <button class="action-btn danger" (click)="deleteLivrable( livrable.id)" title="Désaffecter">
+                🗑️
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="!selectedTache.livrables?.length" class="empty-state">
+            <div class="empty-icon">📦</div>
+            <p>Aucun livrable pour cette tâche</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROBLÈMES -->
+      <div class="commentaires-card">
+        <div class="card-header-with-action">
+          <h3>Problèmes rencontrés</h3>
+          <button class="btn-primary" (click)="showAddProblemeForm()">
+            <span class="icon">➕</span> Ajouter
+          </button>
+        </div>
+
+        <div class="commentaires-list">
+          <div *ngFor="let prob of selectedTache.problemes" class="commentaire-item">
+            <div class="commentaire-icon">⚠️</div>
+            <div class="commentaire-content">
+              <div class="commentaire-header">
+                <span class="commentaire-auteur">{{ prob.nom }}</span>
+              </div>
+              <p class="commentaire-texte">{{ prob.description }}</p>
+              <button class="action-btn danger" (click)="deleteProbleme( prob.id)" title="Désaffecter">
+                🗑️
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="!selectedTache.problemes?.length" class="empty-state">
+            <div class="empty-icon">⚠️</div>
+            <p>Aucun problème enregistré</p>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+  </div>
+
+  <!-- Popup formulaire projet -->
+  <div class="popup-overlay" *ngIf="showProjetForm">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>{{ isEditMode ? 'Modifier' : 'Nouveau' }} Projet</h2>
+        <button class="popup-close" (click)="closeProjetForm()">✕</button>
+      </div>
+
+      <form [formGroup]="projetForm" (ngSubmit)="saveProjet()" class="popup-form">
+        <!-- Informations Générales -->
+        <div class="form-section">
+          <h3>Informations Générales</h3>
+          <div class="form-grid">
+
+            <!-- Nom -->
+            <div class="form-group">
+              <label class="form-label">Nom du projet *</label>
+              <input type="text" class="form-input" formControlName="nom" placeholder="Refonte Site Web"
+                [class.is-invalid]="submitted && f['nom'].errors" />
+              <div *ngIf="submitted && f['nom'].errors" class="error-message">
+                <div *ngIf="f['nom'].errors['required']">Le nom du projet est requis</div>
+                <div *ngIf="f['nom'].errors['minlength']">
+                  Minimum {{ f['nom'].errors['minlength'].requiredLength }} caractères requis
+                </div>
+              </div>
+            </div>
+
+            <!-- Type -->
+            <div class="form-group">
+              <label class="form-label">Type *</label>
+              <select class="form-input" formControlName="type" [class.is-invalid]="submitted && f['type'].errors">
+                <option value="">Sélectionner</option>
+                <option *ngFor="let type of typesProjet" [value]="type">{{ type }}</option>
+              </select>
+              <div *ngIf="submitted && f['type'].errors" class="error-message">
+                <div *ngIf="f['type'].errors['required']">Le type du projet est requis</div>
+              </div>
+            </div>
+
+            <!-- Priorité -->
+            <div class="form-group">
+              <label class="form-label">Priorité *</label>
+              <select class="form-input" formControlName="priorite"
+                [class.is-invalid]="submitted && f['priorite'].errors">
+                <option value="">Sélectionner</option>
+                <option *ngFor="let priorite of prioritesProjets" [value]="priorite">{{ priorite }}</option>
+              </select>
+              <div *ngIf="submitted && f['priorite'].errors" class="error-message">
+                <div *ngIf="f['priorite'].errors['required']">La priorité est requise</div>
+              </div>
+            </div>
+
+            <!-- Statut -->
+            <div class="form-group">
+              <label class="form-label">Statut *</label>
+              <select class="form-input" formControlName="statut" [class.is-invalid]="submitted && f['statut'].errors">
+                <option value="">Sélectionner</option>
+                <option *ngFor="let statut of statutsProjets" [value]="statut">{{ statut }}</option>
+              </select>
+              <div *ngIf="submitted && f['statut'].errors" class="error-message">
+                <div *ngIf="f['statut'].errors['required']">Le statut est requis</div>
+              </div>
+            </div>
+
+            <!-- Chef de projet -->
+            <div class="form-group">
+              <label class="form-label">Chef de projet *</label>
+              <input type="text" class="form-input" formControlName="chefProjet" placeholder="Mohamed Ben Ahmed"
+                [class.is-invalid]="submitted && f['chefProjet'].errors" />
+              <div *ngIf="submitted && f['chefProjet'].errors" class="error-message">
+                <div *ngIf="f['chefProjet'].errors['required']">Le chef de projet est requis</div>
+              </div>
+            </div>
+
+            <!-- Client -->
+            <div class="form-group">
+              <label class="form-label">Client *</label>
+              <select class="form-input" formControlName="client" [class.is-invalid]="submitted && f['client'].errors">
+                <option value="">-- Sélectionnez un client --</option>
+                <option *ngFor="let client of clients" [value]="client.id">
+                  {{ client.nom }}
+                </option>
+              </select>
+              <div *ngIf="submitted && f['client'].errors" class="error-message">
+                <div *ngIf="f['client'].errors['required']">Le client est requis</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Description et Planning -->
+        <div class="form-section">
+          <h3>Description et Planning</h3>
+
+          <!-- Description -->
+          <div class="form-group full-width">
+            <label class="form-label">Description *</label>
+            <textarea class="form-input" formControlName="description" rows="4"
+              placeholder="Description détaillée du projet..."
+              [class.is-invalid]="submitted && f['description'].errors"></textarea>
+            <div *ngIf="submitted && f['description'].errors" class="error-message">
+              <div *ngIf="f['description'].errors['required']">La description est requise</div>
+              <div *ngIf="f['description'].errors['minlength']">
+                Minimum {{ f['description'].errors['minlength'].requiredLength }} caractères requis
+              </div>
+            </div>
+          </div>
+
+          <!-- Dates et Budget -->
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label class="form-label">Date de début *</label>
+              <input type="date" class="form-input" formControlName="dateDebut"
+                [class.is-invalid]="submitted && f['dateDebut'].errors" />
+              <div *ngIf="submitted && f['dateDebut'].errors" class="error-message">
+                <div *ngIf="f['dateDebut'].errors['required']">La date de début est requise</div>
+              </div>
+            </div>
+
+
+
+            <div class="form-group">
+              <label class="form-label">Date de fin prévue *</label>
+              <input type="date" class="form-input" formControlName="dateFinPrevue"
+                [class.is-invalid]="submitted && f['dateFinPrevue'].errors" />
+              <div *ngIf="submitted && f['dateFinPrevue'].errors" class="error-message">
+                <div *ngIf="f['dateFinPrevue'].errors['required']">La date de fin prévue est requise</div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Budget (DT) *</label>
+              <input type="number" class="form-input" formControlName="budget" min="0" placeholder="25000"
+                [class.is-invalid]="submitted && f['budget'].errors" />
+              <div *ngIf="submitted && f['budget'].errors" class="error-message">
+                <div *ngIf="f['budget'].errors['required']">Le budget est requis</div>
+                <div *ngIf="f['budget'].errors['min']">Le budget doit être ≥ 0</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeProjetForm()">Annuler</button>
+          <button type="submit" class="btn-primary">
+            <span class="icon">💾</span>
+            {{ isEditMode ? 'Modifier' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Popup formulaire phase -->
+  <div class="popup-overlay" *ngIf="showPhaseForm">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>{{ selectedPhase ? 'Modifier' : 'Nouvelle' }} Phase</h2>
+        <button class="popup-close" (click)="closePhaseForm()">✕</button>
+      </div>
+      <form [formGroup]="phaseForm" (ngSubmit)="savePhase()" class="popup-form">
+
+        <div class="form-section">
+          <h3>Informations de la Phase</h3>
+          <div class="form-grid">
+
+            <!-- Projet -->
+            <div class="form-group">
+              <label class="form-label">Projet *</label>
+              <select class="form-input" formControlName="projetId"
+                [class.is-invalid]="submittedPhase && fph['projetId'].errors">
+                <option value="">Sélectionner un projet</option>
+                <option *ngFor="let projet of projets" [value]="projet.id">
+                  {{ projet.nom }}
+                </option>
+              </select>
+              <div *ngIf="submittedPhase && fph['projetId'].errors" class="error-message">
+                <div *ngIf="fph['projetId'].errors['required']">Le projet est requis</div>
+              </div>
+            </div>
+
+            <!-- Nom -->
+            <div class="form-group">
+              <label class="form-label">Nom de la phase *</label>
+              <input type="text" class="form-input" formControlName="nom" placeholder="Étude et Analyse"
+                [class.is-invalid]="submittedPhase && fph['nom'].errors" />
+              <div *ngIf="submittedPhase && fph['nom'].errors" class="error-message">
+                <div *ngIf="fph['nom'].errors['required']">Le nom de la phase est requis</div>
+                <div *ngIf="fph['nom'].errors['minlength']">Le nom doit contenir au moins 3 caractères</div>
+              </div>
+            </div>
+
+            <!-- Ordre -->
+            <div class="form-group">
+              <label class="form-label">Ordre *</label>
+              <select class="form-input" formControlName="ordre"
+                [class.is-invalid]="submittedPhase && fph['ordre'].errors">
+                <option value="1">1 - Étude/Analyse</option>
+                <option value="2">2 - Développement/Réalisation</option>
+                <option value="3">3 - Mise en service/Déploiement</option>
+                <option value="4">4 - Supervision/Contrôle/Suivi</option>
+                <option value="5">5 - Clôture</option>
+              </select>
+              <div *ngIf="submittedPhase && fph['ordre'].errors" class="error-message">
+                <div *ngIf="fph['ordre'].errors['required']">L'ordre est requis</div>
+                <div *ngIf="fph['ordre'].errors['min']">L'ordre minimum est 1</div>
+                <div *ngIf="fph['ordre'].errors['max']">L'ordre maximum est 5</div>
+              </div>
+            </div>
+
+            <!-- Statut -->
+            <div class="form-group">
+              <label class="form-label">Statut *</label>
+              <select class="form-input" formControlName="statut"
+                [class.is-invalid]="submittedPhase && fph['statut'].errors">
+                <option value="PLANIFIEE">Planifiée</option>
+                <option value="EN_COURS">En Cours</option>
+                <option value="EN_PAUSE">En Pause</option>
+                <option value="TERMINEE">Terminée</option>
+                <option value="ANNULEE">Annulée</option>
+              </select>
+              <div *ngIf="submittedPhase && fph['statut'].errors" class="error-message">
+                <div *ngIf="fph['statut'].errors['required']">Le statut est requis</div>
+              </div>
+            </div>
+
+            <!-- Date début -->
+            <div class="form-group">
+              <label class="form-label">Date de début *</label>
+              <input type="date" class="form-input" formControlName="dateDebut"
+                [class.is-invalid]="submittedPhase && fph['dateDebut'].errors" />
+              <div *ngIf="submittedPhase && fph['dateDebut'].errors" class="error-message">
+                <div *ngIf="fph['dateDebut'].errors['required']">La date de début est requise</div>
+              </div>
+            </div>
+
+            <!-- Date fin -->
+            <div class="form-group">
+              <label class="form-label">Date de fin *</label>
+              <input type="date" class="form-input" formControlName="dateFin"
+                [class.is-invalid]="submittedPhase && fph['dateFin'].errors" />
+              <div *ngIf="submittedPhase && fph['dateFin'].errors" class="error-message">
+                <div *ngIf="fph['dateFin'].errors['required']">La date de fin est requise</div>
+              </div>
+            </div>
+
+            <!-- Budget -->
+            <div class="form-group">
+              <label class="form-label">Budget (DT)</label>
+              <input type="number" class="form-input" formControlName="budget" min="0" placeholder="5000" />
+              <div *ngIf="submittedPhase && fph['budget'].errors" class="error-message">
+                <div *ngIf="fph['budget'].errors['min']">Le budget doit être supérieur ou égal à 0</div>
+              </div>
+            </div>
+
+            <!-- Progression -->
+            <div class="form-group">
+              <label class="form-label">Progression (%)</label>
+              <input type="number" class="form-input" formControlName="progression" min="0" max="100" placeholder="0" />
+              <div *ngIf="submittedPhase && fph['progression'].errors" class="error-message">
+                <div *ngIf="fph['progression'].errors['min']">La progression minimale est 0%</div>
+                <div *ngIf="fph['progression'].errors['max']">La progression maximale est 100%</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-section">
+          <h3>Description</h3>
+          <div class="form-group full-width">
+            <label class="form-label">Description *</label>
+            <textarea class="form-input" formControlName="description" rows="4"
+              placeholder="Description détaillée de la phase..."
+              [class.is-invalid]="submittedPhase && fph['description'].errors"></textarea>
+            <div *ngIf="submittedPhase && fph['description'].errors" class="error-message">
+              <div *ngIf="fph['description'].errors['required']">La description est requise</div>
+              <div *ngIf="fph['description'].errors['minlength']">La description doit contenir au moins 10 caractères
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closePhaseForm()">Annuler</button>
+          <button type="submit" class="btn-primary">
+            <span class="icon">💾</span>
+            {{ selectedPhase ? 'Modifier' : 'Créer' }}
+          </button>
+        </div>
+
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Popup formulaire mission -->
+  <div class="popup-overlay" *ngIf="showMissionForm">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>{{ isEditModeMission ? 'Modifier' : 'Nouvelle' }} Mission</h2>
+        <button class="popup-close" (click)="closeMissionForm()">✕</button>
+      </div>
+
+      <form [formGroup]="missionForm" (ngSubmit)="saveMission()" class="popup-form">
+        <div class="form-section">
+          <h3>Informations de la Mission</h3>
+          <div class="form-grid">
+
+            <!-- Projet -->
+            <div class="form-group">
+              <label class="form-label">Projet *</label>
+              <select class="form-input" formControlName="projetId" (change)="onProjetChange($event)"
+                [class.is-invalid]="submittedMission && fm['projetId'].errors">
+                <option [ngValue]="null">Sélectionner un projet</option>
+                <option *ngFor="let projet of projets" [ngValue]="projet.id">{{ projet.nom }}</option>
+              </select>
+              <div *ngIf="submittedMission && fm['projetId'].errors" class="error-message">
+                <div *ngIf="fm['projetId'].errors?.['required']">Le projet est requis</div>
+              </div>
+            </div>
+
+            <!-- Phase -->
+            <div class="form-group">
+              <label class="form-label">Phase *</label>
+              <select class="form-input" formControlName="phaseId"
+                [class.is-invalid]="submittedMission && fm['phaseId'].errors">
+                <option [ngValue]="null">Sélectionner une phase</option>
+                <option *ngFor="let phase of phases" [ngValue]="phase.id">{{ phase.nom }}</option>
+              </select>
+              <div *ngIf="submittedMission && fm['phaseId'].errors" class="error-message">
+                <div *ngIf="fm['phaseId'].errors?.['required']">La phase est requise</div>
+              </div>
+            </div>
+
+            <!-- Nom -->
+            <div class="form-group">
+              <label class="form-label">Nom de la mission *</label>
+              <input type="text" class="form-input" formControlName="nom" placeholder="Développement Frontend"
+                [class.is-invalid]="submittedMission && fm['nom'].errors" />
+              <div *ngIf="submittedMission && fm['nom'].errors" class="error-message">
+                <div *ngIf="fm['nom'].errors?.['required']">Le nom est requis</div>
+                <div *ngIf="fm['nom'].errors?.['minlength']">Le nom doit contenir au moins 3 caractères</div>
+              </div>
+            </div>
+
+            <!-- Priorité -->
+            <div class="form-group">
+              <label class="form-label">Priorité *</label>
+              <select class="form-input" formControlName="priorite"
+                [class.is-invalid]="submittedMission && fm['priorite'].errors">
+                <option *ngFor="let priorite of prioritesMissions" [ngValue]="priorite">{{ priorite }}</option>
+              </select>
+              <div *ngIf="submittedMission && fm['priorite'].errors" class="error-message">
+                <div *ngIf="fm['priorite'].errors?.['required']">La priorité est requise</div>
+              </div>
+            </div>
+
+            <!-- Statut -->
+            <div class="form-group">
+              <label class="form-label">Statut *</label>
+              <select class="form-input" formControlName="statut"
+                [class.is-invalid]="submittedMission && fm['statut'].errors">
+                <option *ngFor="let statut of statutsMissions" [ngValue]="statut">{{ statut }}</option>
+              </select>
+              <div *ngIf="submittedMission && fm['statut'].errors" class="error-message">
+                <div *ngIf="fm['statut'].errors?.['required']">Le statut est requis</div>
+              </div>
+            </div>
+
+            <!-- Budget -->
+            <div class="form-group">
+              <label class="form-label">Budget (DT)</label>
+              <input type="number" class="form-input" formControlName="budget" min="0" placeholder="8000" />
+              <div *ngIf="submittedMission && fm['budget'].errors" class="error-message">
+                <div *ngIf="fm['budget'].errors?.['min']">Le budget doit être supérieur ou égal à 0</div>
+              </div>
+            </div>
+
+            <!-- Dates -->
+            <div class="form-group">
+              <label class="form-label">Date de début *</label>
+              <input type="date" class="form-input" formControlName="dateDebut"
+                [class.is-invalid]="submittedMission && fm['dateDebut'].errors" />
+              <div *ngIf="submittedMission && fm['dateDebut'].errors" class="error-message">
+                <div *ngIf="fm['dateDebut'].errors?.['required']">La date de début est requise</div>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Date de fin *</label>
+              <input type="date" class="form-input" formControlName="dateFin"
+                [class.is-invalid]="submittedMission && fm['dateFin'].errors" />
+              <div *ngIf="submittedMission && fm['dateFin'].errors" class="error-message">
+                <div *ngIf="fm['dateFin'].errors?.['required']">La date de fin est requise</div>
+              </div>
+            </div>
+
+            <!-- Progression -->
+            <div class="form-group">
+              <label class="form-label">Progression (%)</label>
+              <input type="number" class="form-input" formControlName="progression" min="0" max="100" placeholder="0" />
+              <div *ngIf="submittedMission && fm['progression'].errors" class="error-message">
+                <div *ngIf="fm['progression'].errors?.['min']">La progression minimale est 0%</div>
+                <div *ngIf="fm['progression'].errors?.['max']">La progression maximale est 100%</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Description et Objectif -->
+        <div class="form-section">
+          <h3>Description et Objectif</h3>
+
+          <div class="form-group full-width">
+            <label class="form-label">Description *</label>
+            <textarea class="form-input" formControlName="description" rows="3"
+              placeholder="Description détaillée de la mission..."
+              [class.is-invalid]="submittedMission && fm['description'].errors"></textarea>
+            <div *ngIf="submittedMission && fm['description'].errors" class="error-message">
+              <div *ngIf="fm['description'].errors?.['required']">La description est requise</div>
+              <div *ngIf="fm['description'].errors?.['minlength']">La description doit contenir au moins 10 caractères
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Objectif *</label>
+            <textarea class="form-input" formControlName="objectif" rows="3" placeholder="Objectif à atteindre..."
+              [class.is-invalid]="submittedMission && fm['objectif'].errors"></textarea>
+            <div *ngIf="submittedMission && fm['objectif'].errors" class="error-message">
+              <div *ngIf="fm['objectif'].errors?.['required']">L'objectif est requis</div>
+              <div *ngIf="fm['objectif'].errors?.['minlength']">L'objectif doit contenir au moins 10 caractères</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeMissionForm()">Annuler</button>
+          <button type="submit" class="btn-primary">
+            <span class="icon">💾</span> {{ selectedMission ? 'Modifier' : 'Créer' }}
+          </button>
+        </div>
+
+      </form>
+
+
+
+    </div>
+  </div>
+
+  <!-- Popup formulaire tâche -->
+  <div class="popup-overlay" *ngIf="showTacheForm">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>{{ isEditModeTache ? 'Modifier' : 'Nouvelle' }} Tâche</h2>
+        <button class="popup-close" (click)="closeTacheForm()">✕</button>
+      </div>
+
+      <form [formGroup]="tacheForm" (ngSubmit)="saveTache()" class="popup-form">
+        <div class="form-section">
+          <h3>Informations de la Tâche</h3>
+          <div class="form-grid">
+
+            <!-- Mission -->
+            <div class="form-group">
+              <label class="form-label">Mission *</label>
+              <select class="form-input" formControlName="missionId"
+                [class.is-invalid]="submittedTache && ft['missionId'].errors">
+                <option [ngValue]="null">Sélectionner une mission</option>
+                <option *ngFor="let mission of selectedPhaseMission ?? []" [ngValue]="mission.id">{{ mission.nom }}
+                </option>
+              </select>
+              <div *ngIf="submittedTache && ft['missionId'].errors" class="error-message">
+                <div *ngIf="ft['missionId'].errors?.['required']">La mission est requise</div>
+              </div>
+            </div>
+
+            <!-- Nom -->
+            <div class="form-group">
+              <label class="form-label">Nom de la tâche *</label>
+              <input type="text" class="form-input" formControlName="nom" placeholder="Création des maquettes"
+                [class.is-invalid]="submittedTache && ft['nom'].errors" />
+              <div *ngIf="submittedTache && ft['nom'].errors" class="error-message">
+                <div *ngIf="ft['nom'].errors?.['required']">Le nom est requis</div>
+                <div *ngIf="ft['nom'].errors?.['minlength']">Le nom doit contenir au moins 3 caractères</div>
+              </div>
+            </div>
+
+            <!-- Priorité -->
+            <div class="form-group">
+              <label class="form-label">Priorité *</label>
+              <select class="form-input" formControlName="priorite"
+                [class.is-invalid]="submittedTache && ft['priorite'].errors">
+                <option *ngFor="let priorite of prioritesTaches" [ngValue]="priorite">{{ priorite }}</option>
+              </select>
+              <div *ngIf="submittedTache && ft['priorite'].errors" class="error-message">
+                <div *ngIf="ft['priorite'].errors?.['required']">La priorité est requise</div>
+              </div>
+            </div>
+
+            <!-- Statut -->
+            <div class="form-group">
+              <label class="form-label">Statut *</label>
+              <select class="form-input" formControlName="statut"
+                [class.is-invalid]="submittedTache && ft['statut'].errors">
+                <option *ngFor="let statut of statutsTaches" [ngValue]="statut">{{ statut }}</option>
+              </select>
+              <div *ngIf="submittedTache && ft['statut'].errors" class="error-message">
+                <div *ngIf="ft['statut'].errors?.['required']">Le statut est requis</div>
+              </div>
+            </div>
+
+            <!-- Durée estimée -->
+            <div class="form-group">
+              <label class="form-label">Durée estimée (h) *</label>
+              <input type="number" class="form-input" formControlName="dureeEstimee" min="0" placeholder="40"
+                [class.is-invalid]="submittedTache && ft['dureeEstimee'].errors" />
+              <div *ngIf="submittedTache && ft['dureeEstimee'].errors" class="error-message">
+                <div *ngIf="ft['dureeEstimee'].errors?.['required']">La durée estimée est requise</div>
+                <div *ngIf="ft['dureeEstimee'].errors?.['min']">La durée doit être supérieure ou égale à 0</div>
+              </div>
+            </div>
+
+            <!-- Progression -->
+            <div class="form-group">
+              <label class="form-label">Progression (%)</label>
+              <input type="number" class="form-input" formControlName="progression" min="0" max="100" placeholder="0"
+                [class.is-invalid]="submittedTache && ft['progression'].errors" />
+              <div *ngIf="submittedTache && ft['progression'].errors" class="error-message">
+                <div *ngIf="ft['progression'].errors?.['min']">La progression minimale est 0%</div>
+                <div *ngIf="ft['progression'].errors?.['max']">La progression maximale est 100%</div>
+              </div>
+            </div>
+
+            <!-- Date début -->
+            <div class="form-group">
+              <label class="form-label">Date de début *</label>
+              <input type="date" class="form-input" formControlName="dateDebut"
+                [class.is-invalid]="submittedTache && ft['dateDebut'].errors" />
+              <div *ngIf="submittedTache && ft['dateDebut'].errors" class="error-message">
+                <div *ngIf="ft['dateDebut'].errors?.['required']">La date de début est requise</div>
+              </div>
+            </div>
+
+            <!-- Date fin -->
+            <div class="form-group">
+              <label class="form-label">Date de fin *</label>
+              <input type="date" class="form-input" formControlName="dateFin"
+                [class.is-invalid]="submittedTache && ft['dateFin'].errors" />
+              <div *ngIf="submittedTache && ft['dateFin'].errors" class="error-message">
+                <div *ngIf="ft['dateFin'].errors?.['required']">La date de fin est requise</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Description -->
+        <div class="form-section">
+          <h3>Description</h3>
+          <div class="form-group full-width">
+            <label class="form-label">Description *</label>
+            <textarea class="form-input" formControlName="description" rows="4"
+              placeholder="Description détaillée de la tâche..."
+              [class.is-invalid]="submittedTache && ft['description'].errors"></textarea>
+            <div *ngIf="submittedTache && ft['description'].errors" class="error-message">
+              <div *ngIf="ft['description'].errors?.['required']">La description est requise</div>
+              <div *ngIf="ft['description'].errors?.['minlength']">La description doit contenir au moins 10 caractères
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeTacheForm()">Annuler</button>
+          <button type="submit" class="btn-primary">
+            <span class="icon">💾</span> {{ isEditModeTache ? 'Modifier' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Popup formulaire charge -->
+  <div class="popup-overlay" *ngIf="showChargeForm">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>Nouvelle Charge</h2>
+        <button class="popup-close" (click)="closeChargeForm()">✕</button>
+      </div>
+
+      <form [formGroup]="chargeForm" (ngSubmit)="saveCharge()" class="popup-form">
+        <div class="form-section">
+          <h3>Informations de la Charge</h3>
+          <div class="form-grid">
+
+            <!-- Employé -->
+            <div class="form-group">
+              <label class="form-label">Employé *</label>
+              <select class="form-input" formControlName="employeId"
+                [class.is-invalid]="submittedCharge && fch['employeId'].errors">
+                <option value="">Sélectionner un employé</option>
+                <option *ngFor="let employe of employees" [value]="employe.id">
+                  {{ employe.prenom }} {{ employe.nom }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Nom -->
+            <div class="form-group">
+              <label class="form-label">Nom *</label>
+              <input type="text" class="form-input" formControlName="nom" placeholder="Saisir le nom de la charge"
+                [class.is-invalid]="submittedCharge && fch['nom'].errors" />
+              <div *ngIf="submittedCharge && fch['nom'].errors" class="error-message">
+                Le nom est obligatoire.
+              </div>
+            </div>
+
+            <!-- Montant -->
+            <div class="form-group">
+              <label class="form-label">Montant (DT) *</label>
+              <input type="number" class="form-input" formControlName="montant" min="0" placeholder="100"
+                [class.is-invalid]="submittedCharge && fch['montant'].errors" />
+              <div *ngIf="submittedCharge && fch['montant'].errors" class="error-message">
+                <div *ngIf="fch['montant'].errors?.['required']">Le montant est requis</div>
+                <div *ngIf="fch['montant'].errors?.['min']">Le montant doit être ≥ 0</div>
+              </div>
+            </div>
+
+            <!-- Catégorie -->
+            <div class="form-group">
+              <label class="form-label">Catégorie *</label>
+              <select class="form-input" formControlName="categorie" (change)="onCategorieChange($event)"
+                [class.is-invalid]="submittedCharge && fch['categorie'].errors">
+                <option value="">Sélectionner une catégorie</option>
+                <option value="inclus">Inclus dans l’étude</option>
+                <option value="non_inclus">Non inclus dans l’étude</option>
+                <option value="deplacement">Déplacement</option>
+                <option value="restauration">Restauration</option>
+              </select>
+            </div>
+
+            <!-- Sous-Catégorie (affichée uniquement si inclus ou non inclus) -->
+            <div class="form-group" *ngIf="showSousCategorie">
+              <label class="form-label">Sous-catégorie *</label>
+              <select class="form-input" formControlName="sousCategorie"
+                [class.is-invalid]="submittedCharge && fch['sousCategorie'].errors">
+                <option value="">Sélectionner une sous-catégorie</option>
+                <option *ngFor="let sous of sousCategories" [value]="sous">{{ sous }}</option>
+              </select>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Description</h3>
+          <div class="form-group full-width">
+            <label class="form-label">Description</label>
+            <textarea class="form-input" formControlName="description" rows="3"
+              placeholder="Description de la charge..."></textarea>
+          </div>
+        </div>
+
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeChargeForm()">Annuler</button>
+          <button type="submit" class="btn-primary">
+            <span class="icon">💾</span> Créer
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+  <!-- Popup formulaire affectation -->
+  <div class="popup-overlay" *ngIf="showAffectationForm">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>Affecter un Employé</h2>
+        <button class="popup-close" (click)="closeAffectationForm()">✕</button>
+      </div>
+
+      <form [formGroup]="affectationForm" (ngSubmit)="saveAffectation()" class="popup-form">
+        <div class="form-section">
+          <h3>Affectation d'Employé</h3>
+          <div class="form-grid">
+
+            <!-- Employé -->
+            <div class="form-group">
+              <label class="form-label">Employé *</label>
+              <select class="form-input" formControlName="employeId"
+                [class.is-invalid]="submittedAffectation && fa['employeId'].errors">
+                <option [ngValue]="null">Sélectionner un employé</option>
+                <option *ngFor="let employe of employees" [ngValue]="employe.id">
+                  {{ employe.prenom }} {{ employe.nom }} - {{ employe.poste }}
+                </option>
+              </select>
+              <div *ngIf="submittedAffectation && fa['employeId'].errors" class="error-message">
+                <div *ngIf="fa['employeId'].errors?.['required']">L'employé est requis</div>
+              </div>
+            </div>
+
+            <!-- Rôle -->
+            <div class="form-group">
+              <label class="form-label">Rôle *</label>
+              <select class="form-input" formControlName="role"
+                [class.is-invalid]="submittedAffectation && fa['role'].errors">
+                <option [ngValue]="null">Sélectionner un rôle</option>
+                <option *ngFor="let role of rolesProjets" [ngValue]="role">{{ role }}</option>
+              </select>
+              <div *ngIf="submittedAffectation && fa['role'].errors" class="error-message">
+                <div *ngIf="fa['role'].errors?.['required']">Le rôle est requis</div>
+              </div>
+            </div>
+
+            <!-- Taux horaire -->
+            <div class="form-group">
+              <label class="form-label">Taux horaire (DT/h) *</label>
+              <input type="number" class="form-input" formControlName="tauxHoraire" min="0" placeholder="50"
+                [class.is-invalid]="submittedAffectation && fa['tauxHoraire'].errors" />
+              <div *ngIf="submittedAffectation && fa['tauxHoraire'].errors" class="error-message">
+                <div *ngIf="fa['tauxHoraire'].errors?.['required']">Le taux horaire est requis</div>
+                <div *ngIf="fa['tauxHoraire'].errors?.['min']">Le taux horaire doit être ≥ 0</div>
+              </div>
+            </div>
+
+            <!-- Heures allouées -->
+            <div class="form-group">
+              <label class="form-label">Heures allouées *</label>
+              <input type="number" class="form-input" formControlName="heuresAllouees" min="1" placeholder="40"
+                [class.is-invalid]="submittedAffectation && fa['heuresAllouees'].errors" />
+              <div *ngIf="submittedAffectation && fa['heuresAllouees'].errors" class="error-message">
+                <div *ngIf="fa['heuresAllouees'].errors?.['required']">Les heures allouées sont requises</div>
+                <div *ngIf="fa['heuresAllouees'].errors?.['min']">Les heures doivent être ≥ 1</div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeAffectationForm()">Annuler</button>
+          <button type="submit" class="btn-primary">
+            <span class="icon">💾</span> {{ 'Affecter' }}
+          </button>
+        </div>
+      </form>
+
+
+    </div>
+  </div>
+
+  <!-- Popup formulaire commentaire -->
+  <div class="popup-overlay" *ngIf="showCommentaireForm" (click)="closeCommentaireForm()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>Ajouter un Commentaire</h2>
+        <button class="popup-close" (click)="closeCommentaireForm()">✕</button>
+      </div>
+
+      <form [formGroup]="commentaireForm" (ngSubmit)="saveCommentaire()" class="popup-form">
+        <div class="form-section">
+          <h3>Nouveau Commentaire</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Auteur *</label>
+              <input type="text" class="form-input" formControlName="auteur" placeholder="Votre nom"
+                [class.is-invalid]="submittedCommentaire && fc['auteur'].errors" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Type *</label>
+              <select class="form-input" formControlName="type"
+                [class.is-invalid]="submittedCommentaire && fc['type'].errors">
+                <option *ngFor="let type of typesCommentaires" [value]="type">
+                  {{ type }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Contenu *</label>
+            <textarea class="form-input" formControlName="contenu" rows="4" placeholder="Votre commentaire..."
+              [class.is-invalid]="submittedCommentaire && fc['contenu'].errors"></textarea>
+          </div>
+        </div>
+
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeCommentaireForm()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary">
+            <span class="icon">💾</span>
+            Ajouter
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Popup Livrable -->
+  <div class="popup-overlay" *ngIf="showLivrableForm" (click)="closeLivrableForm()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>Ajouter un Livrable</h2>
+        <button class="popup-close" (click)="closeLivrableForm()">✕</button>
+      </div>
+
+      <form [formGroup]="livrableForm" (ngSubmit)="saveLivrable()" class="popup-form">
+        <div class="form-section">
+          <h3>Nouveau Livrable</h3>
+
+          <div class="form-group full-width">
+            <label class="form-label">Nom *</label>
+            <input class="form-input" formControlName="nom" placeholder="Nom du livrable"
+              [class.is-invalid]="submittedLivrable && fl['nom'].errors" />
+            <small class="text-danger" *ngIf="submittedLivrable && fl['nom']?.errors">
+              Champ obligatoire
+            </small>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Description</label>
+            <textarea class="form-input" formControlName="description" placeholder="Description"></textarea>
+          </div>
+
+          <!-- Supprimer date ou garder en TS uniquement -->
+          <!-- <div class="form-group full-width">
+          <label class="form-label">Date Livraison *</label>
+          <input type="date" class="form-input" formControlName="dateLivraison">
+        </div> -->
+
+        </div>
+
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeLivrableForm()">Annuler</button>
+          <button type="submit" class="btn-primary">
+            <span class="icon">💾</span>
+            Ajouter
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Popup Problème -->
+  <div class="popup-overlay" *ngIf="showProblemeForm" (click)="closeProblemeForm()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>Ajouter un Problème</h2>
+        <button class="popup-close" (click)="closeProblemeForm()">✕</button>
+      </div>
+
+      <form [formGroup]="problemeForm" (ngSubmit)="saveProbleme()" class="popup-form">
+        <div class="form-section">
+          <h3>Nouveau Problème</h3>
+
+          <div class="form-group full-width">
+            <label class="form-label">Nom *</label>
+            <input type="text" class="form-input" formControlName="nom" placeholder="Nom du problème"
+              [class.is-invalid]="submittedProbleme && fp['nom'].errors" />
+            <small class="text-danger" *ngIf="submittedProbleme && fp['nom']?.errors">
+              Champ obligatoire
+            </small>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Description</label>
+            <textarea class="form-input" formControlName="description" rows="3"
+              placeholder="Description du problème"></textarea>
+          </div>
+        </div>
+
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeProblemeForm()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary">
+            <span class="icon">💾</span>
+            Ajouter
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+
+</div>

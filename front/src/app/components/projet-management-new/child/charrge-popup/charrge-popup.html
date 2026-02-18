@@ -1,0 +1,67 @@
+<div class="popup-overlay" *ngIf="show" (click)="closePopup()">
+  <div class="popup-container" (click)="$event.stopPropagation()">
+    <div class="popup-header">
+      <h2>Nouvelle Charge</h2>
+      <button class="popup-close" (click)="closePopup()">✕</button>
+    </div>
+
+    <form [formGroup]="chargeForm" (ngSubmit)="save()" class="popup-form">
+      <div class="form-section">
+        <h3>Informations de la Charge</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Employé *</label>
+            <select class="form-input" formControlName="employeId" [class.is-invalid]="submitted && fch['employeId'].errors">
+              <option value="">Sélectionner un employé</option>
+              <option *ngFor="let e of employees" [value]="e.id">{{ e.prenom }} {{ e.nom }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Nom *</label>
+            <input type="text" class="form-input" formControlName="nom" placeholder="Nom de la charge"
+              [class.is-invalid]="submitted && fch['nom'].errors"/>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Montant (DT) *</label>
+            <input type="number" class="form-input" formControlName="montant" min="0"
+              [class.is-invalid]="submitted && fch['montant'].errors"/>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Catégorie *</label>
+            <select class="form-input" formControlName="categorie" (change)="onCategorieChange($event)"
+              [class.is-invalid]="submitted && fch['categorie'].errors">
+              <option value="">Sélectionner une catégorie</option>
+              <option value="inclus">Inclus dans l’étude</option>
+              <option value="non_inclus">Non inclus</option>
+              <option value="deplacement">Déplacement</option>
+              <option value="restauration">Restauration</option>
+            </select>
+          </div>
+
+          <div class="form-group" *ngIf="showSousCategorie">
+            <label class="form-label">Sous-catégorie *</label>
+            <select class="form-input" formControlName="sousCategorie">
+              <option value="">Sélectionner une sous-catégorie</option>
+              <option *ngFor="let s of sousCategories" [value]="s">{{ s }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Description</h3>
+        <div class="form-group full-width">
+          <textarea class="form-input" formControlName="description" rows="3" placeholder="Description de la charge..."></textarea>
+        </div>
+      </div>
+
+      <div class="popup-actions">
+        <button type="button" class="btn-outline" (click)="closePopup()">Annuler</button>
+        <button type="submit" class="btn-primary">💾 Créer</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,79 @@
+<div class="popup-overlay" *ngIf="showTacheForm" (click)="closeTacheForm()">
+  <div class="popup-container" (click)="$event.stopPropagation()">
+    <div class="popup-header">
+      <h2>{{ isEdit ? 'Modifier' : 'Nouvelle' }} Tâche</h2>
+      <button class="popup-close" (click)="closeTacheForm()">✕</button>
+    </div>
+
+    <form [formGroup]="tacheForm" (ngSubmit)="saveTache()" class="popup-form">
+
+      <!-- Mission -->
+      <div class="form-group">
+        <label>Mission *</label>
+        <select formControlName="missionId" [class.is-invalid]="submittedTache && ft['missionId'].errors">
+          <option value="">Sélectionner</option>
+          <option *ngFor="let mission of missions" [value]="mission.id">{{ mission.nom }}</option>
+        </select>
+      </div>
+
+      <!-- Nom de la tâche -->
+      <div class="form-group">
+        <label>Nom *</label>
+        <input type="text" formControlName="nom" [class.is-invalid]="submittedTache && ft['nom'].errors">
+      </div>
+
+      <!-- Priorité -->
+      <div class="form-group">
+        <label>Priorité *</label>
+        <select formControlName="priorite" [class.is-invalid]="submittedTache && ft['priorite'].errors">
+          <option value="">Sélectionner</option>
+          <option *ngFor="let prio of prioritesTaches" [value]="prio">{{ prio }}</option>
+        </select>
+      </div>
+
+      <!-- Statut -->
+      <div class="form-group">
+        <label>Statut *</label>
+        <select formControlName="statut" [class.is-invalid]="submittedTache && ft['statut'].errors">
+          <option value="">Sélectionner</option>
+          <option *ngFor="let st of statutsTaches" [value]="st">{{ st }}</option>
+        </select>
+      </div>
+
+      <!-- Durée estimée et progression -->
+      <div class="form-group">
+        <label>Durée estimée (h) *</label>
+        <input type="number" formControlName="dureeEstimee" min="0" [class.is-invalid]="submittedTache && ft['dureeEstimee'].errors">
+      </div>
+
+      <div class="form-group">
+        <label>Progression (%)</label>
+        <input type="number" formControlName="progression" min="0" max="100" [class.is-invalid]="submittedTache && ft['progression'].errors">
+      </div>
+
+      <!-- Dates -->
+      <div class="form-group">
+        <label>Date début *</label>
+        <input type="date" formControlName="dateDebut" [class.is-invalid]="submittedTache && ft['dateDebut'].errors">
+      </div>
+
+      <div class="form-group">
+        <label>Date fin *</label>
+        <input type="date" formControlName="dateFin" [class.is-invalid]="submittedTache && ft['dateFin'].errors">
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label>Description *</label>
+        <textarea formControlName="description" [class.is-invalid]="submittedTache && ft['description'].errors"></textarea>
+      </div>
+
+      <!-- Actions -->
+      <div class="popup-actions">
+        <button type="button" class="btn-outline" (click)="closeTacheForm()">Annuler</button>
+        <button type="submit" class="btn-primary">{{ isEdit ? 'Modifier' : 'Créer' }}</button>
+      </div>
+
+    </form>
+  </div>
+</div>

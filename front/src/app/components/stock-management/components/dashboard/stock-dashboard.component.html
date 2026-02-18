@@ -1,0 +1,197 @@
+<div class="dashboard-container">
+  <!-- Loading State -->
+  <div *ngIf="loading" class="loading-overlay">
+    <div class="loading-spinner"></div>
+    <p>Chargement du tableau de bord...</p>
+  </div>
+
+  <!-- Header with Refresh -->
+  <div class="dashboard-header">
+    <h2>📊 Tableau de Bord</h2>
+    <button class="btn-refresh" (click)="refreshDashboard()" [disabled]="loading">
+      🔄 Actualiser
+    </button>
+  </div>
+
+  <!-- Main Stats Grid - 4 columns -->
+  <div class="stats-grid main-stats">
+    <div class="stat-card primary">
+      <div class="stat-icon">📦</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ totalArticles }}</div>
+        <div class="stat-label">Total Articles</div>
+      </div>
+    </div>
+    
+    <div class="stat-card info">
+      <div class="stat-icon">🏷️</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ totalCategories }}</div>
+        <div class="stat-label">Catégories</div>
+      </div>
+    </div>
+    
+    <div class="stat-card warning">
+      <div class="stat-icon">🏭</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ totalMarques }}</div>
+        <div class="stat-label">Marques</div>
+      </div>
+    </div>
+    
+    <div class="stat-card success">
+      <div class="stat-icon">🏢</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ totalEntrepots }}</div>
+        <div class="stat-label">Entrepôts</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Secondary Stats - Financial & Alerts -->
+  <div class="stats-grid secondary-stats">
+    <div class="stat-card alert-card">
+      <div class="stat-icon">🔔</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ alertesNonLues }}</div>
+        <div class="stat-label">Alertes Non Lues</div>
+      </div>
+    </div>
+
+    <div class="stat-card purple highlight-card">
+      <div class="stat-icon">💰</div>
+      <div class="stat-content">
+        <div class="stat-number currency">{{ formatCurrency(totalStockValue) }}</div>
+        <div class="stat-label">Valeur Totale</div>
+      </div>
+    </div>
+
+    <div class="stat-card movement-card">
+      <div class="stat-icon">📊</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ recentMovementsCount }}</div>
+        <div class="stat-label">Mouvements</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard Widgets -->
+  <div class="dashboard-widgets">
+    <!-- Categories Chart -->
+    <div class="widget-card">
+      <div class="widget-header">
+        <h3>🏷️ Répartition par Catégorie</h3>
+      </div>
+      <div class="widget-content">
+        <div *ngIf="categoriesStats.length === 0" class="empty-state">
+          <p>Aucune catégorie avec des articles</p>
+        </div>
+        <div *ngIf="categoriesStats.length > 0" class="category-chart">
+          <div *ngFor="let cat of categoriesStats" class="category-item">
+            <div class="category-bar">
+              <div class="category-fill" 
+                   [style.width]="cat.percentage + '%'" 
+                   [style.background-color]="cat.couleur">
+              </div>
+            </div>
+            <div class="category-info">
+              <span class="category-name">{{ cat.nom }}</span>
+              <span class="category-count">{{ cat.nombre }} articles ({{ cat.percentage.toFixed(1) }}%)</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Alerts Widget -->
+    <div class="widget-card">
+      <div class="widget-header">
+        <h3>⚠️ Alertes Stock</h3>
+        <button class="btn-link" (click)="voirToutesAlertes()">Voir Tous</button>
+      </div>
+      <div class="widget-content">
+        <div *ngIf="alertes.length === 0" class="empty-state">
+          <span class="empty-icon">✅</span>
+          <p>Aucune alerte active</p>
+        </div>
+        <div *ngIf="alertes.length > 0" class="alert-list">
+          <div *ngFor="let alerte of alertes" 
+               class="alert-item" 
+               [ngClass]="getAlertClass(alerte)"
+               (click)="voirAlerte(alerte)">
+            <div class="alert-icon">{{ getAlertIcon(alerte) }}</div>
+            <div class="alert-content">
+              <div class="alert-title">{{ alerte.articleNom }}</div>
+              <div class="alert-message">{{ alerte.message }}</div>
+              <div class="alert-meta">
+                <span class="alert-warehouse">📍 {{ alerte.entrepotNom }}</span>
+                <span class="alert-quantity">Qté: {{ alerte.quantiteActuelle }}</span>
+              </div>
+            </div>
+            <div class="alert-badge" [ngClass]="alerte.priority.toLowerCase()">
+              {{ alerte.priority }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stock by Warehouse -->
+    <div class="widget-card wide">
+      <div class="widget-header">
+        <h3>🏢 Stock par Entrepôt</h3>
+      </div>
+      <div class="widget-content">
+        <div *ngIf="stockParEntrepot.length === 0" class="empty-state">
+          <p>Aucun stock dans les entrepôts</p>
+        </div>
+        <div *ngIf="stockParEntrepot.length > 0" class="warehouse-grid">
+          <div *ngFor="let warehouse of stockParEntrepot" class="warehouse-card">
+            <div class="warehouse-header">
+              <h4>{{ warehouse.nom }}</h4>
+              <span class="warehouse-address">📍 {{ warehouse.adresse }}</span>
+            </div>
+            <div class="warehouse-stats">
+              <div class="warehouse-stat">
+                <span class="stat-value">{{ formatNumber(warehouse.articles) }}</span>
+                <span class="stat-label">Articles</span>
+              </div>
+              <div class="warehouse-stat">
+                <span class="stat-value">{{ formatNumber(warehouse.quantite) }}</span>
+                <span class="stat-label">Unités</span>
+              </div>
+              <div class="warehouse-stat">
+                <span class="stat-value">{{ formatCurrency(warehouse.valeur) }}</span>
+                <span class="stat-label">Valeur</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Movement Stats -->
+    <div class="widget-card" *ngIf="mouvementStats">
+      <div class="widget-header">
+        <h3>📈 Statistiques des Mouvements</h3>
+        <button class="btn-link" (click)="voirMouvements()">Voir Tous</button>
+      </div>
+      <div class="widget-content">
+        <div class="movements-stats">
+          <div class="movement-summary">
+            <div class="movement-total">
+              <span class="total-number">{{ formatNumber(mouvementStats.totalActions) }}</span>
+              <span class="total-label">Actions Totales</span>
+            </div>
+          </div>
+          <div class="movement-types">
+            <div *ngFor="let type of mouvementStats.actionsParType | keyvalue" class="movement-type">
+              <span class="type-badge">{{ type.key }}</span>
+              <span class="type-count">{{ formatNumber(type.value) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

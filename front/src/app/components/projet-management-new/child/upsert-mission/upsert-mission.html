@@ -1,0 +1,85 @@
+<div class="popup-overlay" *ngIf="show">
+  <div class="popup-container" (click)="$event.stopPropagation()">
+
+    <div class="popup-header">
+      <h2>{{ isEditMode ? 'Modifier' : 'Nouvelle' }} Mission</h2>
+      <button class="popup-close" (click)="onClose()">✕</button>
+    </div>
+
+    <form [formGroup]="missionForm" (ngSubmit)="onSubmit()" class="popup-form">
+
+      <div class="form-section">
+        <h3>Informations de la Mission</h3>
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label>Projet *</label>
+            <select formControlName="projetId">
+              <option [ngValue]="null">Sélectionner</option>
+              <option *ngFor="let p of projets" [ngValue]="p.id">{{ p.nom }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Phase *</label>
+            <select formControlName="phaseId">
+              <option [ngValue]="null">Sélectionner</option>
+              <option *ngFor="let ph of phases" [ngValue]="ph.id">{{ ph.nom }}</option>
+            </select>
+          </div>
+
+          <div class="form-group full-width">
+            <label>Nom *</label>
+            <input type="text" formControlName="nom">
+          </div>
+
+          <div class="form-group">
+            <label>Priorité *</label>
+            <select formControlName="priorite">
+              <option *ngFor="let pr of ['Haute', 'Moyenne', 'Basse']" [ngValue]="pr">{{ pr }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Statut *</label>
+            <select formControlName="statut">
+              <option *ngFor="let st of ['Planifiée','En cours','Terminée']" [ngValue]="st">{{ st }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>Budget (DT)</label>
+            <input type="number" formControlName="budget" min="0">
+          </div>
+
+          <div class="form-group">
+            <label>Date début *</label>
+            <input type="date" formControlName="dateDebut">
+          </div>
+
+          <div class="form-group">
+            <label>Date fin *</label>
+            <input type="date" formControlName="dateFin">
+          </div>
+
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Description & Objectif</h3>
+
+        <label>Description *</label>
+        <textarea formControlName="description"></textarea>
+
+        <label>Objectif *</label>
+        <textarea formControlName="objectif"></textarea>
+      </div>
+
+      <div class="popup-actions">
+        <button type="button" (click)="onClose()">Annuler</button>
+        <button type="submit" class="btn-primary">💾 {{ isEditMode ? 'Modifier' : 'Créer' }}</button>
+      </div>
+
+    </form>
+  </div>
+</div>

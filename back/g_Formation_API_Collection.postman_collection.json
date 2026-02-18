@@ -1,0 +1,2641 @@
+{
+	"info": {
+		"_postman_id": "formation-api-complete",
+		"name": "Formation Management API Collection",
+		"description": "Complete API collection for Formation module including Formations, Apprenants, Classes, Formateurs, Contenus, Objectifs, Examens, and all related resources",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12345678"
+	},
+	"item": [
+		{
+			"name": "Formations",
+			"item": [
+				{
+					"name": "Get All Formations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/formations",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"formations"
+							]
+						},
+						"description": "Retrieve all formations"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Formations Paginated",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/formations/paginated?page=0&size=10&sortBy=idFormation&sortDirection=ASC",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"formations",
+								"paginated"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "sortBy",
+									"value": "idFormation"
+								},
+								{
+									"key": "sortDirection",
+									"value": "ASC"
+								}
+							]
+						},
+						"description": "Get paginated list of formations"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Formation Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/formations/statistics",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"formations",
+								"statistics"
+							]
+						},
+						"description": "Get formation statistics including participants, certifications, etc."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Formation by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/formations/{{formation_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"formations",
+								"{{formation_id}}"
+							]
+						},
+						"description": "Get a specific formation by ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Formation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"titre\": \"Advanced Java Programming\",\n  \"description\": \"Comprehensive formation on advanced Java concepts\",\n  \"domainId\": 1,\n  \"dureeJours\": 5,\n  \"nbParticipantsMax\": 30\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/formations",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"formations"
+							]
+						},
+						"description": "Create a new formation"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Formation",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"titre\": \"Advanced Java Programming - Updated\",\n  \"description\": \"Comprehensive formation on advanced Java concepts with examples\",\n  \"domainId\": 1,\n  \"dureeJours\": 6,\n  \"nbParticipantsMax\": 35\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/formations/{{formation_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"formations",
+								"{{formation_id}}"
+							]
+						},
+						"description": "Update an existing formation"
+					},
+					"response": []
+				},
+				{
+					"name": "Duplicate Formation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/formations/{{formation_id}}/duplicate",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"formations",
+								"{{formation_id}}",
+								"duplicate"
+							]
+						},
+						"description": "Create a complete copy of a formation with all its objectives and contents"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Formation",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/formations/{{formation_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"formations",
+								"{{formation_id}}"
+							]
+						},
+						"description": "Delete a formation"
+					},
+					"response": []
+				},
+				{
+					"name": "Link Global Objective",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/formations/{{formation_id}}/link-objectif-global/{{objectif_global_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"formations",
+								"{{formation_id}}",
+								"link-objectif-global",
+								"{{objectif_global_id}}"
+							]
+						},
+						"description": "Link a global objective to a formation"
+					},
+					"response": []
+				},
+				{
+					"name": "Unlink Global Objective",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/formations/{{formation_id}}/unlink-objectif-global/{{objectif_global_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"formations",
+								"{{formation_id}}",
+								"unlink-objectif-global",
+								"{{objectif_global_id}}"
+							]
+						},
+						"description": "Unlink a global objective from a formation"
+					},
+					"response": []
+				},
+				{
+					"name": "Link Specific Objective",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/formations/{{formation_id}}/link-objectif-specifique/{{objectif_specifique_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"formations",
+								"{{formation_id}}",
+								"link-objectif-specifique",
+								"{{objectif_specifique_id}}"
+							]
+						},
+						"description": "Link a specific objective to a formation"
+					},
+					"response": []
+				},
+				{
+					"name": "Unlink Specific Objective",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/formations/{{formation_id}}/unlink-objectif-specifique/{{objectif_specifique_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"formations",
+								"{{formation_id}}",
+								"unlink-objectif-specifique",
+								"{{objectif_specifique_id}}"
+							]
+						},
+						"description": "Unlink a specific objective from a formation"
+					},
+					"response": []
+				},
+				{
+					"name": "Upload Formation Image",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": ""
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/formations/{{formation_id}}/upload-image",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"formations",
+								"{{formation_id}}",
+								"upload-image"
+							]
+						},
+						"description": "Upload an image for a formation (JPG, PNG, GIF, WebP - max 5MB)"
+					},
+					"response": []
+				}
+			],
+			"description": "Formation CRUD operations and management"
+		},
+		{
+			"name": "Apprenants (Learners)",
+			"item": [
+				{
+					"name": "Get All Apprenants",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/apprenants",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"apprenants"
+							]
+						},
+						"description": "Get all learners"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Apprenant by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/apprenants/{{apprenant_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"apprenants",
+								"{{apprenant_id}}"
+							]
+						},
+						"description": "Get a specific learner"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Apprenants with Pagination",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/apprenants/search?search=&page=0&size=10&sortBy=id&sortDirection=asc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"apprenants",
+								"search"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": ""
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "sortBy",
+									"value": "id"
+								},
+								{
+									"key": "sortDirection",
+									"value": "asc"
+								}
+							]
+						},
+						"description": "Search apprenants with pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Verify Apprenant Exists",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/apprenants/verify?email=apprenant@example.com",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"apprenants",
+								"verify"
+							],
+							"query": [
+								{
+									"key": "email",
+									"value": "apprenant@example.com",
+									"description": "Email of the apprenant to verify"
+								},
+								{
+									"key": "matricule",
+									"value": "",
+									"description": "Matricule of the apprenant to verify",
+									"disabled": true
+								}
+							]
+						},
+						"description": "Verify if an apprenant exists by email or matricule. Returns exists: true/false and apprenant details if found."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Apprenants by Plan Formation",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/apprenants/plan/{{plan_formation_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"apprenants",
+								"plan",
+								"{{plan_formation_id}}"
+							]
+						},
+						"description": "Get all apprenants for a specific training plan"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Apprenant Classes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/apprenants/{{apprenant_id}}/classes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"apprenants",
+								"{{apprenant_id}}",
+								"classes"
+							]
+						},
+						"description": "Get all classes/courses an apprenant is enrolled in. Returns class details including formation info."
+					},
+					"response": []
+				},
+				{
+					"name": "Check Apprenant Enrollment",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/apprenants/{{apprenant_id}}/enrolled/{{classe_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"apprenants",
+								"{{apprenant_id}}",
+								"enrolled",
+								"{{classe_id}}"
+							]
+						},
+						"description": "Check if an apprenant is enrolled in a specific class. Returns enrolled: true/false and class details if enrolled."
+					},
+					"response": []
+				},
+				{
+					"name": "Get Apprenants by Formation",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/apprenants/formation/{{formation_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"apprenants",
+								"formation",
+								"{{formation_id}}"
+							]
+						},
+						"description": "Get all apprenants for a specific formation"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Apprenants by Formation (Paginated)",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/apprenants/formation/{{formation_id}}/paged?page=0&size=10",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"apprenants",
+								"formation",
+								"{{formation_id}}",
+								"paged"
+							],
+							"query": [
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								}
+							]
+						},
+						"description": "Get apprenants for a formation with pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Apprenant",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nom\": \"Doe\",\n  \"prenom\": \"John\",\n  \"email\": \"john.doe@example.com\",\n  \"telephone\": \"21612345678\",\n  \"matricule\": \"APPR001\",\n  \"password\": \"TempPass123!\",\n  \"blocked\": false,\n  \"staff\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/apprenants",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"apprenants"
+							]
+						},
+						"description": "Create a new apprenant/learner"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Apprenant",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nom\": \"Smith\",\n  \"prenom\": \"Jane\",\n  \"email\": \"jane.smith@example.com\",\n  \"telephone\": \"21698765432\",\n  \"matricule\": \"APPR002\",\n  \"blocked\": false,\n  \"staff\": false\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/apprenants/{{apprenant_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"apprenants",
+								"{{apprenant_id}}"
+							]
+						},
+						"description": "Update an apprenant"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Apprenant",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/apprenants/{{apprenant_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"apprenants",
+								"{{apprenant_id}}"
+							]
+						},
+						"description": "Delete an apprenant"
+					},
+					"response": []
+				},
+				{
+					"name": "Generate Apprenant Password",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/apprenants/{{apprenant_id}}/generate-password",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"apprenants",
+								"{{apprenant_id}}",
+								"generate-password"
+							]
+						},
+						"description": "Generate a new password for an apprenant"
+					},
+					"response": []
+				},
+				{
+					"name": "Import Apprenants from CSV",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": ""
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/apprenants/import-csv",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"apprenants",
+								"import-csv"
+							]
+						},
+						"description": "Import multiple apprenants from a CSV file"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Apprenants Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/apprenants/stats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"apprenants",
+								"stats"
+							]
+						},
+						"description": "Get apprenants statistics"
+					},
+					"response": []
+				}
+			],
+			"description": "Apprenants (Learners) management"
+		},
+		{
+			"name": "Classes",
+			"item": [
+				{
+					"name": "Get All Classes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/classes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"classes"
+							]
+						},
+						"description": "Get all classes"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Class by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/classes/{{class_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"classes",
+								"{{class_id}}"
+							]
+						},
+						"description": "Get a specific class"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Classes with Pagination",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/classes/search?search=&page=0&size=10&sortBy=id&sortDirection=desc",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"classes",
+								"search"
+							],
+							"query": [
+								{
+									"key": "search",
+									"value": ""
+								},
+								{
+									"key": "page",
+									"value": "0"
+								},
+								{
+									"key": "size",
+									"value": "10"
+								},
+								{
+									"key": "sortBy",
+									"value": "id"
+								},
+								{
+									"key": "sortDirection",
+									"value": "desc"
+								}
+							]
+						},
+						"description": "Search classes with pagination"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Classes by Formation",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/classes/formation/{{formation_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"classes",
+								"formation",
+								"{{formation_id}}"
+							]
+						},
+						"description": "Get all classes for a formation"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Classes by Plan Formation",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/classes/plan-formation/{{plan_formation_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"classes",
+								"plan-formation",
+								"{{plan_formation_id}}"
+							]
+						},
+						"description": "Get all classes for a plan formation"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Active Classes",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/classes/active",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"classes",
+								"active"
+							]
+						},
+						"description": "Get all currently active classes (based on access date range)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Classes with Available Spots",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/classes/available",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"classes",
+								"available"
+							]
+						},
+						"description": "Get all classes with available spots"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Class",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nom\": \"Class A - 2025\",\n  \"description\": \"Description of the class\",\n  \"capaciteMax\": 30,\n  \"formationId\": 1,\n  \"planFormationId\": null,\n  \"dateDebutAcces\": \"2025-02-01\",\n  \"dateFinAcces\": \"2025-12-31\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/classes",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"classes"
+							]
+						},
+						"description": "Create a new class with access date range"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Class",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nom\": \"Class A - 2025 Updated\",\n  \"description\": \"Updated description\",\n  \"capaciteMax\": 35,\n  \"formationId\": 1,\n  \"isActive\": true,\n  \"dateDebutAcces\": \"2025-02-01\",\n  \"dateFinAcces\": \"2025-12-31\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/classes/{{class_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"classes",
+								"{{class_id}}"
+							]
+						},
+						"description": "Update a class"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Class",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/classes/{{class_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"classes",
+								"{{class_id}}"
+							]
+						},
+						"description": "Delete a class"
+					},
+					"response": []
+				},
+				{
+					"name": "Toggle Class Active Status",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/classes/{{class_id}}/toggle-active",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"classes",
+								"{{class_id}}",
+								"toggle-active"
+							]
+						},
+						"description": "Toggle active/inactive status of a class"
+					},
+					"response": []
+				},
+				{
+					"name": "Add Apprenant to Class",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/classes/{{class_id}}/apprenants/{{apprenant_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"classes",
+								"{{class_id}}",
+								"apprenants",
+								"{{apprenant_id}}"
+							]
+						},
+						"description": "Add an apprenant to a class"
+					},
+					"response": []
+				},
+				{
+					"name": "Remove Apprenant from Class",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/classes/{{class_id}}/apprenants/{{apprenant_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"classes",
+								"{{class_id}}",
+								"apprenants",
+								"{{apprenant_id}}"
+							]
+						},
+						"description": "Remove an apprenant from a class"
+					},
+					"response": []
+				},
+				{
+					"name": "Add Multiple Apprenants to Class",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"apprenantIds\": [1, 2, 3, 4]\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/classes/{{class_id}}/apprenants",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"classes",
+								"{{class_id}}",
+								"apprenants"
+							]
+						},
+						"description": "Add multiple apprenants to a class at once"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Classes by Apprenant",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/classes/apprenant/{{apprenant_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"classes",
+								"apprenant",
+								"{{apprenant_id}}"
+							]
+						},
+						"description": "Get all classes for an apprenant"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Classes Statistics",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/classes/stats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"classes",
+								"stats"
+							]
+						},
+						"description": "Get classes statistics (total count, active count)"
+					},
+					"response": []
+				}
+			],
+			"description": "Classes management with access date control and apprenant enrollment"
+		},
+		{
+			"name": "Formateurs (Instructors)",
+			"item": [
+				{
+					"name": "Get All Formateurs",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/formateurs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"formateurs"
+							]
+						},
+						"description": "Get all instructors"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Formateur by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/formateurs/{{formateur_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"formateurs",
+								"{{formateur_id}}"
+							]
+						},
+						"description": "Get a specific instructor"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Formateur",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "multipart/form-data"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "nom",
+									"value": "Smith",
+									"type": "text"
+								},
+								{
+									"key": "prenom",
+									"value": "John",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "john.smith@example.com",
+									"type": "text"
+								},
+								{
+									"key": "specialite",
+									"value": "Java Programming",
+									"type": "text"
+								},
+								{
+									"key": "image",
+									"type": "file",
+									"src": ""
+								}
+							]
+						},
+						"url": {
+							"raw": "{{base_url}}/api/formateurs",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"formateurs"
+							]
+						},
+						"description": "Create a new instructor"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Formateur",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nom\": \"Johnson\",\n  \"prenom\": \"Jane\",\n  \"email\": \"jane.johnson@example.com\",\n  \"specialite\": \"Advanced Java\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/formateurs/{{formateur_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"formateurs",
+								"{{formateur_id}}"
+							]
+						},
+						"description": "Update an instructor"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Formateur",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/formateurs/{{formateur_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"formateurs",
+								"{{formateur_id}}"
+							]
+						},
+						"description": "Delete an instructor"
+					},
+					"response": []
+				}
+			],
+			"description": "Instructors/Formateurs management"
+		},
+		{
+			"name": "Contenus (Content)",
+			"item": [
+				{
+					"name": "Contenu Global",
+					"item": [
+						{
+							"name": "Get All Global Contents",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/contenusglobaux",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"contenusglobaux"
+									]
+								},
+								"description": "Get all global contents"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Global Content by ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/contenusglobaux/{{content_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"contenusglobaux",
+										"{{content_id}}"
+									]
+								},
+								"description": "Get a specific global content"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Global Contents by Formation",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/contenusglobaux/by-formation/{{formation_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"contenusglobaux",
+										"by-formation",
+										"{{formation_id}}"
+									]
+								},
+								"description": "Get all global contents for a formation"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Global Content",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"titre\": \"Module 1: Basics\",\n  \"description\": \"Introduction to basics\",\n  \"idFormation\": 1\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/contenusglobaux",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"contenusglobaux"
+									]
+								},
+								"description": "Create a new global content"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Global Content",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"titre\": \"Module 1: Advanced Basics\",\n  \"description\": \"Introduction to advanced basics\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/contenusglobaux/{{content_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"contenusglobaux",
+										"{{content_id}}"
+									]
+								},
+								"description": "Update a global content"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Global Content",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/contenusglobaux/{{content_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"contenusglobaux",
+										"{{content_id}}"
+									]
+								},
+								"description": "Delete a global content"
+							},
+							"response": []
+						}
+					],
+					"description": "Global content management"
+				},
+				{
+					"name": "Contenu Détaillé",
+					"item": [
+						{
+							"name": "Get All Detailed Contents",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/contenus-detailles",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"contenus-detailles"
+									]
+								},
+								"description": "Get all detailed contents"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Detailed Content by ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/contenus-detailles/{{content_detail_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"contenus-detailles",
+										"{{content_detail_id}}"
+									]
+								},
+								"description": "Get a specific detailed content"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Detailed Contents by Formation",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/contenus-detailles/by-formation/{{formation_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"contenus-detailles",
+										"by-formation",
+										"{{formation_id}}"
+									]
+								},
+								"description": "Get all detailed contents for a formation"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Detailed Content",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"titre\": \"Lesson 1: Getting Started\",\n  \"description\": \"First lesson of the module\",\n  \"duree\": 60,\n  \"idContenuGlobal\": 1,\n  \"contenuJsonByCible\": {}\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/contenus-detailles",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"contenus-detailles"
+									]
+								},
+								"description": "Create a new detailed content"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Detailed Content",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"titre\": \"Lesson 1: Getting Started - Updated\",\n  \"description\": \"Updated first lesson\",\n  \"duree\": 90\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/contenus-detailles/{{content_detail_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"contenus-detailles",
+										"{{content_detail_id}}"
+									]
+								},
+								"description": "Update a detailed content"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Detailed Content",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/contenus-detailles/{{content_detail_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"contenus-detailles",
+										"{{content_detail_id}}"
+									]
+								},
+								"description": "Delete a detailed content"
+							},
+							"response": []
+						},
+						{
+							"name": "Upload Content File (Streaming)",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "file",
+											"type": "file",
+											"src": ""
+										},
+										{
+											"key": "levelNumber",
+											"value": "1",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{base_url}}/api/contenus-detailles/{{content_detail_id}}/levels/1/upload",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"contenus-detailles",
+										"{{content_detail_id}}",
+										"levels",
+										"1",
+										"upload"
+									]
+								},
+								"description": "Upload a file for detailed content"
+							},
+							"response": []
+						}
+					],
+					"description": "Detailed content management"
+				}
+			],
+			"description": "Content management for formations"
+		},
+		{
+			"name": "Objectifs (Objectives)",
+			"item": [
+				{
+					"name": "Objectifs Globaux",
+					"item": [
+						{
+							"name": "Get All Global Objectives",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/objectifsglobaux",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"objectifsglobaux"
+									]
+								},
+								"description": "Get all global objectives"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Global Objective",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"titre\": \"Understand Core Concepts\",\n  \"description\": \"Student will understand all core concepts\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/objectifsglobaux",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"objectifsglobaux"
+									]
+								},
+								"description": "Create a new global objective"
+							},
+							"response": []
+						}
+					],
+					"description": "Global objectives management"
+				},
+				{
+					"name": "Objectifs Spécifiques",
+					"item": [
+						{
+							"name": "Get All Specific Objectives",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/objectifsspecifiques",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"objectifsspecifiques"
+									]
+								},
+								"description": "Get all specific objectives"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Specific Objective",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"titre\": \"Learn Java Syntax\",\n  \"description\": \"Student will learn Java syntax and best practices\",\n  \"idContenuGlobal\": 1\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/objectifsspecifiques",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"objectifsspecifiques"
+									]
+								},
+								"description": "Create a new specific objective"
+							},
+							"response": []
+						}
+					],
+					"description": "Specific objectives management"
+				}
+			],
+			"description": "Objectives management"
+		},
+		{
+			"name": "Examens (Exams)",
+			"item": [
+				{
+					"name": "Get All Exams",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/examens",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"examens"
+							]
+						},
+						"description": "Get all exams"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Exam by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/examens/{{exam_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"examens",
+								"{{exam_id}}"
+							]
+						},
+						"description": "Get a specific exam"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Exam",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"titre\": \"Final Exam\",\n  \"description\": \"Final assessment exam\",\n  \"idPlanFormation\": 1,\n  \"dateExamen\": \"2025-12-15\",\n  \"duree\": 120\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/examens",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"examens"
+							]
+						},
+						"description": "Create a new exam"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Exam",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"titre\": \"Final Exam - Updated\",\n  \"description\": \"Updated final assessment\",\n  \"dateExamen\": \"2025-12-20\",\n  \"duree\": 150\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/examens/{{exam_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"examens",
+								"{{exam_id}}"
+							]
+						},
+						"description": "Update an exam"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Exam",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/examens/{{exam_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"examens",
+								"{{exam_id}}"
+							]
+						},
+						"description": "Delete an exam"
+					},
+					"response": []
+				}
+			],
+			"description": "Exams management"
+		},
+		{
+			"name": "Certificats (Certificates)",
+			"item": [
+				{
+					"name": "Get All Certificates",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/certificats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"certificats"
+							]
+						},
+						"description": "Get all certificates"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Certificate",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"titre\": \"Java Professional Certificate\",\n  \"description\": \"Certificate for Java certification\",\n  \"idExamen\": 1,\n  \"dateEmission\": \"2025-12-20\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/certificats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"certificats"
+							]
+						},
+						"description": "Create a new certificate"
+					},
+					"response": []
+				}
+			],
+			"description": "Certificates management"
+		},
+		{
+			"name": "Plan Formations",
+			"item": [
+				{
+					"name": "Get All Plan Formations",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/planformations",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"planformations"
+							]
+						},
+						"description": "Get all training plans"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Plan Formation by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/planformations/{{plan_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"planformations",
+								"{{plan_id}}"
+							]
+						},
+						"description": "Get a specific training plan"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Plan Formation",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"titre\": \"2025 Training Plan\",\n  \"description\": \"Annual training plan for 2025\",\n  \"dateDebut\": \"2025-01-01\",\n  \"dateFin\": \"2025-12-31\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/planformations",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"planformations"
+							]
+						},
+						"description": "Create a new training plan"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Plan Formation",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"titre\": \"2025 Training Plan - Updated\",\n  \"description\": \"Updated annual training plan\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/planformations/{{plan_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"planformations",
+								"{{plan_id}}"
+							]
+						},
+						"description": "Update a training plan"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Plan Formation",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/planformations/{{plan_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"planformations",
+								"{{plan_id}}"
+							]
+						},
+						"description": "Delete a training plan"
+					},
+					"response": []
+				}
+			],
+			"description": "Training plans management"
+		},
+		{
+			"name": "Supporting Data",
+			"item": [
+				{
+					"name": "Domaines",
+					"item": [
+						{
+							"name": "Get All Domaines",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/domaines",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"domaines"
+									]
+								},
+								"description": "Get all domains/areas"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Domaine",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"nom\": \"IT & Programming\",\n  \"description\": \"Information Technology and Programming\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/domaines",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"domaines"
+									]
+								},
+								"description": "Create a new domain"
+							},
+							"response": []
+						}
+					],
+					"description": "Training domains/areas"
+				},
+				{
+					"name": "Types",
+					"item": [
+						{
+							"name": "Get All Types",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/types",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"types"
+									]
+								},
+								"description": "Get all training types"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Type",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"nom\": \"Online\",\n  \"description\": \"Online training course\",\n  \"domainId\": 1\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/types",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"types"
+									]
+								},
+								"description": "Create a new training type"
+							},
+							"response": []
+						}
+					],
+					"description": "Training types"
+				},
+				{
+					"name": "Categories",
+					"item": [
+						{
+							"name": "Get All Categories",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/categories",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"categories"
+									]
+								},
+								"description": "Get all training categories"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Category",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"nom\": \"Backend\",\n  \"description\": \"Backend development\",\n  \"typeId\": 1\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/categories",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"categories"
+									]
+								},
+								"description": "Create a new category"
+							},
+							"response": []
+						}
+					],
+					"description": "Training categories"
+				}
+			],
+			"description": "Supporting data for formations (domains, types, categories)"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string",
+			"description": "Base URL of the API server"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string",
+			"description": "JWT authentication token"
+		},
+		{
+			"key": "formation_id",
+			"value": "",
+			"type": "string",
+			"description": "Formation ID"
+		},
+		{
+			"key": "apprenant_id",
+			"value": "",
+			"type": "string",
+			"description": "Apprenant (Learner) ID"
+		},
+		{
+			"key": "class_id",
+			"value": "",
+			"type": "string",
+			"description": "Class ID"
+		},
+		{
+			"key": "formateur_id",
+			"value": "",
+			"type": "string",
+			"description": "Formateur (Instructor) ID"
+		},
+		{
+			"key": "content_id",
+			"value": "",
+			"type": "string",
+			"description": "Content ID"
+		},
+		{
+			"key": "content_detail_id",
+			"value": "",
+			"type": "string",
+			"description": "Detailed Content ID"
+		},
+		{
+			"key": "exam_id",
+			"value": "",
+			"type": "string",
+			"description": "Exam ID"
+		},
+		{
+			"key": "plan_id",
+			"value": "",
+			"type": "string",
+			"description": "Plan Formation ID"
+		},
+		{
+			"key": "objectif_global_id",
+			"value": "",
+			"type": "string",
+			"description": "Global Objective ID"
+		},
+		{
+			"key": "objectif_specifique_id",
+			"value": "",
+			"type": "string",
+			"description": "Specific Objective ID"
+		}
+	]
+}

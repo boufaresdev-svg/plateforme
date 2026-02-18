@@ -1,0 +1,300 @@
+<div class="marques-management">
+  <div class="section-header">
+    <h2>Gestion des Marques</h2>
+    <button class="btn-primary" (click)="showAddMarqueForm()" [disabled]="loading">
+      <span class="icon">+</span>
+      Nouvelle Marque
+    </button>
+  </div>
+
+  <!-- Error Message -->
+  <div class="alert alert-error" *ngIf="error">
+    {{ error }}
+  </div>
+
+  <!-- Loading Indicator -->
+  <div class="loading-indicator" *ngIf="loading">
+    <span>Chargement...</span>
+  </div>
+
+  <div class="search-filters">
+    <div class="search-box">
+      <input type="text" 
+             placeholder="Rechercher une marque..." 
+             [(ngModel)]="searchMarques"
+             (input)="onSearch()"
+             class="search-input">
+    </div>
+    <button class="btn-secondary" (click)="refreshMarques()" [disabled]="loading">
+      Actualiser
+    </button>
+  </div>
+
+  <div class="marques-table-container" *ngIf="!loading">
+    <table class="marques-table">
+      <thead>
+        <tr>
+          <th>Marque</th>
+          <th>Code</th>
+          <th>Description</th>
+          <th>Pays</th>
+          <th>Contact</th>
+          <th>Statut</th>
+          <th>Nombre de Produits</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let marque of filteredMarques" class="marque-row">
+          <td class="marque-cell">
+            <div class="marque-info">
+              <div class="marque-logo">
+                <img *ngIf="marque.urlLogo" 
+                     [src]="marque.urlLogo" 
+                     [alt]="marque.nom" 
+                     class="logo-img"
+                     (error)="onImageError($event)">
+                <div class="logo-placeholder" 
+                     [style.display]="marque.urlLogo ? 'none' : 'flex'">
+                  {{ marque.nom.charAt(0) }}
+                </div>
+              </div>
+              <div class="marque-name">{{ marque.nom }}</div>
+            </div>
+          </td>
+          <td class="code-cell">
+            <div class="code-text">{{ marque.codeMarque || '-' }}</div>
+          </td>
+          <td class="description-cell">
+            <div class="description-text">{{ marque.description || '-' }}</div>
+          </td>
+          <td class="pays-cell">
+            <div class="pays-text">{{ marque.pays || '-' }}</div>
+          </td>
+          <td class="contact-cell">
+            <div *ngIf="marque.nomContact" class="contact-info">
+              <div class="contact-name">{{ marque.nomContact }}</div>
+              <div *ngIf="marque.email" class="contact-email">{{ marque.email }}</div>
+              <div *ngIf="marque.telephone" class="contact-phone">{{ marque.telephone }}</div>
+            </div>
+            <span *ngIf="!marque.nomContact" class="no-data">-</span>
+          </td>
+          <td class="status-cell">
+            <span class="status-badge" [class.active]="marque.estActif" [class.inactive]="!marque.estActif">
+              {{ marque.estActif ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td class="count-cell">
+            <div class="count-text">{{ marque.nombreProduits || 0 }}</div>
+          </td>
+          <td class="actions-cell">
+            <div class="action-buttons">
+              <button class="btn-icon" (click)="editMarque(marque)" title="Modifier" [disabled]="loading">
+                Modifier
+              </button>
+              <button class="btn-icon danger" (click)="deleteMarque(marque.id)" title="Supprimer" [disabled]="loading">
+                Supprimer
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filteredMarques.length === 0">
+          <td colspan="8" class="no-data">
+            Aucune marque trouvée
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <div class="pagination-container" *ngIf="totalPages > 0">
+      <div class="pagination-info">
+        Affichage de {{ currentPage * pageSize + 1 }} à {{ Math.min((currentPage + 1) * pageSize, totalElements) }} sur {{ totalElements }} marques
+      </div>
+      <div class="pagination-controls">
+        <div class="page-size-selector">
+          <label>Lignes par page:</label>
+          <select [(ngModel)]="pageSize" (change)="onPageSizeChange()" class="page-size-select">
+            <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+          </select>
+        </div>
+        <div class="page-buttons">
+          <button class="btn-page" 
+                  (click)="onPageChange(0)" 
+                  [disabled]="currentPage === 0">
+            Première
+          </button>
+          <button class="btn-page" 
+                  (click)="onPageChange(currentPage - 1)" 
+                  [disabled]="currentPage === 0">
+            Précédent
+          </button>
+          <span class="page-indicator">
+            Page {{ currentPage + 1 }} / {{ totalPages }}
+          </span>
+          <button class="btn-page" 
+                  (click)="onPageChange(currentPage + 1)" 
+                  [disabled]="currentPage >= totalPages - 1">
+            Suivant
+          </button>
+          <button class="btn-page" 
+                  (click)="onPageChange(totalPages - 1)" 
+                  [disabled]="currentPage >= totalPages - 1">
+            Dernière
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Marque -->
+  <div class="modal-overlay" *ngIf="showMarqueModal" (click)="closeMarqueModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ isEditingMarque ? 'Modifier' : 'Nouvelle' }} Marque</h3>
+        <button class="btn-close" (click)="closeMarqueModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <!-- Error Message in Modal -->
+        <div class="alert alert-error" *ngIf="error">
+          {{ error }}
+        </div>
+
+        <form (ngSubmit)="saveMarqueForm()" #marqueForm="ngForm">
+          <div class="form-row">
+            <div class="form-group">
+              <label for="nom">Nom de la marque *</label>
+              <input type="text" 
+                     id="nom" 
+                     [(ngModel)]="currentMarque.nom" 
+                     name="nom" 
+                     required 
+                     class="form-control"
+                     placeholder="Ex: Dell, HP, Lenovo">
+            </div>
+            <div class="form-group">
+              <label for="codeMarque">Code marque</label>
+              <input type="text" 
+                     id="codeMarque" 
+                     [(ngModel)]="currentMarque.codeMarque" 
+                     name="codeMarque" 
+                     class="form-control"
+                     placeholder="Ex: DELL, HP">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" 
+                      [(ngModel)]="currentMarque.description" 
+                      name="description" 
+                      class="form-control"
+                      placeholder="Description de la marque"
+                      rows="3"></textarea>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label for="pays">Pays</label>
+              <input type="text" 
+                     id="pays" 
+                     [(ngModel)]="currentMarque.pays" 
+                     name="pays" 
+                     class="form-control"
+                     placeholder="Ex: France, États-Unis">
+            </div>
+            <div class="form-group">
+              <label for="siteWeb">Site Web</label>
+              <input type="url" 
+                     id="siteWeb" 
+                     [(ngModel)]="currentMarque.siteWeb" 
+                     name="siteWeb" 
+                     class="form-control"
+                     placeholder="https://www.example.com">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="urlLogo">URL du logo</label>
+            <input type="url" 
+                   id="urlLogo" 
+                   [(ngModel)]="currentMarque.urlLogo" 
+                   name="urlLogo" 
+                   class="form-control"
+                   placeholder="https://example.com/logo.png">
+          </div>
+
+          <!-- Contact Information -->
+          <div class="section-divider">
+            <h4>Informations de contact</h4>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="nomContact">Nom du contact</label>
+              <input type="text" 
+                     id="nomContact" 
+                     [(ngModel)]="currentMarque.nomContact" 
+                     name="nomContact" 
+                     class="form-control"
+                     placeholder="Ex: Jean Dupont">
+            </div>
+            <div class="form-group">
+              <label for="poste">Poste</label>
+              <input type="text" 
+                     id="poste" 
+                     [(ngModel)]="currentMarque.poste" 
+                     name="poste" 
+                     class="form-control"
+                     placeholder="Ex: Account Manager">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="email">Email</label>
+              <input type="email" 
+                     id="email" 
+                     [(ngModel)]="currentMarque.email" 
+                     name="email" 
+                     class="form-control"
+                     placeholder="contact@example.com">
+            </div>
+            <div class="form-group">
+              <label for="telephone">Téléphone</label>
+              <input type="tel" 
+                     id="telephone" 
+                     [(ngModel)]="currentMarque.telephone" 
+                     name="telephone" 
+                     class="form-control"
+                     placeholder="+33 1 23 45 67 89">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" 
+                     [(ngModel)]="currentMarque.estActif" 
+                     name="estActif">
+              Marque active
+            </label>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" 
+                    class="btn-secondary" 
+                    (click)="closeMarqueModal()"
+                    [disabled]="loading">
+              Annuler
+            </button>
+            <button type="submit" 
+                    class="btn-primary" 
+                    [disabled]="!marqueForm.valid || loading">
+              {{ loading ? 'Traitement...' : (isEditingMarque ? 'Modifier' : 'Créer') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

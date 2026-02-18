@@ -1,0 +1,33 @@
+<div class="popup-overlay" *ngIf="show" (click)="closePopup()">
+  <div class="popup-container" (click)="$event.stopPropagation()">
+    <div class="popup-header">
+      <h2>Ajouter un Livrable</h2>
+      <button class="popup-close" (click)="closePopup()">✕</button>
+    </div>
+
+    <form [formGroup]="livrableForm" (ngSubmit)="save()" class="popup-form">
+      <div class="form-section">
+        <h3>Nouveau Livrable</h3>
+
+        <div class="form-group full-width">
+          <label class="form-label">Nom *</label>
+          <input class="form-input" formControlName="nom" placeholder="Nom du livrable"
+            [class.is-invalid]="submitted && f['nom']?.errors"/>
+          <small class="text-danger" *ngIf="submitted && f['nom']?.errors">
+            Champ obligatoire
+          </small>
+        </div>
+
+        <div class="form-group full-width">
+          <label class="form-label">Description</label>
+          <textarea class="form-input" formControlName="description" placeholder="Description"></textarea>
+        </div>
+      </div>
+
+      <div class="popup-actions">
+        <button type="button" class="btn-outline" (click)="closePopup()">Annuler</button>
+        <button type="submit" class="btn-primary">💾 Ajouter</button>
+      </div>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,1 @@
+# platforme_SMS2i

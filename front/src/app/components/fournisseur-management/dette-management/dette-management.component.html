@@ -1,0 +1,388 @@
+<!-- Controls Section -->
+<div class="controls-section-enhanced">
+  <div class="search-box-enhanced">
+    <span class="search-icon">🔍</span>
+    <input 
+      type="text" 
+      placeholder="Rechercher par fournisseur, titre, numéro de facture..." 
+      [value]="searchTermDette"
+      (input)="onSearchTermChange($any($event.target).value)"
+      class="search-input-enhanced">
+  </div>
+  
+  <div class="filters-container">
+    <div class="filter-item">
+      <label class="filter-label">📊 Statut</label>
+      <select [value]="filterPaid" (change)="onFilterPaidChange($any($event.target).value)" class="filter-select-enhanced">
+        <option value="">Tous les statuts</option>
+        <option value="true">✅ Payées</option>
+        <option value="false">⏳ Non payées</option>
+      </select>
+    </div>
+    <div class="filter-item">
+      <label class="filter-label">⏰ Type</label>
+      <select [value]="filterOverdue" (change)="onFilterOverdueChange($any($event.target).value)" class="filter-select-enhanced">
+        <option value="">Toutes les dettes</option>
+        <option value="true">🚨 En retard</option>
+      </select>
+    </div>
+  </div>
+  
+  <div class="action-buttons-header">
+    <button class="btn-primary" (click)="showAddDetteForm()">
+      ➕ Nouvelle Dette
+    </button>
+  </div>
+</div>
+
+<!-- Table Container -->
+<div class="table-container">
+  <!-- Empty State -->
+  <div *ngIf="filteredDettes.length === 0" class="empty-state">
+    <div class="empty-icon">💳</div>
+    <h4>Aucune dette trouvée</h4>
+    <p>Essayez de modifier vos critères de recherche ou ajoutez une nouvelle dette.</p>
+  </div>
+
+  <!-- Dettes Table -->
+  <table class="modern-table" *ngIf="filteredDettes.length > 0">
+    <thead>
+      <tr>
+        <th class="sortable"
+            [class.sorted]="pagination.sortBy === 'fournisseurNom'"
+            (click)="onSort('fournisseurNom')">
+          Fournisseur
+          <span class="sort-indicator" *ngIf="pagination.sortBy === 'fournisseurNom'">
+            {{ pagination.sortDirection === 'ASC' ? '▲' : '▼' }}
+          </span>
+        </th>
+        <th class="sortable"
+            [class.sorted]="pagination.sortBy === 'titre'"
+            (click)="onSort('titre')">
+          Titre
+          <span class="sort-indicator" *ngIf="pagination.sortBy === 'titre'">
+            {{ pagination.sortDirection === 'ASC' ? '▲' : '▼' }}
+          </span>
+        </th>
+        <th>N° Facture</th>
+        <th class="sortable"
+            [class.sorted]="pagination.sortBy === 'montantDu'"
+            (click)="onSort('montantDu')">
+          Montant Dû
+          <span class="sort-indicator" *ngIf="pagination.sortBy === 'montantDu'">
+            {{ pagination.sortDirection === 'ASC' ? '▲' : '▼' }}
+          </span>
+        </th>
+        <th class="sortable"
+            [class.sorted]="pagination.sortBy === 'datePaiementPrevue'"
+            (click)="onSort('datePaiementPrevue')">
+          Date Prévue
+          <span class="sort-indicator" *ngIf="pagination.sortBy === 'datePaiementPrevue'">
+            {{ pagination.sortDirection === 'ASC' ? '▲' : '▼' }}
+          </span>
+        </th>
+        <th class="sortable"
+            [class.sorted]="pagination.sortBy === 'datePaiementReelle'"
+            (click)="onSort('datePaiementReelle')">
+          Date Réelle
+          <span class="sort-indicator" *ngIf="pagination.sortBy === 'datePaiementReelle'">
+            {{ pagination.sortDirection === 'ASC' ? '▲' : '▼' }}
+          </span>
+        </th>
+        <th class="sortable"
+            [class.sorted]="pagination.sortBy === 'estPaye'"
+            (click)="onSort('estPaye')">
+          Statut
+          <span class="sort-indicator" *ngIf="pagination.sortBy === 'estPaye'">
+            {{ pagination.sortDirection === 'ASC' ? '▲' : '▼' }}
+          </span>
+        </th>
+        <th class="actions-col">Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let dette of filteredDettes; trackBy: trackByDetteId" [class.overdue-row]="isOverdue(dette)" [class.paid-row]="dette.estPaye">
+        <td class="name-cell">
+          <strong>{{ getFournisseurName(dette.fournisseurId) }}</strong>
+        </td>
+        <td>{{ dette.titre || 'N/A' }}</td>
+        <td class="numero-facture-cell">{{ dette.numeroFacture || 'N/A' }}</td>
+        <td class="amount-cell">{{ dette.montantDu | number:'1.2-2' }} DT</td>
+        <td class="date-cell">{{ dette.datePaiementPrevue | date:'dd/MM/yyyy' }}</td>
+        <td class="date-cell">{{ dette.datePaiementReelle ? (dette.datePaiementReelle | date:'dd/MM/yyyy') : 'N/A' }}</td>
+        <td>
+          <span class="status-badge" [ngClass]="getDetteStatusClass(dette)">
+            {{ getDetteStatusText(dette) }}
+          </span>
+        </td>
+        <td class="actions-cell">
+          <div class="action-buttons">
+            <button 
+              class="btn-action btn-view" 
+              (click)="showDetteDetails(dette)" 
+              title="Voir les détails">
+              👁️
+            </button>
+            <button 
+              class="btn-action btn-mark-paid" 
+              (click)="markAsPaid(dette)" 
+              title="Marquer comme payée"
+              *ngIf="!dette.estPaye">
+              ✅
+            </button>
+            <button class="btn-action btn-edit" (click)="editDette(dette)" title="Modifier">
+              ✏️
+            </button>
+            <button class="btn-action btn-delete" (click)="deleteDette(dette)" title="Supprimer">
+              🗑️
+            </button>
+          </div>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- Pagination Controls -->
+<div class="pagination-wrapper">
+  <!-- Loading indicator -->
+  <div class="loading-overlay" *ngIf="pagination.isLoading">
+    <div class="spinner">⏳ Chargement...</div>
+  </div>
+
+  <div class="pagination-footer">
+    <div class="pagination-info">
+      <span>
+        Affichage de {{ (pagination.currentPage * pagination.pageSize) + 1 }} 
+        à {{ Math.min((pagination.currentPage + 1) * pagination.pageSize, pagination.totalElements) }} 
+        sur {{ pagination.totalElements }} dettes
+      </span>
+    </div>
+
+    <div class="pagination-numbers">
+      <button 
+        class="page-nav-btn"
+        [disabled]="pagination.currentPage === 0 || pagination.isLoading"
+        (click)="onPageChange(pagination.currentPage - 1)"
+        title="Page précédente">
+        ‹
+      </button>
+
+      <button 
+        *ngFor="let page of getPaginationPages()"
+        class="page-number-btn"
+        [class.active]="page === pagination.currentPage"
+        [disabled]="pagination.isLoading"
+        (click)="onPageChange(page)">
+        {{ page + 1 }}
+      </button>
+
+      <button 
+        class="page-nav-btn"
+        [disabled]="pagination.currentPage >= pagination.totalPages - 1 || pagination.isLoading"
+        (click)="onPageChange(pagination.currentPage + 1)"
+        title="Page suivante">
+        ›
+      </button>
+    </div>
+
+    <div class="page-size-control">
+      <select 
+        [value]="pagination.pageSize"
+        (change)="onPageSizeChange($any($event.target).value)"
+        [disabled]="pagination.isLoading">
+        <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }} par page</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Formulaire Dette -->
+<div class="popup-overlay" *ngIf="showForm" (click)="cancelForm()">
+  <div class="popup-container large-modal" (click)="$event.stopPropagation()">
+    <div class="popup-header">
+      <h2>{{ isEditMode ? 'Modifier' : 'Nouvelle' }} Dette</h2>
+      <button class="popup-close" (click)="cancelForm()">✕</button>
+    </div>
+
+    <form [formGroup]="detteForm" class="popup-form" (ngSubmit)="saveDette()">
+      <div class="form-section">
+        <h3>Informations de la dette</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Fournisseur *</label>
+            <select class="form-input" formControlName="fournisseurId"
+                    [class.error]="hasError('fournisseurId', 'required')">
+              <option value="">Sélectionner un fournisseur</option>
+              <option *ngFor="let fournisseur of fournisseurs" [value]="fournisseur.id">
+                {{ fournisseur.nom }}
+              </option>
+            </select>
+            <div class="error-message" *ngIf="hasError('fournisseurId', 'required')">
+              Fournisseur obligatoire
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Numéro Facture</label>
+            <div style="position: relative;">
+              <input 
+                type="text" 
+                class="form-input" 
+                formControlName="numeroFacture" 
+                placeholder="FACT-2025-001"
+                (input)="onNumeroFactureChange($any($event.target).value)"
+                [class.input-error]="numeroFactureError"
+                [class.input-success]="numeroFactureValid && !numeroFactureError && detteForm.get('numeroFacture')?.value"
+              >
+              <span *ngIf="isValidatingNumeroFacture" class="validation-spinner">
+                🔄
+              </span>
+              <span *ngIf="numeroFactureValid && !numeroFactureError && detteForm.get('numeroFacture')?.value && !isValidatingNumeroFacture" 
+                    class="validation-success">
+                ✓
+              </span>
+            </div>
+            <div class="error-message" *ngIf="numeroFactureError">
+              ⚠️ {{ numeroFactureError }}
+            </div>
+            <div class="success-message" *ngIf="numeroFactureValid && !numeroFactureError && detteForm.get('numeroFacture')?.value">
+              ✓ Numéro de facture disponible
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Titre *</label>
+            <input 
+              type="text" 
+              class="form-input" 
+              formControlName="titre" 
+              placeholder="Description de la dette"
+              [class.error]="hasError('titre', 'required')">
+            <div class="error-message" *ngIf="hasError('titre', 'required')">
+              Titre obligatoire
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Description</label>
+            <textarea 
+              class="form-input" 
+              formControlName="description" 
+              rows="2" 
+              placeholder="Détails supplémentaires..."></textarea>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Montant Total (DT) *</label>
+            <input 
+              type="number" 
+              class="form-input" 
+              formControlName="montantTotal" 
+              placeholder="0" 
+              min="0" 
+              step="0.01"
+              [class.error]="hasError('montantTotal', 'required') || hasError('montantTotal', 'min')">
+            <div class="error-message" *ngIf="hasError('montantTotal', 'required')">
+              Montant total obligatoire
+            </div>
+            <div class="error-message" *ngIf="hasError('montantTotal', 'min')">
+              Le montant doit être positif
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Date Prévue *</label>
+            <input 
+              type="date" 
+              class="form-input" 
+              formControlName="datePaiementPrevue"
+              [class.error]="hasError('datePaiementPrevue', 'required')">
+            <div class="error-message" *ngIf="hasError('datePaiementPrevue', 'required')">
+              Date prévue obligatoire
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Date Réelle</label>
+            <input type="date" class="form-input" formControlName="datePaiementReelle">
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label class="checkbox-label">
+              <input type="checkbox" formControlName="estPaye" class="checkbox-input">
+              <span class="checkbox-custom"></span>
+              Dette payée
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tranches Section -->
+      <div class="form-section tranches-section">
+        <div class="section-header-inline">
+          <h3>💰 Tranches de Paiement (Optionnel)</h3>
+          <button type="button" class="btn-add-small" (click)="addTranche()">
+            ➕ Ajouter
+          </button>
+        </div>
+
+        <div class="error-message" *ngIf="trancheValidationError">
+          {{ trancheValidationError }}
+        </div>
+
+        <div class="tranches-container" formArrayName="tranches">
+          <div *ngFor="let tranche of tranches.controls; let i = index" [formGroupName]="i" 
+               class="tranche-row" 
+               [class.tranche-paid]="tranche.get('estPaye')?.value">
+            <span class="tranche-number">{{ i + 1 }}</span>
+            <div class="tranche-fields">
+              <div class="form-group-inline">
+                <label class="form-label-small">Montant (DT)</label>
+                <input 
+                  type="number" 
+                  class="form-input-small" 
+                  formControlName="montant" 
+                  placeholder="0" 
+                  min="0" 
+                  step="0.01">
+              </div>
+              <div class="form-group-inline">
+                <label class="form-label-small">Date d'échéance</label>
+                <input type="date" class="form-input-small" formControlName="dateEcheance">
+              </div>
+              <div class="form-group-inline" *ngIf="tranche.get('id')?.value">
+                <label class="form-label-small">
+                  <input type="checkbox" formControlName="estPaye" style="width: auto; margin-right: 5px;">
+                  Payée
+                </label>
+              </div>
+              <div class="form-group-inline" *ngIf="tranche.get('estPaye')?.value">
+                <label class="form-label-small">Date paiement</label>
+                <input type="date" class="form-input-small" formControlName="datePaiement">
+              </div>
+            </div>
+            <button type="button" class="btn-remove-tranche" (click)="removeTranche(i)">
+              🗑️
+            </button>
+          </div>
+
+          <div *ngIf="tranches.length > 0" class="tranches-summary">
+            Total: {{ detteForm.get('montantTotal')?.value || 0 | number:'1.2-2' }} DT ({{ tranches.length }} tranche(s))
+          </div>
+        </div>
+      </div>
+
+      <div class="popup-actions">
+        <button type="button" class="btn-outline" (click)="cancelForm()">Annuler</button>
+        <button 
+          type="submit" 
+          class="btn-primary" 
+          [disabled]="detteForm.invalid || numeroFactureError || isValidatingNumeroFacture">
+          <span *ngIf="isValidatingNumeroFacture">🔄 Validation...</span>
+          <span *ngIf="!isValidatingNumeroFacture">{{ isEditMode ? 'Modifier' : 'Créer' }}</span>
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

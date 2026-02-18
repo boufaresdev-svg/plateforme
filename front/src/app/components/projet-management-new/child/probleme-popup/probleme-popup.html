@@ -1,0 +1,32 @@
+<div class="popup-overlay" *ngIf="show" (click)="resetAndClose()">
+  <div class="popup-container" (click)="$event.stopPropagation()">
+
+    <div class="popup-header">
+      <h2>Ajouter un Problème</h2>
+      <button class="popup-close" (click)="resetAndClose()">✕</button>
+    </div>
+
+    <form [formGroup]="problemeForm" (ngSubmit)="handleSave()" class="popup-form">
+      <div class="form-section">
+        <h3>Nouveau Problème</h3>
+
+        <label class="form-label">Nom *</label>
+        <input type="text" class="form-input" formControlName="nom"
+               placeholder="Nom du problème"
+               [class.is-invalid]="submitted && problemeForm.controls['nom']?.errors" />
+        <small class="text-danger" *ngIf="submitted && problemeForm.controls['nom']?.errors">
+          Champ obligatoire
+        </small>
+
+        <label class="form-label">Description</label>
+        <textarea formControlName="description" rows="3" class="form-input"
+                  placeholder="Description du problème"></textarea>
+      </div>
+
+      <div class="popup-actions">
+        <button type="button" class="btn-outline" (click)="resetAndClose()">Annuler</button>
+        <button type="submit" class="btn-primary">💾 Ajouter</button>
+      </div>
+    </form>
+  </div>
+</div>

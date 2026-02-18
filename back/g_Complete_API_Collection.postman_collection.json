@@ -1,0 +1,2015 @@
+{
+	"info": {
+		"_postman_id": "complete-api-collection-2025",
+		"name": "Complete Company Platform API Collection",
+		"description": "Comprehensive API collection for the entire Company Platform including Formation, Stock, HR, Projects, Clients, Vehicles, and more",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12345678"
+	},
+	"item": [
+		{
+			"name": "Authentication",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/login",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"login"
+							]
+						},
+						"description": "Authenticate user and get JWT token"
+					},
+					"response": []
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"refreshToken\": \"{{refresh_token}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/auth/refresh",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"auth",
+								"refresh"
+							]
+						},
+						"description": "Refresh JWT token"
+					},
+					"response": []
+				}
+			],
+			"description": "Authentication APIs"
+		},
+		{
+			"name": "User Management",
+			"item": [
+				{
+					"name": "Get All Users",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						},
+						"description": "Retrieve all users"
+					},
+					"response": []
+				},
+				{
+					"name": "Get User by ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{user_id}}"
+							]
+						},
+						"description": "Retrieve a specific user"
+					},
+					"response": []
+				},
+				{
+					"name": "Create User",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"newuser@example.com\",\n  \"password\": \"password123\",\n  \"nom\": \"User Nom\",\n  \"prenom\": \"User Prenom\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users"
+							]
+						},
+						"description": "Create a new user"
+					},
+					"response": []
+				},
+				{
+					"name": "Update User",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"updated@example.com\",\n  \"nom\": \"Updated Nom\",\n  \"prenom\": \"Updated Prenom\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{user_id}}"
+							]
+						},
+						"description": "Update user information"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete User",
+					"request": {
+						"method": "DELETE",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/{{user_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"{{user_id}}"
+							]
+						},
+						"description": "Delete a user"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Users",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"user@example.com\",\n  \"nom\": \"Nom\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/users/search",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"search"
+							]
+						},
+						"description": "Search users by criteria"
+					},
+					"response": []
+				},
+				{
+					"name": "User Stats",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/users/stats",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"users",
+								"stats"
+							]
+						},
+						"description": "Get user statistics"
+					},
+					"response": []
+				}
+			],
+			"description": "User management APIs"
+		},
+		{
+			"name": "Formation Management",
+			"item": [
+				{
+					"name": "Formations",
+					"item": [
+						{
+							"name": "Get All Formations",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/formations",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"formations"
+									]
+								},
+								"description": "Get all training courses"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Formation",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"titre\": \"Formation Java Avancé\",\n  \"description\": \"Formation complète sur Java\",\n  \"domainId\": 1\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/formations",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"formations"
+									]
+								},
+								"description": "Create a new training course"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Formation by ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/formations/{{formation_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"formations",
+										"{{formation_id}}"
+									]
+								},
+								"description": "Get a specific formation"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Formation",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"titre\": \"Formation Java Avancé - Updated\",\n  \"description\": \"Formation complète sur Java avec exemples\",\n  \"domainId\": 1\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/formations/{{formation_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"formations",
+										"{{formation_id}}"
+									]
+								},
+								"description": "Update a formation"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Formation",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/formations/{{formation_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"formations",
+										"{{formation_id}}"
+									]
+								},
+								"description": "Delete a formation"
+							},
+							"response": []
+						}
+					],
+					"description": "Training course management"
+				},
+				{
+					"name": "Apprenants (Learners)",
+					"item": [
+						{
+							"name": "Get All Apprenants",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/apprenants",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"apprenants"
+									]
+								},
+								"description": "Get all learners"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Apprenant",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"nom\": \"Apprenant Nom\",\n  \"prenom\": \"Apprenant Prenom\",\n  \"email\": \"apprenant@example.com\",\n  \"telephone\": \"21612345678\",\n  \"matricule\": \"APPR001\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/apprenants",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"apprenants"
+									]
+								},
+								"description": "Create a new learner"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Apprenant by ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/apprenants/{{apprenant_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"apprenants",
+										"{{apprenant_id}}"
+									]
+								},
+								"description": "Get a specific learner"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Apprenant",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"nom\": \"Updated Nom\",\n  \"prenom\": \"Updated Prenom\",\n  \"email\": \"updated@example.com\",\n  \"telephone\": \"21698765432\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/apprenants/{{apprenant_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"apprenants",
+										"{{apprenant_id}}"
+									]
+								},
+								"description": "Update a learner"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Apprenant",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/apprenants/{{apprenant_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"apprenants",
+										"{{apprenant_id}}"
+									]
+								},
+								"description": "Delete a learner"
+							},
+							"response": []
+						}
+					],
+					"description": "Learner management"
+				},
+				{
+					"name": "Classes",
+					"item": [
+						{
+							"name": "Get All Classes",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/classes",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"classes"
+									]
+								},
+								"description": "Get all classes"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Class",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"nom\": \"Class A2025\",\n  \"formationId\": 1,\n  \"dateDebutAcces\": \"2025-02-01\",\n  \"dateFinAcces\": \"2025-12-31\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/classes",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"classes"
+									]
+								},
+								"description": "Create a new class"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Class by ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/classes/{{class_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"classes",
+										"{{class_id}}"
+									]
+								},
+								"description": "Get a specific class"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Class",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"nom\": \"Class A2025 Updated\",\n  \"formationId\": 1,\n  \"dateDebutAcces\": \"2025-02-01\",\n  \"dateFinAcces\": \"2025-12-31\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/classes/{{class_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"classes",
+										"{{class_id}}"
+									]
+								},
+								"description": "Update a class"
+							},
+							"response": []
+						},
+						{
+							"name": "Delete Class",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/classes/{{class_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"classes",
+										"{{class_id}}"
+									]
+								},
+								"description": "Delete a class"
+							},
+							"response": []
+						},
+						{
+							"name": "Add Apprenant to Class",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/classes/{{class_id}}/apprenants/{{apprenant_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"classes",
+										"{{class_id}}",
+										"apprenants",
+										"{{apprenant_id}}"
+									]
+								},
+								"description": "Add an apprenant to a class"
+							},
+							"response": []
+						},
+						{
+							"name": "Remove Apprenant from Class",
+							"request": {
+								"method": "DELETE",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/classes/{{class_id}}/apprenants/{{apprenant_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"classes",
+										"{{class_id}}",
+										"apprenants",
+										"{{apprenant_id}}"
+									]
+								},
+								"description": "Remove an apprenant from a class"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Active Classes",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/classes/active",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"classes",
+										"active"
+									]
+								},
+								"description": "Get all active classes"
+							},
+							"response": []
+						}
+					],
+					"description": "Class management with access date control"
+				},
+				{
+					"name": "Plan Formations",
+					"item": [
+						{
+							"name": "Get All Plan Formations",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/plan-formations",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"plan-formations"
+									]
+								},
+								"description": "Get all training plans"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Plan Formation",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"nom\": \"Plan Formation 2025\",\n  \"description\": \"Plan de formation annuel\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/plan-formations",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"plan-formations"
+									]
+								},
+								"description": "Create a new training plan"
+							},
+							"response": []
+						}
+					],
+					"description": "Training plan management"
+				}
+			],
+			"description": "Formation management system APIs"
+		},
+		{
+			"name": "Stock Management",
+			"item": [
+				{
+					"name": "Articles",
+					"item": [
+						{
+							"name": "Get All Articles",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/stock/article",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"stock",
+										"article"
+									]
+								},
+								"description": "Get all articles"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Article",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"nom\": \"Article Name\",\n  \"description\": \"Article Description\",\n  \"categoryId\": 1,\n  \"unitPrice\": 100.00\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/stock/article",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"stock",
+										"article"
+									]
+								},
+								"description": "Create a new article"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Article",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"nom\": \"Updated Article\",\n  \"description\": \"Updated Description\",\n  \"categoryId\": 1,\n  \"unitPrice\": 150.00\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/stock/article/{{article_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"stock",
+										"article",
+										"{{article_id}}"
+									]
+								},
+								"description": "Update an article"
+							},
+							"response": []
+						}
+					],
+					"description": "Article management"
+				},
+				{
+					"name": "Stock Management",
+					"item": [
+						{
+							"name": "Get All Stock",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/stock",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"stock"
+									]
+								},
+								"description": "Get all stock records"
+							},
+							"response": []
+						},
+						{
+							"name": "Entry Movement",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"articleId\": 1,\n  \"entrepotId\": 1,\n  \"quantity\": 10,\n  \"motif\": \"Stock entry\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/stock/mouvement/entree",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"stock",
+										"mouvement",
+										"entree"
+									]
+								},
+								"description": "Record stock entry"
+							},
+							"response": []
+						},
+						{
+							"name": "Exit Movement",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"articleId\": 1,\n  \"entrepotId\": 1,\n  \"quantity\": 5,\n  \"motif\": \"Stock exit\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/stock/mouvement/sortie",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"stock",
+										"mouvement",
+										"sortie"
+									]
+								},
+								"description": "Record stock exit"
+							},
+							"response": []
+						},
+						{
+							"name": "Stock Transfer",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"articleId\": 1,\n  \"fromEntrepotId\": 1,\n  \"toEntrepotId\": 2,\n  \"quantity\": 3,\n  \"motif\": \"Internal transfer\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/stock/mouvement/transfert",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"stock",
+										"mouvement",
+										"transfert"
+									]
+								},
+								"description": "Transfer stock between warehouses"
+							},
+							"response": []
+						}
+					],
+					"description": "Stock operations"
+				},
+				{
+					"name": "Categories",
+					"item": [
+						{
+							"name": "Get All Categories",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/stock/category",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"stock",
+										"category"
+									]
+								},
+								"description": "Get all stock categories"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Category",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"nom\": \"Electronics\",\n  \"description\": \"Electronic items\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/stock/category",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"stock",
+										"category"
+									]
+								},
+								"description": "Create a new category"
+							},
+							"response": []
+						}
+					],
+					"description": "Category management"
+				}
+			],
+			"description": "Stock and inventory management APIs"
+		},
+		{
+			"name": "HR Management",
+			"item": [
+				{
+					"name": "Employees",
+					"item": [
+						{
+							"name": "Get All Employees",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/Employee",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"Employee"
+									]
+								},
+								"description": "Get all employees"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Employee",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"nom\": \"Employee Nom\",\n  \"prenom\": \"Employee Prenom\",\n  \"email\": \"employee@example.com\",\n  \"telephone\": \"21612345678\",\n  \"poste\": \"Developer\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/Employee",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"Employee"
+									]
+								},
+								"description": "Create a new employee"
+							},
+							"response": []
+						}
+					],
+					"description": "Employee management"
+				},
+				{
+					"name": "Leaves",
+					"item": [
+						{
+							"name": "Get All Leaves",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/Congee",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"Congee"
+									]
+								},
+								"description": "Get all leave requests"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Leave Request",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"employeeId\": 1,\n  \"dateDebut\": \"2025-03-01\",\n  \"dateFin\": \"2025-03-10\",\n  \"type\": \"ANNUAL\",\n  \"motif\": \"Vacation\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/Congee",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"Congee"
+									]
+								},
+								"description": "Create a leave request"
+							},
+							"response": []
+						}
+					],
+					"description": "Leave/Congee management"
+				},
+				{
+					"name": "Payroll",
+					"item": [
+						{
+							"name": "Get All Payroll Records",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/FichePaie",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"FichePaie"
+									]
+								},
+								"description": "Get all payroll records"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Payroll Record",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"employeeId\": 1,\n  \"mois\": 3,\n  \"annee\": 2025,\n  \"salaireBrut\": 3000.00,\n  \"retenues\": 500.00\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/FichePaie",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"FichePaie"
+									]
+								},
+								"description": "Create a payroll record"
+							},
+							"response": []
+						}
+					],
+					"description": "Payroll management"
+				}
+			],
+			"description": "HR management system APIs"
+		},
+		{
+			"name": "Supplier Management",
+			"item": [
+				{
+					"name": "Suppliers",
+					"item": [
+						{
+							"name": "Create Supplier",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"nom\": \"Supplier ABC\",\n  \"infoContact\": \"contact@supplier.com\",\n  \"adresse\": \"123 Rue de la Paix, Tunis\",\n  \"telephone\": \"+216 71 123 456\",\n  \"matriculeFiscale\": \"123456789\",\n  \"totalAchat\": 25000.00\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/fournisseur",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"fournisseur"
+									]
+								},
+								"description": "Create a new supplier"
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Suppliers",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/fournisseur",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"fournisseur"
+									]
+								},
+								"description": "Get all suppliers"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Supplier by ID",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/fournisseur/{{supplier_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"fournisseur",
+										"{{supplier_id}}"
+									]
+								},
+								"description": "Get a specific supplier"
+							},
+							"response": []
+						},
+						{
+							"name": "Update Supplier",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"nom\": \"Updated Supplier\",\n  \"infoContact\": \"new@supplier.com\",\n  \"adresse\": \"456 Avenue Habib Bourguiba, Tunis\",\n  \"telephone\": \"+216 71 987 654\",\n  \"matriculeFiscale\": \"123456789\",\n  \"totalAchat\": 35000.00\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/fournisseur/{{supplier_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"fournisseur",
+										"{{supplier_id}}"
+									]
+								},
+								"description": "Update a supplier"
+							},
+							"response": []
+						}
+					],
+					"description": "Supplier management"
+				},
+				{
+					"name": "Supplier Debts",
+					"item": [
+						{
+							"name": "Create Supplier Debt",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"numeroFacture\": \"FACT-2025-001\",\n  \"titre\": \"Purchase invoice\",\n  \"description\": \"Equipment purchase\",\n  \"montantTotal\": 1500.50,\n  \"estPaye\": false,\n  \"type\": \"FOURNISSEUR\",\n  \"datePaiementPrevue\": \"2025-12-31\",\n  \"fournisseurId\": \"{{supplier_id}}\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/dettes-fournisseur",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"dettes-fournisseur"
+									]
+								},
+								"description": "Create a supplier debt"
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Supplier Debts",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/dettes-fournisseur",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"dettes-fournisseur"
+									]
+								},
+								"description": "Get all supplier debts"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Debts by Supplier",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/dettes-fournisseur/fournisseur/{{supplier_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"dettes-fournisseur",
+										"fournisseur",
+										"{{supplier_id}}"
+									]
+								},
+								"description": "Get all debts for a specific supplier"
+							},
+							"response": []
+						}
+					],
+					"description": "Supplier debt management"
+				},
+				{
+					"name": "Payment Installments",
+					"item": [
+						{
+							"name": "Create Payment Installment",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"montant\": 500.00,\n  \"dateEcheance\": \"2025-11-15\",\n  \"estPaye\": false,\n  \"dettesFournisseurId\": \"{{debt_id}}\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/tranches-paiement",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"tranches-paiement"
+									]
+								},
+								"description": "Create a payment installment"
+							},
+							"response": []
+						},
+						{
+							"name": "Get All Installments",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/tranches-paiement",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"tranches-paiement"
+									]
+								},
+								"description": "Get all payment installments"
+							},
+							"response": []
+						},
+						{
+							"name": "Pay Installment",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/tranches-paiement/{{installment_id}}/payer",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"tranches-paiement",
+										"{{installment_id}}",
+										"payer"
+									]
+								},
+								"description": "Mark an installment as paid"
+							},
+							"response": []
+						},
+						{
+							"name": "Get Overdue Installments",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/tranches-paiement/en-retard",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"tranches-paiement",
+										"en-retard"
+									]
+								},
+								"description": "Get all overdue payment installments"
+							},
+							"response": []
+						}
+					],
+					"description": "Payment installment management"
+				}
+			],
+			"description": "Supplier and payment management APIs"
+		},
+		{
+			"name": "Client Management",
+			"item": [
+				{
+					"name": "Get All Clients",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/client",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"client"
+							]
+						},
+						"description": "Get all clients"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Client",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nom\": \"Client Name\",\n  \"prenom\": \"Client First Name\",\n  \"email\": \"client@example.com\",\n  \"telephone\": \"21612345678\",\n  \"adresse\": \"123 Rue, Tunis\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/client",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"client"
+							]
+						},
+						"description": "Create a new client"
+					},
+					"response": []
+				}
+			],
+			"description": "Client management APIs"
+		},
+		{
+			"name": "Projects",
+			"item": [
+				{
+					"name": "Get All Projects",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/projet",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"projet"
+							]
+						},
+						"description": "Get all projects"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Project",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nom\": \"Project Name\",\n  \"description\": \"Project Description\",\n  \"dateDebut\": \"2025-02-01\",\n  \"dateFin\": \"2025-12-31\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/projet",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"projet"
+							]
+						},
+						"description": "Create a new project"
+					},
+					"response": []
+				},
+				{
+					"name": "Tasks",
+					"item": [
+						{
+							"name": "Get All Tasks",
+							"request": {
+								"method": "GET",
+								"header": [
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"url": {
+									"raw": "{{base_url}}/api/tache",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"tache"
+									]
+								},
+								"description": "Get all tasks"
+							},
+							"response": []
+						},
+						{
+							"name": "Create Task",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"value": "Bearer {{token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"nom\": \"Task Name\",\n  \"description\": \"Task Description\",\n  \"projetId\": 1,\n  \"dateEcheance\": \"2025-03-31\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/tache",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"tache"
+									]
+								},
+								"description": "Create a new task"
+							},
+							"response": []
+						}
+					],
+					"description": "Task management"
+				}
+			],
+			"description": "Project management APIs"
+		},
+		{
+			"name": "Vehicle Management",
+			"item": [
+				{
+					"name": "Get All Vehicles",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"url": {
+							"raw": "{{base_url}}/api/vehicule",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"vehicule"
+							]
+						},
+						"description": "Get all vehicles"
+					},
+					"response": []
+				},
+				{
+					"name": "Create Vehicle",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							},
+							{
+								"key": "Authorization",
+								"value": "Bearer {{token}}"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"marque\": \"Toyota\",\n  \"modele\": \"Corolla\",\n  \"immatriculation\": \"TUN 123 TN\",\n  \"annee\": 2023\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/vehicule",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"vehicule"
+							]
+						},
+						"description": "Create a new vehicle"
+					},
+					"response": []
+				}
+			],
+			"description": "Vehicle management APIs"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string",
+			"description": "Base URL for the API server"
+		},
+		{
+			"key": "token",
+			"value": "",
+			"type": "string",
+			"description": "JWT authentication token"
+		},
+		{
+			"key": "refresh_token",
+			"value": "",
+			"type": "string",
+			"description": "JWT refresh token"
+		},
+		{
+			"key": "user_id",
+			"value": "",
+			"type": "string",
+			"description": "User ID"
+		},
+		{
+			"key": "formation_id",
+			"value": "",
+			"type": "string",
+			"description": "Formation ID"
+		},
+		{
+			"key": "apprenant_id",
+			"value": "",
+			"type": "string",
+			"description": "Apprenant (Learner) ID"
+		},
+		{
+			"key": "class_id",
+			"value": "",
+			"type": "string",
+			"description": "Class ID"
+		},
+		{
+			"key": "supplier_id",
+			"value": "",
+			"type": "string",
+			"description": "Supplier ID"
+		},
+		{
+			"key": "debt_id",
+			"value": "",
+			"type": "string",
+			"description": "Supplier Debt ID"
+		},
+		{
+			"key": "installment_id",
+			"value": "",
+			"type": "string",
+			"description": "Payment Installment ID"
+		},
+		{
+			"key": "article_id",
+			"value": "",
+			"type": "string",
+			"description": "Stock Article ID"
+		}
+	]
+}

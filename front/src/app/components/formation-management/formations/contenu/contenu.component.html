@@ -1,0 +1,188 @@
+<div class="content-section">
+  <div class="objective-header">
+    <h2 class="objective-title">📑 Gestion du Contenu de Formation</h2>
+    <button class="btn-close" type="button" (click)="onClose()">✕</button>
+  </div>
+
+  <div class="content-builder">
+    <!-- ADD/EDIT CONTENT FORM -->
+    <div class="builder-form" *ngIf="!showEditContentForm">
+      <h3 class="section-title">➕ Ajouter un nouveau contenu</h3>
+      
+      <div class="field">
+        <label>Titre <span style="color: red;">*</span></label>
+        <input class="input" type="text" [(ngModel)]="contentForm.title" placeholder="Ex: Atelier pratique" />
+      </div>
+
+      <div class="field">
+        <label>Description</label>
+        <textarea class="textarea" rows="2" [(ngModel)]="contentForm.description" placeholder="Décrivez l'activité..."></textarea>
+      </div>
+
+      <div class="field">
+        <label>Détails</label>
+        <textarea class="textarea" rows="2" [(ngModel)]="contentForm.detail" placeholder="Infos supplémentaires, livrables..."></textarea>
+      </div>
+
+      <div class="grid mini">
+        <div class="field">
+          <label>Niveau</label>
+          <select class="input" [(ngModel)]="contentForm.level">
+            <option value="">— Optionnel —</option>
+            <option *ngFor="let niveau of niveaux" [value]="niveau">{{ niveau }}</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Staff</label>
+          <select class="input" [(ngModel)]="contentForm.staff">
+            <option value="">— Optionnel —</option>
+            <option *ngFor="let formateur of formateurs" [value]="formateur.prenom + ' ' + formateur.nom">{{ formateur.prenom }} {{ formateur.nom }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid mini">
+        <div class="field">
+          <label>Jour</label>
+          <input class="input" type="number" min="1" [(ngModel)]="contentForm.day" />
+        </div>
+        <div class="field">
+          <label>Objectif spécifique <span style="color: red;">*</span></label>
+          <select class="input" [(ngModel)]="contentForm.specificId" required>
+            <option [ngValue]="undefined">— Sélectionner —</option>
+            <option *ngFor="let s of objectifsSpecifiques" [ngValue]="s.id">{{ s.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid mini">
+        <div class="field">
+          <label>Heures pratique</label>
+          <input class="input" type="number" min="0" step="0.5" [(ngModel)]="contentForm.hoursPractical" />
+        </div>
+        <div class="field">
+          <label>Heures théorie</label>
+          <input class="input" type="number" min="0" step="0.5" [(ngModel)]="contentForm.hoursTheoretical" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn primary" (click)="addContentItem()">Ajouter au programme</button>
+      </div>
+    </div>
+
+    <!-- EDIT CONTENT FORM -->
+    <div class="objective-detail" *ngIf="showEditContentForm && selectedContentForEdit">
+      <h3 class="section-title">✏️ Modifier le contenu</h3>
+      
+      <div class="field">
+        <label>Titre <span style="color: red;">*</span></label>
+        <input class="input" type="text" [(ngModel)]="selectedContentForEdit.title" />
+      </div>
+
+      <div class="field">
+        <label>Description</label>
+        <textarea class="textarea" rows="2" [(ngModel)]="selectedContentForEdit.description"></textarea>
+      </div>
+
+      <div class="field">
+        <label>Détails</label>
+        <textarea class="textarea" rows="2" [(ngModel)]="selectedContentForEdit.detail"></textarea>
+      </div>
+
+      <div class="grid mini">
+        <div class="field">
+          <label>Niveau</label>
+          <select class="input" [(ngModel)]="selectedContentForEdit.level">
+            <option value="">— Optionnel —</option>
+            <option *ngFor="let niveau of niveaux" [value]="niveau">{{ niveau }}</option>
+          </select>
+        </div>
+        <div class="field">
+          <label>Staff</label>
+          <select class="input" [(ngModel)]="selectedContentForEdit.staff">
+            <option value="">— Optionnel —</option>
+            <option *ngFor="let formateur of formateurs" [value]="formateur.prenom + ' ' + formateur.nom">{{ formateur.prenom }} {{ formateur.nom }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid mini">
+        <div class="field">
+          <label>Jour</label>
+          <input class="input" type="number" min="1" [(ngModel)]="selectedContentForEdit.day" />
+        </div>
+        <div class="field">
+          <label>Objectif spécifique <span style="color: red;">*</span></label>
+          <select class="input" [(ngModel)]="selectedContentForEdit.specificId" required>
+            <option [ngValue]="undefined">— Sélectionner —</option>
+            <option *ngFor="let s of objectifsSpecifiques" [ngValue]="s.id">{{ s.label }}</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid mini">
+        <div class="field">
+          <label>Heures pratique</label>
+          <input class="input" type="number" min="0" step="0.5" [(ngModel)]="selectedContentForEdit.hoursPractical" />
+        </div>
+        <div class="field">
+          <label>Heures théorie</label>
+          <input class="input" type="number" min="0" step="0.5" [(ngModel)]="selectedContentForEdit.hoursTheoretical" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button type="button" class="btn primary" (click)="saveEditedContent()">💾 Enregistrer</button>
+        <button type="button" class="btn" (click)="showEditContentForm = false; selectedContentForEdit = null">Annuler</button>
+      </div>
+    </div>
+
+    <!-- CONTENT LIST -->
+    <div class="content-list" *ngIf="contentItems.length; else noContent">
+      <h3 class="section-title">📋 Programme</h3>
+      
+      <div class="day-group" *ngFor="let day of contentDays">
+        <div class="day-header">Jour {{ day }}</div>
+        <div class="content-item" *ngFor="let item of orderedContentByDay(day)">
+          <div class="content-meta" (click)="openContentDetailAssigner(item)">
+            <div class="content-title">{{ item.title }}</div>
+            <div class="content-tags">
+              <span class="tag" *ngIf="item.specificId">{{ getSpecificObjectiveLabel(item.specificId) }}</span>
+              <span class="tag ghost">Ordre {{ item.order }}</span>
+              <span class="tag ghost" *ngIf="item.level">Niveau: {{ item.level }}</span>
+              <span class="tag" *ngIf="item.staff">Staff: {{ item.staff }}</span>
+              <span class="tag" *ngIf="getContentItemHoursFromDetails(item).theorique || getContentItemHoursFromDetails(item).pratique">
+                {{ getContentItemHoursFromDetails(item).pratique || 0 }}h pratique / {{ getContentItemHoursFromDetails(item).theorique || 0 }}h théorie
+              </span>
+            </div>
+            <div class="content-desc" *ngIf="item.description">{{ item.description }}</div>
+            <div class="content-desc muted" *ngIf="item.detail">{{ item.detail }}</div>
+            <div class="content-assigned" *ngIf="getAssignedContentDetails(item).length">
+              <strong>Supports pédagogiques assignés:</strong>
+              <div class="assigned-list">
+                <span class="assigned-item" *ngFor="let cd of getAssignedContentDetails(item)">
+                  {{ cd.title }}
+                  <button type="button" class="btn-remove-small" (click)="removeContentDetailFromItem(cd.id); $event.stopPropagation()">✕</button>
+                </span>
+              </div>
+            </div>
+            <button type="button" class="btn-assign" (click)="openContentDetailAssigner(item); $event.stopPropagation()">
+              📎 Assigner supports pédagogiques
+            </button>
+          </div>
+          <div class="content-actions">
+            <button type="button" class="icon-btn" title="Monter" (click)="moveContent(item.id, -1)">▲</button>
+            <button type="button" class="icon-btn" title="Descendre" (click)="moveContent(item.id, 1)">▼</button>
+            <button type="button" class="icon-btn btn-edit" title="Modifier" (click)="editContentItem(item); $event.stopPropagation()">✏️</button>
+            <button type="button" class="icon-btn btn-delete" title="Supprimer" (click)="deleteContentItem(item.id); $event.stopPropagation()">🗑️</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <ng-template #noContent>
+      <div class="empty">Aucun contenu encore. Ajoutez votre première session.</div>
+    </ng-template>
+  </div>
+</div>

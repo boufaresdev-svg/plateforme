@@ -1,0 +1,295 @@
+<div class="alerts-management">
+  <app-notification></app-notification>
+  <div class="section-header">
+    <h2>🚨 Gestion des Alertes</h2>
+    <button class="btn-primary" (click)="refresh()">
+      <span class="icon">🔄</span>
+      Actualiser
+    </button>
+  </div>
+
+  <div class="search-filters">
+    <div class="search-box">
+      <input type="text" 
+             placeholder="Rechercher une alerte..." 
+             [(ngModel)]="searchTerm"
+             (input)="onSearchChange()"
+             class="search-input">
+      <span class="search-icon">🔍</span>
+    </div>
+  </div>
+  <div class="alerts-table-container">
+    <table class="alerts-table">
+      <thead>
+        <tr>
+          <th>Date/Heure</th>
+          <th>Type</th>
+          <th>Article</th>
+          <th>Entrepôt</th>
+          <th>Quantité</th>
+          <th>Utilisateur</th>
+          <th>Motif</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngIf="filteredAlertes.length === 0">
+          <td colspan="8" class="no-data">
+            <div class="no-data-message">
+              <span class="icon">📭</span>
+              <p>Aucune alerte trouvée</p>
+            </div>
+          </td>
+        </tr>
+        
+        <tr *ngFor="let alerte of filteredAlertes; trackBy: trackByAlertId" 
+            class="alert-row">
+          
+          <td class="date-cell">
+            <div class="date-time">
+              <div class="date">{{ alerte.dateCreation | date:'dd/MM/yyyy' }}</div>
+              <div class="time">{{ alerte.dateCreation | date:'HH:mm' }}</div>
+            </div>
+          </td>
+          
+          <td class="type-cell">
+            <span class="type-badge" [ngClass]="getTypeBadgeClass(alerte.type)">
+              {{ getAlertIcon(alerte.type) }} {{ getTypeLabel(alerte.type) }}
+            </span>
+          </td>
+          
+          <td class="article-cell">
+            <div class="article-info" *ngIf="alerte.articleNom; else noArticle">
+              <div class="article-name">{{ alerte.articleNom }}</div>
+              <div class="article-code" *ngIf="alerte.articleId">{{ alerte.articleId }}</div>
+            </div>
+            <ng-template #noArticle>
+              <span class="no-data">-</span>
+            </ng-template>
+          </td>
+          
+          <td class="entrepot-cell">
+            <div class="entrepot-name" *ngIf="alerte.entrepotNom; else noEntrepot">
+              {{ alerte.entrepotNom }}
+            </div>
+            <ng-template #noEntrepot>
+              <span class="no-data">-</span>  
+            </ng-template>
+          </td>
+          
+          <td class="quantity-cell">
+            <div class="quantity" *ngIf="alerte.quantiteActuelle !== undefined; else noQuantity"
+                 [ngClass]="getQuantityClass(alerte)">
+              {{ alerte.quantiteActuelle }}
+              <span class="threshold" *ngIf="alerte.seuilMinimum"> / {{ alerte.seuilMinimum }}</span>
+            </div>
+            <ng-template #noQuantity>
+              <span class="no-data">-</span>
+            </ng-template>
+          </td>
+          
+          <td class="user-cell">
+            <div class="user-name">{{ alerte.utilisateurNom || 'Système' }}</div>
+          </td>
+          
+          <td class="motif-cell">
+            <div class="motif-text" [title]="alerte.description">
+              {{ alerte.message }}
+            </div>
+          </td>
+          
+          <td class="actions-cell">
+            <div class="action-buttons">
+              <button class="btn-icon btn-view" 
+                      (click)="viewAlert(alerte); $event.stopPropagation()" 
+                      title="Voir détails">
+                <span>👁️</span>
+              </button>
+              
+              <button class="btn-icon btn-acknowledge" 
+                      *ngIf="alerte.status === AlertStatus.ACTIVE"
+                      (click)="acknowledgeAlert(alerte.id); $event.stopPropagation()" 
+                      title="Accuser réception">
+                <span>✓</span>
+              </button>
+              <button class="btn-icon btn-resolve" 
+                      *ngIf="alerte.status !== AlertStatus.RESOLVED"
+                      (click)="resolveAlert(alerte.id); $event.stopPropagation()" 
+                      title="Résoudre">
+                <span>✅</span>
+              </button>
+              <button class="btn-icon btn-dismiss" 
+                      (click)="dismissAlert(alerte.id); $event.stopPropagation()" 
+                      title="Rejeter">
+                <span>❌</span>
+              </button>
+            </div>
+            <div class="status-priority">
+              <span class="status-badge" [ngClass]="'status-' + alerte.status.toLowerCase()">
+                {{ getStatusLabel(alerte.status) }}
+              </span>
+              <span class="priority-badge" [ngClass]="'priority-' + alerte.priority.toLowerCase()">
+                {{ getPriorityLabel(alerte.priority) }}
+              </span>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-container">
+    <div class="pagination-info">
+      Affichage de {{ currentPage * pageSize + 1 }} à {{ Math.min((currentPage + 1) * pageSize, totalElements) }} sur {{ totalElements }} résultats
+    </div>
+    <div class="pagination-controls">
+      <div class="page-size-selector">
+        <label>Afficher:</label>
+        <select [(ngModel)]="pageSize" (change)="onPageSizeChange()" class="page-size-select">
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+        </select>
+      </div>
+      <div class="page-buttons">
+        <button class="btn-page" [disabled]="currentPage === 0" (click)="onPageChange(0)">
+          Premier
+        </button>
+        <button class="btn-page" [disabled]="currentPage === 0" (click)="onPageChange(currentPage - 1)">
+          Précédent
+        </button>
+        <span class="page-info">Page {{ currentPage + 1 }} sur {{ totalPages }}</span>
+        <button class="btn-page" [disabled]="currentPage >= totalPages - 1" (click)="onPageChange(currentPage + 1)">
+          Suivant
+        </button>
+        <button class="btn-page" [disabled]="currentPage >= totalPages - 1" (click)="onPageChange(totalPages - 1)">
+          Dernier
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Details Modal -->
+  <div class="modal-overlay" *ngIf="showDetailsModal" (click)="closeDetailsModal()">
+    <div class="modal-content alert-details-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ getAlertIcon(selectedAlert!.type) }} Détails de l'Alerte</h3>
+        <button class="btn-close" (click)="closeDetailsModal()">×</button>
+      </div>
+      
+      <div class="modal-body" *ngIf="selectedAlert">
+        <div class="alert-detail-grid">
+          <!-- Type & Priority Section -->
+          <div class="detail-section">
+            <h4>Classification</h4>
+            <div class="detail-row">
+              <span class="label">Type:</span>
+              <span class="type-badge" [ngClass]="getTypeBadgeClass(selectedAlert.type)">
+                {{ getAlertIcon(selectedAlert.type) }} {{ getTypeLabel(selectedAlert.type) }}
+              </span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Priorité:</span>
+              <span class="priority-badge" [ngClass]="'priority-' + selectedAlert.priority.toLowerCase()">
+                {{ getPriorityLabel(selectedAlert.priority) }}
+              </span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Statut:</span>
+              <span class="status-badge" [ngClass]="'status-' + selectedAlert.status.toLowerCase()">
+                {{ getStatusLabel(selectedAlert.status) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Article & Warehouse Info -->
+          <div class="detail-section" *ngIf="selectedAlert.articleNom || selectedAlert.entrepotNom">
+            <h4>Informations Stock</h4>
+            <div class="detail-row" *ngIf="selectedAlert.articleNom">
+              <span class="label">Article:</span>
+              <span class="value">{{ selectedAlert.articleNom }}</span>
+            </div>
+            <div class="detail-row" *ngIf="selectedAlert.articleId">
+              <span class="label">Référence:</span>
+              <span class="value code">{{ selectedAlert.articleId }}</span>
+            </div>
+            <div class="detail-row" *ngIf="selectedAlert.entrepotNom">
+              <span class="label">Entrepôt:</span>
+              <span class="value">{{ selectedAlert.entrepotNom }}</span>
+            </div>
+          </div>
+
+          <!-- Quantities -->
+          <div class="detail-section" *ngIf="selectedAlert.quantiteActuelle !== undefined">
+            <h4>Quantités</h4>
+            <div class="detail-row">
+              <span class="label">Quantité actuelle:</span>
+              <span class="value quantity" [ngClass]="getQuantityClass(selectedAlert)">
+                {{ selectedAlert.quantiteActuelle }}
+              </span>
+            </div>
+            <div class="detail-row" *ngIf="selectedAlert.seuilMinimum">
+              <span class="label">Seuil minimum:</span>
+              <span class="value">{{ selectedAlert.seuilMinimum }}</span>
+            </div>
+            <div class="detail-row" *ngIf="selectedAlert.seuilCritique">
+              <span class="label">Seuil critique:</span>
+              <span class="value critical">{{ selectedAlert.seuilCritique }}</span>
+            </div>
+          </div>
+
+          <!-- Dates & User -->
+          <div class="detail-section">
+            <h4>Traçabilité</h4>
+            <div class="detail-row">
+              <span class="label">Date de création:</span>
+              <span class="value">{{ selectedAlert.dateCreation | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="detail-row" *ngIf="selectedAlert.dateModification">
+              <span class="label">Dernière modification:</span>
+              <span class="value">{{ selectedAlert.dateModification | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Utilisateur:</span>
+              <span class="value">{{ selectedAlert.utilisateurNom || 'Système' }}</span>
+            </div>
+            <div class="detail-row" *ngIf="selectedAlert.isRead">
+              <span class="label">Lu:</span>
+              <span class="value">✓ Oui</span>
+            </div>
+          </div>
+
+          <!-- Message & Description -->
+          <div class="detail-section full-width">
+            <h4>Message</h4>
+            <div class="alert-message">
+              {{ selectedAlert.message }}
+            </div>
+            <div class="alert-description" *ngIf="selectedAlert.description">
+              <h5>Description détaillée:</h5>
+              <p>{{ selectedAlert.description }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="modal-actions">
+          <button class="btn-secondary" (click)="closeDetailsModal()">Fermer</button>
+          <button class="btn-success" 
+                  *ngIf="selectedAlert.status === AlertStatus.ACTIVE"
+                  (click)="acknowledgeAlert(selectedAlert.id); closeDetailsModal()">
+            Accuser réception
+          </button>
+          <button class="btn-primary" 
+                  *ngIf="selectedAlert.status !== AlertStatus.RESOLVED"
+                  (click)="resolveAlert(selectedAlert.id); closeDetailsModal()">
+            Marquer comme résolue
+          </button>
+          <button class="btn-danger" 
+                  (click)="dismissAlert(selectedAlert.id); closeDetailsModal()">
+            Rejeter
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

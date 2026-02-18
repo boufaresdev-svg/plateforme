@@ -1,0 +1,15 @@
+package com.example.BacK.application.g_Formation.Command.Domaine.deleteDomaine;
+
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class DeleteDomaineCommand {
+
+    private Long idDomaine;
+
+}

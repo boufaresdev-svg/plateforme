@@ -1,0 +1,255 @@
+<div class="categories-management">
+  <app-notification></app-notification>
+  
+  <div class="section-header">
+    <h2>Ajustements de Stock</h2>
+    <button class="btn-primary" (click)="openAddModal()" [disabled]="loading">
+      <span class="icon">+</span>
+      Nouvel Ajustement
+    </button>
+  </div>
+
+  <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="loading-indicator" *ngIf="loading"><span>Chargement...</span></div>
+
+  <div class="search-filters">
+    <select class="filter-select" [(ngModel)]="categoryFilter" (change)="loadAjustements()">
+      <option value="">Toutes les catégories</option>
+      <option *ngFor="let category of categories" [value]="category.id">
+        {{ category.nom }}
+      </option>
+    </select>
+    
+    <select class="filter-select" [(ngModel)]="marqueFilter" (change)="loadAjustements()">
+      <option value="">Toutes les marques</option>
+      <option *ngFor="let marque of marques" [value]="marque.id">
+        {{ marque.nom }}
+      </option>
+    </select>
+    
+    <select class="filter-select" [(ngModel)]="fournisseurFilter" (change)="loadAjustements()">
+      <option value="">Tous les fournisseurs</option>
+      <option *ngFor="let fournisseur of fournisseurs" [value]="fournisseur.id">
+        {{ fournisseur.nom }}
+      </option>
+    </select>
+    
+    <select class="filter-select" [(ngModel)]="entrepotFilter" (change)="loadAjustements()">
+      <option value="">Tous les entrepôts</option>
+      <option *ngFor="let entrepot of entrepots" [value]="entrepot.id">
+        {{ entrepot.nom }}
+      </option>
+    </select>
+    
+    <select class="filter-select" [(ngModel)]="filterArticleId" (ngModelChange)="filterByArticle()">
+      <option value="">Tous les articles</option>
+      <option *ngFor="let article of articles" [value]="article.id">
+        {{ article.nom }}
+      </option>
+    </select>
+    
+    <input type="date" 
+           class="filter-select" 
+           [(ngModel)]="filterStartDate"
+           placeholder="Date début"
+           style="max-width: 200px;">
+    
+    <input type="date" 
+           class="filter-select" 
+           [(ngModel)]="filterEndDate"
+           placeholder="Date fin"
+           style="max-width: 200px;">
+    
+    <button class="btn-secondary" (click)="filterByDateRange()" [disabled]="loading">
+      Filtrer
+    </button>
+    
+    <button class="btn-secondary" (click)="loadAjustements()" [disabled]="loading">
+      Réinitialiser
+    </button>
+  </div>
+
+  <div class="categories-table-container" *ngIf="!loading">
+    <table class="categories-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Article</th>
+          <th>Entrepôt</th>
+          <th>Qté Avant</th>
+          <th>Qté Après</th>
+          <th>Ajustement</th>
+          <th>Utilisateur</th>
+          <th>Raison</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let ajustement of paginatedAjustements" class="category-row">
+          <td>{{ ajustement.dateAjustement | date:'dd/MM/yyyy' }}</td>
+          <td class="category-cell">
+            <div class="category-name">{{ ajustement.articleNom }}</div>
+            <small style="color: #6b7280;">{{ ajustement.articleSku || '-' }}</small>
+          </td>
+          <td>{{ ajustement.entrepotNom || '-' }}</td>
+          <td style="text-align: center;">{{ ajustement.quantiteAvant }}</td>
+          <td style="text-align: center;">{{ ajustement.quantiteApres }}</td>
+          <td style="text-align: center;">
+            <span class="adjustment-badge" 
+                  [class.positive]="ajustement.ajustement > 0"
+                  [class.negative]="ajustement.ajustement < 0"
+                  [class.neutral]="ajustement.ajustement === 0">
+              {{ ajustement.ajustement > 0 ? '+' : '' }}{{ ajustement.ajustement }}
+            </span>
+          </td>
+          <td>{{ ajustement.utilisateurNom || '-' }}</td>
+          <td class="description-cell">
+            <div class="description-text">
+              {{ ajustement.raison || '-' }}
+            </div>
+          </td>
+          <td class="actions-cell">
+            <button class="btn-action btn-edit" (click)="openEditModal(ajustement)" title="Modifier">
+              ✏️
+            </button>
+            <button class="btn-action btn-delete" (click)="deleteAjustement(ajustement.id)" title="Supprimer">
+              🗑️
+            </button>
+          </td>
+        </tr>
+        <tr *ngIf="ajustements.length === 0">
+          <td colspan="9" class="empty-state">
+            <div class="empty-icon">📊</div>
+            <div class="empty-text">Aucun ajustement trouvé</div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-container" *ngIf="totalElements > 0">
+    <div class="pagination-info">
+      Affichage de {{ currentPage * pageSize + 1 }} à {{ Math.min((currentPage + 1) * pageSize, totalElements) }} sur {{ totalElements }} résultats
+    </div>
+    <div class="pagination-controls">
+      <div class="page-size-selector">
+        <label>Afficher:</label>
+        <select [(ngModel)]="pageSize" (change)="onPageSizeChange()" class="page-size-select">
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+        </select>
+      </div>
+      <div class="page-buttons">
+        <button class="btn-page" [disabled]="currentPage === 0" (click)="onPageChange(0)">
+          Premier
+        </button>
+        <button class="btn-page" [disabled]="currentPage === 0" (click)="onPageChange(currentPage - 1)">
+          Précédent
+        </button>
+        <span class="page-info">Page {{ currentPage + 1 }} sur {{ totalPages }}</span>
+        <button class="btn-page" [disabled]="currentPage >= totalPages - 1" (click)="onPageChange(currentPage + 1)">
+          Suivant
+        </button>
+        <button class="btn-page" [disabled]="currentPage >= totalPages - 1" (click)="onPageChange(totalPages - 1)">
+          Dernier
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal for Add/Edit Ajustement -->
+<div class="modal" [class.show]="showModal" [style.display]="showModal ? 'block' : 'none'" 
+     tabindex="-1" role="dialog" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-dialog modal-dialog-centered" role="document" (click)="$event.stopPropagation()">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">
+          {{ isEditMode ? 'Modifier l\'Ajustement' : 'Nouvel Ajustement de Stock' }}
+        </h5>
+        <button type="button" class="btn-close" (click)="closeModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="form-group">
+            <label class="form-label">Article <span class="required">*</span></label>
+            <select class="form-control" [(ngModel)]="formData.articleId" name="articleId" 
+                    (ngModelChange)="onArticleOrEntrepotChange()" required>
+              <option value="">Sélectionner un article</option>
+              <option *ngFor="let article of articles" [value]="article.id">
+                {{ article.nom }} ({{ article.sku || article.id }})
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Entrepôt <span class="required">*</span></label>
+            <select class="form-control" [(ngModel)]="formData.entrepotId" name="entrepotId"
+                    (ngModelChange)="onArticleOrEntrepotChange()" required>
+              <option value="">Sélectionner un entrepôt</option>
+              <option *ngFor="let entrepot of entrepots" [value]="entrepot.id">
+                {{ entrepot.nom }}
+              </option>
+            </select>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label">Quantité Avant (Stock actuel)</label>
+              <input type="number" class="form-control" [(ngModel)]="formData.quantiteAvant" 
+                     name="quantiteAvant" readonly 
+                     style="background-color: #f3f4f6; cursor: not-allowed;"
+                     placeholder="Sélectionnez article et entrepôt">
+              <small class="text-muted" *ngIf="loadingStock">
+                <span style="color: #667eea;">⏳ Chargement du stock...</span>
+              </small>
+              <small class="text-muted" *ngIf="!loadingStock && formData.articleId && formData.entrepotId">
+                Quantité actuelle en stock : <strong>{{ formData.quantiteAvant }}</strong>
+                <span *ngIf="formData.quantiteAvant === 0" style="color: #f39c12;">
+                  (Premier ajustement pour cet article dans cet entrepôt)
+                </span>
+              </small>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Quantité Après <span class="required">*</span></label>
+              <input type="number" class="form-control" [(ngModel)]="formData.quantiteApres" 
+                     name="quantiteApres" required min="0">
+            </div>
+          </div>
+
+          <div class="adjustment-preview" *ngIf="formData.quantiteAvant !== null && formData.quantiteApres !== null">
+            <div class="preview-label">Ajustement calculé :</div>
+            <div class="preview-value"
+                 [class.positive]="formData.quantiteApres > formData.quantiteAvant"
+                 [class.negative]="formData.quantiteApres < formData.quantiteAvant"
+                 [class.neutral]="formData.quantiteApres === formData.quantiteAvant">
+              {{ formData.quantiteApres > formData.quantiteAvant ? '+' : '' }}
+              {{ formData.quantiteApres - formData.quantiteAvant }}
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Raison / Motif</label>
+            <textarea class="form-control" [(ngModel)]="formData.raison" name="raison" 
+                      rows="3" placeholder="Ex: Correction après inventaire"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="form-label">Notes</label>
+            <textarea class="form-control" [(ngModel)]="formData.notes" name="notes" 
+                      rows="3" placeholder="Informations supplémentaires..."></textarea>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeModal()">
+          Annuler
+        </button>
+        <button type="button" class="btn-primary" (click)="saveAjustement()" [disabled]="loading">
+          {{ isEditMode ? 'Mettre à jour' : 'Ajuster le Stock' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="modal-backdrop" [class.show]="showModal" *ngIf="showModal"></div>

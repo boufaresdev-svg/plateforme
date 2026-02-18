@@ -1,0 +1,243 @@
+<div class="content-editor-page">
+  <!-- Loading Indicator -->
+  <div *ngIf="isLoading || isUploading" class="loading-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+    <div style="text-align: center;">
+      <div style="font-size: 48px; animation: spin 1s linear infinite;">⏳</div>
+      <p style="margin-top: 16px; font-size: 18px; color: #666;">
+        {{ isUploading ? 'Upload des fichiers en cours...' : 'Chargement du contenu...' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <button class="btn-back" (click)="close()">
+        <span class="icon">←</span>
+        <span>Retour</span>
+      </button>
+      <div class="header-title">
+        <h1>{{ editMode ? '✏️ Modifier' : '➕ Créer' }} un Support Pédagogique</h1>
+        <p class="subtitle">Gérez le support pédagogique par niveaux</p>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="resetForm()" [disabled]="isSaving || isLoading || isUploading">
+        🔄 Réinitialiser
+      </button>
+      <button class="btn btn-primary" (click)="saveContent()" [disabled]="isSaving || isLoading || isUploading">
+        {{ isSaving ? '⏳ Enregistrement...' : (editMode ? '💾 Mettre à jour' : '💾 Enregistrer') }}
+      </button>
+    </div>
+  </div>
+
+  <!-- Main Content -->
+  <div class="page-content">
+    <!-- Left Panel - General Info -->
+    <div class="left-panel">
+      <div class="section-card">
+        <h2 class="section-title">📋 Informations Générales</h2>
+        
+        <div class="form-group">
+          <label class="form-label">Titre du Support *</label>
+          <input 
+            type="text" 
+            [(ngModel)]="titre" 
+            placeholder="Ex: Introduction à Angular"
+            class="form-input"
+          />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Type de Support</label>
+          <select [(ngModel)]="type" class="form-select">
+            <option value="document">📄 Document</option>
+            <option value="video">🎥 Vidéo</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Méthodes Pédagogiques</label>
+          <textarea 
+            [(ngModel)]="description" 
+            placeholder="Décrivez les méthodes pédagogiques utilisées..."
+            rows="4"
+            class="form-textarea"
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">🏷️ Tags</label>
+          <input 
+            type="text" 
+            [(ngModel)]="tags" 
+            (keydown.enter)="addTagOnEnter($any($event))"
+            placeholder="Tapez un tag et appuyez sur Entrée"
+            class="form-input"
+          />
+          <small style="color: #666; font-size: 0.85em;">Appuyez sur Entrée pour ajouter un tag</small>
+          <div class="tags-container" *ngIf="tagsList.length > 0">
+            <span class="tag-chip" *ngFor="let tag of tagsList">
+              {{ tag }}
+              <button type="button" class="tag-remove" (click)="removeTag(tag)">×</button>
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Level Selector -->
+      <div class="section-card">
+        <h2 class="section-title">📊 Sélectionner le Niveau</h2>
+        <div class="level-selector">
+          <button 
+            *ngFor="let lvl of skillLevels" 
+            class="level-btn"
+            [class.active]="selectedLevel === lvl.id"
+            (click)="selectLevel(lvl.id)"
+          >
+            <span class="level-icon">{{ lvl.icon }}</span>
+            <span class="level-label">{{ lvl.label }}</span>
+            <span class="level-hours" *ngIf="getTotalHours(lvl.id) > 0">
+              ⏱️ {{ getTotalHours(lvl.id) }}h
+            </span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right Panel - Level Content -->
+    <div class="right-panel">
+      <div class="section-card">
+        <div class="level-header">
+          <h2 class="section-title">
+            <span class="level-badge">{{ getLevelLabel(selectedLevel) }}</span>
+            Contenu & Fichiers
+          </h2>
+          <div class="level-durations">
+            <div class="duration-input">
+              <label>⏱️ Théorie (heures)</label>
+              <input 
+                type="number" 
+                [(ngModel)]="getCurrentLevel().dureeTheorique"
+                placeholder="0"
+                class="duration-field"
+                step="0.5"
+                min="0"
+              />
+            </div>
+            <div class="duration-input">
+              <label>🛠️ Pratique (heures)</label>
+              <input 
+                type="number" 
+                [(ngModel)]="getCurrentLevel().dureePratique"
+                placeholder="0"
+                class="duration-field"
+                step="0.5"
+                min="0"
+              />
+            </div>
+          </div>
+        </div>
+
+        <!-- Rich Text Editor -->
+        <div class="editor-container">
+          <label class="form-label">📝 Contenu du Niveau {{ getLevelLabel(selectedLevel) }}</label>
+          <quill-editor 
+            [ngModel]="getCurrentLevelContent()"
+            (ngModelChange)="setCurrentLevelContent($event)"
+            [modules]="quillModules"
+            placeholder="Rédigez le contenu pédagogique pour ce niveau..."
+            class="content-editor"
+          ></quill-editor>
+        </div>
+
+        <!-- Level-Specific File Upload -->
+        <div class="file-upload-section">
+          <label class="form-label">📎 Fichiers pour ce Niveau ({{ getLevelLabel(selectedLevel) }})</label>
+          <input 
+            type="file" 
+            [id]="'levelFile-'+selectedLevel"
+            (change)="onLevelFileSelected($event)"
+            accept="video/*,image/*,.pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx"
+            multiple
+            style="display: none;"
+          />
+          <label [for]="'levelFile-'+selectedLevel" class="file-upload-button-level">
+            <span class="upload-icon">📄</span>
+            <div class="upload-text">
+              <strong>Sélectionner des fichiers pour {{ getLevelLabel(selectedLevel) }}</strong>
+              <small>Plusieurs fichiers autorisés par niveau</small>
+            </div>
+          </label>
+
+          <!-- Existing Uploaded Files (from database) -->
+          <div class="existing-files-list" *ngIf="getCurrentLevel().uploadedFiles.length > 0">
+            <h4>Fichiers existants ({{ getCurrentLevel().uploadedFiles.length }})</h4>
+            <div class="file-item existing" *ngFor="let file of getCurrentLevel().uploadedFiles">
+              <div class="file-info">
+                <span class="file-icon">{{ getFileIcon(file.fileType) }}</span>
+                <div class="file-details">
+                  <span class="file-name">{{ file.fileName }}</span>
+                  <span class="file-size">{{ formatFileSize(file.fileSize) }}</span>
+                  <span class="file-badge">📥 Déjà uploadé</span>
+                </div>
+              </div>
+              <div class="file-actions">
+                <button type="button" class="btn-icon preview" (click)="previewFile(file.filePath)" title="Aperçu">
+                  👁️
+                </button>
+                <button type="button" class="btn-icon download" (click)="downloadFile(file.filePath, file.fileName)" title="Télécharger">
+                  ⬇️
+                </button>
+                <button type="button" class="btn-icon delete" (click)="deleteExistingFile(getCurrentLevel().level, file.filePath)" title="Supprimer">
+                  🗑️
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Newly Selected Files (not uploaded yet) -->
+          <div class="selected-files-list" *ngIf="getCurrentLevel().newFiles.length > 0">
+            <h4>Nouveaux fichiers sélectionnés ({{ getCurrentLevel().newFiles.length }})</h4>
+            <div class="file-item new-file" *ngFor="let file of getCurrentLevel().newFiles; let i = index">
+              <div class="file-info">
+                <span class="file-icon">{{ getFileIcon(file.type) }}</span>
+                <div class="file-details">
+                  <span class="file-name">{{ file.name }}</span>
+                  <span class="file-size">{{ formatFileSize(file.size) }}</span>
+                  <span class="file-badge-new">🆕 Sera uploadé</span>
+                </div>
+              </div>
+              <button 
+                class="btn-icon-danger" 
+                type="button"
+                (click)="removeNewFile(selectedLevel, i)"
+                title="Retirer ce fichier"
+              >
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Level Navigation -->
+      <div class="section-card quick-nav">
+        <h3 class="quick-nav-title">Navigation Rapide</h3>
+        <div class="quick-nav-grid">
+          <button 
+            *ngFor="let lvl of skillLevels"
+            class="quick-nav-btn"
+            [class.active]="selectedLevel === lvl.id"
+            [class.has-content]="hasLevelContent(lvl.id)"
+            (click)="selectLevel(lvl.id)"
+          >
+            <span class="nav-level">{{ lvl.icon }}</span>
+            <span class="nav-label-text">{{ lvl.label }}</span>
+            <span class="nav-status" *ngIf="hasLevelContent(lvl.id)">✓</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

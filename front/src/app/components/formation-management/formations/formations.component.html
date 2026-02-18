@@ -1,0 +1,542 @@
+<div class="formations-view" [class.with-sidebar]="showModal && modalType === 'plan'">
+  <!-- Loading Overlay -->
+  <div *ngIf="isLoading || isLoadingFormateurs" class="loading-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+    <div style="text-align: center;">
+      <div style="font-size: 48px; animation: spin 1s linear infinite;">⏳</div>
+      <p style="margin-top: 16px; font-size: 18px; color: #666;">
+        {{ isLoadingFormateurs ? 'Chargement des formateurs...' : 'Chargement des formations...' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- MAIN FORMATIONS TABLE -->
+  <div class="table-container main-content" [class.with-sidebar]="showModal && modalType === 'plan'" *ngIf="!showOnlyPlanifiees">
+    <!-- HEADER -->
+    <div class="table-header">
+      <div class="title-with-pill">
+        <h2>📚 Liste des Formations</h2>
+        <button class="pill-button" type="button" (click)="goToContentManager()" title="Gérer les contenus">📁 Contenu</button>
+        <button class="pill-button" type="button" (click)="togglePaginationMode()" title="Basculer le mode pagination">
+          {{ usePagination ? '📊 Sans pagination' : '📄 Avec pagination' }}
+        </button>
+      </div>
+
+      <div class="header-actions">
+        <div class="search-bar">
+          <div class="search-field">
+            <span class="search-icon">🔍</span>
+            <input
+              type="text"
+              [(ngModel)]="filter.categorie"
+              placeholder="Catégorie, thème, domaine..."
+              class="form-input"
+            />
+          </div>
+          <div class="search-field">
+            <span class="search-icon">👥</span>
+            <input
+              type="text"
+              [(ngModel)]="filter.populationCible"
+              placeholder="Population cible"
+              class="form-input"
+            />
+          </div>
+          <div class="search-field compact">
+            <span class="search-icon">🎯</span>
+            <input
+              type="text"
+              [(ngModel)]="filter.niveau"
+              placeholder="Niveau"
+              class="form-input"
+            />
+          </div>
+          <div class="search-field compact">
+            <span class="search-icon">📅</span>
+            <input
+              type="date"
+              [(ngModel)]="filter.dateDebut"
+              class="form-input"
+            />
+          </div>
+          <button class="btn-secondary subtle" type="button" (click)="filter = { categorie: '', populationCible: '', niveau: '', dateDebut: '' }">
+            Réinitialiser
+          </button>
+        </div>
+
+        <button class="btn-primary" type="button" (click)="goToCreateV2()" title="Créer une nouvelle formation">
+          ➕ Nouvelle Formation
+        </button>
+      </div>
+    </div>
+
+    <!-- TABLE DES FORMATIONS -->
+    <div class="content-table-container" *ngIf="formations.length; else noFormations">
+      <table class="content-table">
+        <thead>
+          <tr>
+            <th>Thème</th>
+            <th>Type / Niveau</th>
+            <th>Durée</th>
+            <th>Prix</th>
+            <th>Max</th>
+            <th>Catégorie</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          <ng-container *ngFor="let f of filteredFormations()">
+            <tr>
+              <td class="title-cell">{{ f.theme }}</td>
+              <td>{{ f.typeFormation }} / {{ f.niveau }}</td>
+              <td>{{ f.nombreHeures || '—' }}h</td>
+              <td>{{ f.prix || 0 | number:'1.0-2' }} DT</td>
+              <td>{{ f.nombreMax || '—' }}</td>
+              <td>{{ f.categorie?.nom || f.type?.nom || '—' }}</td>
+              <td class="action-cell">
+                <button class="btn-action btn-view" (click)="editFormationV2(f)" title="Gérer">⚙️ Manage</button>
+                <button class="btn-action btn-edit" (click)="duplicateFormation(f)" title="Dupliquer">📋 Duplicate</button>
+                <button class="btn-action btn-delete" (click)="deleteFormation(f)" title="Supprimer">🗑️ Delete</button>
+              </td>
+            </tr>
+
+            <!-- Plans Row (if visible) -->
+            <tr *ngIf="formationPlansVisible[f.idFormation!]" class="plans-row-tr">
+              <td colspan="7">
+                <div class="plans-container">
+                  <h3>📅 Plans pour cette formation</h3>
+
+                  <div *ngIf="formationPlansMap[f.idFormation!]?.length; else noPlansForThisFormation">
+                    <div class="plan-card" *ngFor="let p of formationPlansMap[f.idFormation!]">
+                      <div class="plan-header">
+                        <div class="plan-title">{{ p.titre }}</div>
+                        <p class="plan-desc">{{ p.description }}</p>
+                      </div>
+
+                      <div class="plan-dates">
+                        <div>📆 Début : <strong>{{ p.dateDebut | date:'dd/MM/yyyy' }}</strong></div>
+                        <div>📅 Fin prévue : <strong>{{ p.dateFin | date:'dd/MM/yyyy' }}</strong></div>
+                        <div>🚀 Lancement : <strong>{{ p.dateLancement | date:'dd/MM/yyyy' }}</strong></div>
+                        <div>🏁 Fin réelle : <strong>{{ p.dateFinReel | date:'dd/MM/yyyy' }}</strong></div>
+                      </div>
+
+                      <div class="plan-formateur">
+                        <ng-container *ngIf="p.formateur; else noFormateur">
+                          👨‍🏫 <strong>{{ p.formateur.prenom }} {{ p.formateur.nom }}</strong>
+                          <span class="plan-status">| Status : {{ p.statusFormation }}</span>
+                        </ng-container>
+                        <ng-template #noFormateur>
+                          <span class="no-data">Aucun formateur assigné</span>
+                        </ng-template>
+                      </div>
+
+                      <div class="plan-actions">
+                        <button class="btn-action btn-edit" (click)="editPlan(p)">✏️</button>
+                        <button class="btn-action btn-delete" (click)="deletePlan(p)">🗑️</button>
+                      </div>
+
+                      <!-- APPRENANTS -->
+                      <div class="plan-apprenants">
+                        <h4>👨‍🎓 Apprenants</h4>
+                        <button class="btn-action btn-view" (click)="openApprenantModal(p)">
+                          ➕ Ajouter un apprenant
+                        </button>
+
+                        <div *ngIf="planApprenantsMap[p.idPlanFormation!]?.length; else noApprenants">
+                          <ul class="apprenants-list">
+                            <li *ngFor="let a of planApprenantsMap[p.idPlanFormation!]">
+                              <strong>{{ a.prenom }} {{ a.nom }}</strong>
+                              <em>({{ a.statusInscription }})</em>
+
+                              <div class="apprenant-info">
+                                📧 {{ a.email }}  
+                                📱 {{ a.telephone }}  
+                                📍 {{ a.adresse }}  
+                                🎯 {{ a.prerequis }}
+                              </div>
+
+                              <div class="action-cell">
+                                <button class="btn-action btn-edit" (click)="openApprenantModal(p, a)">✏️</button>
+                                <button class="btn-action btn-delete" (click)="deleteApprenant(a, p)">🗑️</button>
+                              </div>
+                            </li>
+                          </ul>
+                        </div>
+
+                        <ng-template #noApprenants>
+                          <p class="no-data">Aucun apprenant inscrit.</p>
+                        </ng-template>
+                      </div>
+                    </div>
+                  </div>
+
+                  <ng-template #noPlansForThisFormation>
+                    <p class="no-data">Aucun plan enregistré.</p>
+                  </ng-template>
+                </div>
+              </td>
+            </tr>
+          </ng-container>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- PAGINATION CONTROLS -->
+    <div class="pagination-controls" *ngIf="usePagination">
+      <div class="pagination-info">
+        <span>Page {{ currentPage + 1 }} sur {{ totalPages || 1 }} | Total: {{ totalItems }} formations</span>
+      </div>
+      <div class="pagination-buttons">
+        <button class="btn-secondary" (click)="previousPage()" [disabled]="currentPage === 0">
+          ⬅️ Précédent
+        </button>
+        <div class="page-selector">
+          <select [(ngModel)]="currentPage" (change)="goToPage(currentPage)" [disabled]="totalPages <= 1">
+            <option *ngFor="let i of [].constructor(totalPages || 1); let idx = index" [value]="idx">
+              Page {{ idx + 1 }}
+            </option>
+          </select>
+        </div>
+        <button class="btn-secondary" (click)="nextPage()" [disabled]="currentPage === totalPages - 1">
+          Suivant ➡️
+        </button>
+      </div>
+    </div>
+
+    <ng-template #noFormations>
+      <p class="no-data">Aucune formation à afficher</p>
+    </ng-template>
+  </div>
+
+
+  <!-- SIDE-BY-SIDE LAYOUT: Plan Form as Right Sidebar -->
+  <div class="plan-form-sidebar" *ngIf="showModal && modalType === 'plan'">
+    <div class="sidebar-content">
+      <div class="sidebar-header">
+        <h2>{{ modalTitle }}</h2>
+        <button class="btn-close" (click)="closeModal()">✕</button>
+      </div>
+
+      <div class="sidebar-body">
+        <div *ngIf="validationErrors.length" class="validation-errors">
+          <div class="validation-title">Veuillez corriger les champs en rouge :</div>
+          <ul>
+            <li *ngFor="let err of validationErrors">{{ err }}</li>
+          </ul>
+        </div>
+
+        <!-- Plan Form -->
+        <div class="form-group" [ngClass]="{'has-error': hasError('plan.titre')}">
+          <label>Titre du plan <span class="required">*</span></label>
+          <input
+            type="text"
+            [(ngModel)]="planFormData.titre"
+            class="form-input"
+            [ngClass]="{'input-error': hasError('plan.titre')}"
+            placeholder="Titre"
+          />
+          <div class="error-text" *ngIf="hasError('plan.titre')">Le titre du plan est requis.</div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea
+            [(ngModel)]="planFormData.description"
+            class="form-input"
+            placeholder="Description"
+          ></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group" [ngClass]="{'has-error': hasError('plan.dateDebut')}">
+            <label>Date Début <span class="required">*</span></label>
+            <input
+              type="date"
+              [(ngModel)]="planFormData.dateDebut"
+              class="form-input"
+              [ngClass]="{'input-error': hasError('plan.dateDebut')}"
+            />
+            <div class="error-text" *ngIf="hasError('plan.dateDebut')">La date de début est requise.</div>
+          </div>
+          <div class="form-group" [ngClass]="{'has-error': hasError('plan.dateFin')}">
+            <label>Date Fin <span class="required">*</span></label>
+            <input
+              type="date"
+              [(ngModel)]="planFormData.dateFin"
+              class="form-input"
+              [ngClass]="{'input-error': hasError('plan.dateFin')}"
+            />
+            <div class="error-text" *ngIf="hasError('plan.dateFin')">La date de fin est requise et doit être après la date de début.</div>
+          </div>
+          <div class="form-group">
+            <label>Date Lancement</label>
+            <input
+              type="date"
+              [(ngModel)]="planFormData.dateLancement"
+              class="form-input"
+            />
+          </div>
+          <div class="form-group">
+            <label>Date Fin Réel</label>
+            <input
+              type="date"
+              [(ngModel)]="planFormData.dateFinReel"
+              class="form-input"
+            />
+          </div>
+        </div>
+        <div class="form-grid-2col">
+          <div class="form-group">
+            <label>Formateur</label>
+            <select [(ngModel)]="planFormData.idFormateur" class="form-input">
+              <option [value]="undefined">-- Sélectionner un formateur --</option>
+              <option *ngFor="let f of formateurs" [value]="f.idFormateur">{{ f.nom }} {{ f.prenom }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Status</label>
+            <select [(ngModel)]="planFormData.statusFormation" class="form-input">
+              <option *ngFor="let s of statuts" [value]="s">{{ s }}</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <button class="btn-secondary" (click)="closeModal()">Annuler</button>
+        <button class="btn-primary" (click)="savePlan()">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL (kept for other form types) -->
+  <div class="modal" *ngIf="showModal && modalType !== 'plan'">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>{{ modalTitle }}</h2>
+        <button class="btn-close" (click)="closeModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div *ngIf="validationErrors.length" class="validation-errors">
+          <div class="validation-title">Veuillez corriger les champs en rouge :</div>
+          <ul>
+            <li *ngFor="let err of validationErrors">{{ err }}</li>
+          </ul>
+        </div>
+
+        <!-- Apprenant Form -->
+        <ng-container *ngIf="modalType === 'apprenant'">
+          <div class="form-row">
+            <div class="form-group" [ngClass]="{'has-error': hasError('apprenant.nom')}">
+              <label>Nom <span class="required">*</span></label>
+              <input
+                type="text"
+                [(ngModel)]="apprenantFormData.nom"
+                class="form-input"
+                [ngClass]="{'input-error': hasError('apprenant.nom')}"
+              />
+              <div class="error-text" *ngIf="hasError('apprenant.nom')">Le nom est requis.</div>
+            </div>
+            <div class="form-group" [ngClass]="{'has-error': hasError('apprenant.prenom')}">
+              <label>Prénom <span class="required">*</span></label>
+              <input
+                type="text"
+                [(ngModel)]="apprenantFormData.prenom"
+                class="form-input"
+                [ngClass]="{'input-error': hasError('apprenant.prenom')}"
+              />
+              <div class="error-text" *ngIf="hasError('apprenant.prenom')">Le prénom est requis.</div>
+            </div>
+          </div>
+          <div class="form-group" [ngClass]="{'has-error': hasError('apprenant.email')}">
+            <label>Email <span class="required">*</span></label>
+            <input
+              type="email"
+              [(ngModel)]="apprenantFormData.email"
+              class="form-input"
+              [ngClass]="{'input-error': hasError('apprenant.email')}"
+            />
+            <div class="error-text" *ngIf="hasError('apprenant.email')">Un email valide est requis.</div>
+          </div>
+          <div class="form-group" [ngClass]="{'has-error': hasError('apprenant.telephone')}">
+            <label>Téléphone <span class="required">*</span></label>
+            <input
+              type="tel"
+              [(ngModel)]="apprenantFormData.telephone"
+              class="form-input"
+              [ngClass]="{'input-error': hasError('apprenant.telephone')}"
+            />
+            <div class="error-text" *ngIf="hasError('apprenant.telephone')">Un numéro de téléphone valide est requis.</div>
+          </div>
+          <div class="form-group">
+            <label>Adresse</label>
+            <textarea
+              [(ngModel)]="apprenantFormData.adresse"
+              class="form-input"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label>Prérequis</label>
+            <textarea
+              [(ngModel)]="apprenantFormData.prerequis"
+              class="form-input"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label>Status Inscription</label>
+            <select [(ngModel)]="apprenantFormData.statusInscription" class="form-input">
+              <option *ngFor="let s of statusInscriptions" [value]="s">{{ s }}</option>
+            </select>
+          </div>
+        </ng-container>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeModal()">Annuler</button>
+        <button
+          *ngIf="modalType === 'apprenant'"
+          class="btn-primary"
+          (click)="saveApprenant()"
+        >
+          Enregistrer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== CONTENT MANAGER MODAL ====================== -->
+  <div *ngIf="showContentManager" class="content-manager-overlay" (click)="closeContentManager()">
+    <div class="content-manager-container" (click)="$event.stopPropagation()">
+      <!-- Header -->
+      <div class="content-manager-header">
+        <div class="header-info">
+          <h2>📁 Attribution de Contenu</h2>
+          <p class="formation-title">{{ selectedFormationForContent?.theme }}</p>
+        </div>
+        <button class="btn-close-modern" (click)="closeContentManager()">✕</button>
+      </div>
+
+      <!-- Main Content Area - Drag & Drop -->
+      <div class="content-manager-body-dnd">
+        <!-- LEFT PANEL - Contenu de Jours -->
+        <div class="contenu-jours-panel">
+          <div class="panel-header">
+            <h3>📚 Contenu des Jours</h3>
+          </div>
+
+          <div class="contenu-jours-list">
+            <!-- Programme Selection -->
+            <div class="programme-selector" *ngIf="selectedFormationForContent?.programmesDetailes?.length ?? 0 > 0">
+              <select [(ngModel)]="selectedProgrammeDetaile" class="select-input-compact">
+                <option [value]="null">-- Choisir un programme --</option>
+                <option *ngFor="let prog of selectedFormationForContent?.programmesDetailes" [value]="prog">
+                  {{ prog.titre }}
+                </option>
+              </select>
+            </div>
+
+            <!-- Jours & Sections -->
+            <div *ngIf="selectedProgrammeDetaile?.jours?.length" class="jours-container">
+              <div *ngFor="let jour of selectedProgrammeDetaile?.jours; let j = index" class="jour-section">
+                <div class="jour-title" (click)="selectJour(jour, j)" [class.selected-jour]="selectedSectionIndex?.jour === j">
+                  <span>📅 Jour {{ jour.numeroJour }}</span>
+                </div>
+
+                <!-- Support Pédagogique Cards (Drop Zones) -->
+                 <div *ngFor="let contenu of jour.contenus; let i = index" 
+                   class="contenu-card"
+                   [class.selected-section]="selectedSectionIndex?.jour === j && selectedSectionIndex?.section === i"
+                   (click)="selectSection(contenu, j, i)"
+                     [class.has-materials]="contenu.contenusCles?.length"
+                     (drop)="onDropContent($event, contenu)"
+                     (dragover)="onDragOver($event)"
+                     (dragleave)="onDragLeave($event)">
+                  
+                  <div class="contenu-header">
+                    <span class="contenu-label">Section {{ i + 1 }}</span>
+                    <span class="contenu-count" *ngIf="contenu.contenusCles?.length">
+                      {{ contenu.contenusCles.length }} item(s)
+                    </span>
+                  </div>
+
+                  <!-- Durations -->
+                  <div class="contenu-meta">
+                    <span class="duration-badge">🕐 {{ contenu.dureeTheorique }}h théorie</span>
+                    <span class="duration-badge">⚙️ {{ contenu.dureePratique }}h pratique</span>
+                  </div>
+
+                  <!-- Key Contents (Drop Zone) -->
+                  <div class="drop-zone">
+                    <div class="drop-zone-label" *ngIf="!contenu.contenusCles?.length">
+                      🎯 Déposez ici les matériaux d'apprentissage
+                    </div>
+
+                    <div class="materials-list" *ngIf="contenu.contenusCles?.length">
+                      <div *ngFor="let material of contenu.contenusCles; let mi = index" class="material-chip">
+                        <span class="material-text">{{ material }}</span>
+                        <button class="btn-remove" (click)="removeContentFromFormation(material, contenu)" title="Retirer">✕</button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="!selectedProgrammeDetaile" class="empty-state">
+              <p>Sélectionnez un programme pour voir les contenus</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT PANEL - Learning Materials Library -->
+        <div class="learning-materials-panel">
+          <div class="panel-header">
+            <h3>📖 Matériaux d'Apprentissage</h3>
+            <div class="search-materials">
+              <input type="text" [(ngModel)]="contentSearchQuery" placeholder="🔍 Rechercher..." class="search-input-compact">
+            </div>
+          </div>
+
+          <div class="materials-list-container">
+              <div *ngFor="let content of getFilteredContent()" 
+                 class="material-item"
+                 draggable="true"
+                 (dragstart)="onDragStart($event, content)"
+                (click)="onMaterialClick(content)"
+                 [class.selected]="selectedContent?.id === content.id">
+              
+              <!-- Icon -->
+              <div class="material-icon">
+                <span *ngIf="content.type === 'video'" class="icon-badge video">🎥</span>
+                <span *ngIf="content.type === 'document'" class="icon-badge document">📄</span>
+                <span *ngIf="content.type === 'pdf'" class="icon-badge pdf">📕</span>
+                <span *ngIf="content.type === 'image'" class="icon-badge image">🖼️</span>
+                <span *ngIf="content.type === 'presentation'" class="icon-badge presentation">📊</span>
+              </div>
+
+              <!-- Info -->
+              <div class="material-info">
+                <h4>{{ content.title }}</h4>
+                <div class="material-meta">
+                  <span class="type-badge">{{ content.type }}</span>
+                  <span class="size-text">{{ content.size }}</span>
+                </div>
+              </div>
+
+              <!-- Drag Handle -->
+              <div class="drag-handle">⋮⋮</div>
+            </div>
+
+            <div *ngIf="!getFilteredContent().length" class="empty-materials">
+              <p>Aucun matériau trouvé</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Footer -->
+      <div class="content-manager-footer">
+        <button class="btn-secondary" (click)="closeContentManager()">Fermer</button>
+        <button class="btn-primary" (click)="saveFormationContent()">💾 Enregistrer les modifications</button>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,215 @@
+<div class="stock-lots-container" *ngIf="stock">
+  <!-- Header -->
+  <div class="lots-header">
+    <div class="header-title">
+      <h3>📦 Lots de Stock - {{ stock.article?.nom }}</h3>
+      <p class="subtitle">Gestion des lots et historique des mouvements</p>
+    </div>
+    
+    <!-- Summary Cards -->
+    <div class="summary-cards">
+      <div class="summary-card">
+        <div class="card-icon">📊</div>
+        <div class="card-content">
+          <span class="card-label">Total Quantité</span>
+          <span class="card-value">{{ getTotalQuantity() }}</span>
+        </div>
+      </div>
+      
+      <div class="summary-card">
+        <div class="card-icon">💰</div>
+        <div class="card-content">
+          <span class="card-label">Valeur Totale</span>
+          <span class="card-value">{{ getTotalValue() | number:'1.2-2' }} DT</span>
+        </div>
+      </div>
+      
+      <div class="summary-card">
+        <div class="card-icon">📈</div>
+        <div class="card-content">
+          <span class="card-label">Prix Moyen d'Achat</span>
+          <span class="card-value">{{ getAveragePurchasePrice() | number:'1.2-2' }} DT</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-section">
+    <label class="filter-checkbox">
+      <input type="checkbox" [(ngModel)]="showActiveOnly" (change)="onFilterChange()">
+      <span>Afficher uniquement les lots actifs</span>
+    </label>
+    
+    <label class="filter-checkbox">
+      <input type="checkbox" [(ngModel)]="showExpiring" (change)="onFilterChange()">
+      <span>Afficher les lots expirant dans 30 jours</span>
+    </label>
+  </div>
+
+  <!-- Lots Table -->
+  <div class="lots-table-container">
+    <div class="loading-overlay" *ngIf="isLoading">
+      <div class="spinner"></div>
+      <p>Chargement des lots...</p>
+    </div>
+
+    <table class="lots-table" *ngIf="!isLoading && lots.length > 0">
+      <thead>
+        <tr>
+          <th>Numéro de Lot</th>
+          <th>Date d'Achat</th>
+          <th>Quantité Initiale</th>
+          <th>Quantité Actuelle</th>
+          <th>Disponible</th>
+          <th>Prix Achat</th>
+          <th>Prix Vente</th>
+          <th>Valeur Totale</th>
+          <th>Expiration</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let lot of lots" [class]="getLotStatusClass(lot)">
+          <td class="lot-number">{{ lot.numeroLot }}</td>
+          <td>{{ lot.dateAchat | date:'dd/MM/yyyy' }}</td>
+          <td>{{ lot.quantiteInitiale }}</td>
+          <td class="quantity">{{ lot.quantiteActuelle }}</td>
+          <td class="available">{{ lot.quantiteDisponible }}</td>
+          <td>{{ lot.prixAchatUnitaire | number:'1.2-2' }} DT</td>
+          <td>{{ lot.prixVenteUnitaire | number:'1.2-2' }} DT</td>
+          <td class="value">{{ lot.valeurTotale | number:'1.2-2' }} DT</td>
+          <td>
+            <span *ngIf="lot.dateExpiration" [class.expiring]="isExpiringSoon(lot)" [class.expired]="isExpired(lot)">
+              {{ lot.dateExpiration | date:'dd/MM/yyyy' }}
+            </span>
+            <span *ngIf="!lot.dateExpiration" class="no-expiration">N/A</span>
+          </td>
+          <td>
+            <span class="status-badge" [class]="getLotStatusClass(lot)">
+              {{ getLotStatus(lot) }}
+            </span>
+          </td>
+          <td class="actions">
+            <button class="btn-action" (click)="viewLotHistory(lot)" title="Voir l'historique">
+              📋
+            </button>
+            <button class="btn-action" *ngIf="lot.factureUrl" (click)="downloadInvoice(lot)" title="Télécharger la facture">
+              📄
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="no-data" *ngIf="!isLoading && lots.length === 0">
+      <div class="no-data-icon">📦</div>
+      <h4>Aucun lot trouvé</h4>
+      <p>Il n'y a pas de lots correspondant à vos critères de recherche.</p>
+    </div>
+  </div>
+
+  <!-- History Modal -->
+  <div class="modal-overlay" *ngIf="showHistoryModal" (click)="closeHistoryModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h3>Historique du Lot</h3>
+          <p class="modal-subtitle" *ngIf="selectedLot">{{ selectedLot.numeroLot }}</p>
+        </div>
+        <button class="btn-close" (click)="closeHistoryModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Lot Details -->
+        <div class="lot-details-card" *ngIf="selectedLot">
+          <div class="detail-grid">
+            <div class="detail-item">
+              <span class="label">Numéro de lot:</span>
+              <span class="value">{{ selectedLot.numeroLot }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Date d'achat:</span>
+              <span class="value">{{ selectedLot.dateAchat | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Quantité initiale:</span>
+              <span class="value">{{ selectedLot.quantiteInitiale }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Quantité actuelle:</span>
+              <span class="value highlight">{{ selectedLot.quantiteActuelle }}</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Prix d'achat unitaire:</span>
+              <span class="value">{{ selectedLot.prixAchatUnitaire | number:'1.2-2' }} DT</span>
+            </div>
+            <div class="detail-item">
+              <span class="label">Prix de vente unitaire:</span>
+              <span class="value">{{ selectedLot.prixVenteUnitaire | number:'1.2-2' }} DT</span>
+            </div>
+            <div class="detail-item" *ngIf="selectedLot.numeroFacture">
+              <span class="label">Numéro de facture:</span>
+              <span class="value">{{ selectedLot.numeroFacture }}</span>
+            </div>
+            <div class="detail-item" *ngIf="selectedLot.dateExpiration">
+              <span class="label">Date d'expiration:</span>
+              <span class="value" [class.expiring]="isExpiringSoon(selectedLot)">
+                {{ selectedLot.dateExpiration | date:'dd/MM/yyyy' }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- History Timeline -->
+        <div class="history-section">
+          <h4>📜 Historique des Mouvements</h4>
+          
+          <div class="loading-overlay" *ngIf="isHistoryLoading">
+            <div class="spinner"></div>
+            <p>Chargement de l'historique...</p>
+          </div>
+
+          <div class="timeline" *ngIf="!isHistoryLoading && lotHistory.length > 0">
+            <div class="timeline-item" *ngFor="let movement of lotHistory" [class]="getMovementTypeClass(movement.typeMouvement)">
+              <div class="timeline-marker"></div>
+              <div class="timeline-content">
+                <div class="timeline-header">
+                  <span class="movement-type">{{ getMovementTypeLabel(movement.typeMouvement) }}</span>
+                  <span class="movement-date">{{ movement.dateMouvement | date:'dd/MM/yyyy HH:mm' }}</span>
+                </div>
+                <div class="timeline-body">
+                  <div class="movement-detail">
+                    <span class="label">Quantité:</span>
+                    <span class="value">{{ movement.quantite }}</span>
+                  </div>
+                  <div class="movement-detail">
+                    <span class="label">Avant:</span>
+                    <span class="value">{{ movement.quantiteAvant }}</span>
+                  </div>
+                  <div class="movement-detail">
+                    <span class="label">Après:</span>
+                    <span class="value">{{ movement.quantiteApres }}</span>
+                  </div>
+                  <div class="movement-detail">
+                    <span class="label">Valeur:</span>
+                    <span class="value">{{ movement.valeur | number:'1.2-2' }} DT</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="no-data" *ngIf="!isHistoryLoading && lotHistory.length === 0">
+            <p>Aucun mouvement enregistré pour ce lot.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeHistoryModal()">Fermer</button>
+      </div>
+    </div>
+  </div>
+</div>

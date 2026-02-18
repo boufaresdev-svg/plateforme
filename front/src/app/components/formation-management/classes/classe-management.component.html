@@ -1,0 +1,255 @@
+<div class="classe-management">
+  <!-- Stats Cards -->
+  <div class="stats-cards">
+    <div class="stat-card">
+      <div class="stat-icon">🏫</div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats.total }}</span>
+        <span class="stat-label">Total Classes</span>
+      </div>
+    </div>
+    <div class="stat-card active">
+      <div class="stat-icon">✅</div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats.active }}</span>
+        <span class="stat-label">Actives</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Actions Bar -->
+  <div class="actions-bar">
+    <div class="search-box">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (keyup.enter)="onSearch()"
+        placeholder="Rechercher par nom, code..."
+        class="search-input"
+      />
+      <button class="btn btn-icon" (click)="onSearch()">🔍</button>
+    </div>
+    <div class="filter-group">
+      <select [(ngModel)]="filterActive" (change)="onFilterChange()" class="filter-select">
+        <option value="all">Toutes</option>
+        <option value="active">Actives</option>
+        <option value="inactive">Inactives</option>
+      </select>
+    </div>
+    <button class="btn btn-primary" (click)="openAddForm()">
+      ➕ Nouvelle Classe
+    </button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Chargement...</p>
+  </div>
+
+  <!-- Classes Grid -->
+  <div class="classes-grid" *ngIf="!isLoading && classes.length > 0">
+    <div class="classe-card" *ngFor="let classe of classes" [class.inactive]="!classe.isActive">
+      <div class="classe-header">
+        <div class="classe-info">
+          <h3>{{ classe.nom }}</h3>
+          <span class="classe-code">{{ classe.code }}</span>
+        </div>
+        <div class="classe-status">
+          <span class="status-badge" [class.active]="classe.isActive" [class.inactive]="!classe.isActive">
+            {{ classe.isActive ? 'Active' : 'Inactive' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="classe-body">
+        <p class="classe-description" *ngIf="classe.description">{{ classe.description }}</p>
+        
+        <div class="classe-meta">
+          <div class="meta-item">
+            <span class="meta-icon">📚</span>
+            <span class="meta-text">{{ getAssociationLabel(classe) }}</span>
+          </div>
+          <div class="meta-item">
+            <span class="meta-icon">👥</span>
+            <span class="meta-text capacity" [ngClass]="getCapacityClass(classe)">
+              {{ getCapacityInfo(classe) }}
+            </span>
+          </div>
+          <div class="meta-item" *ngIf="classe.dateDebutAcces || classe.dateFinAcces">
+            <span class="meta-icon">📅</span>
+            <span class="meta-text access-dates" [ngClass]="{'accessible': classe.isAccessible, 'not-accessible': !classe.isAccessible}">
+              {{ getAccessDateLabel(classe) }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Apprenants Preview -->
+        <div class="apprenants-preview" *ngIf="classe.apprenants && classe.apprenants.length > 0">
+          <h4>Apprenants ({{ classe.apprenants.length }})</h4>
+          <div class="apprenant-chips">
+            <div class="apprenant-chip" *ngFor="let apprenant of classe.apprenants.slice(0, 5)">
+              <span>{{ apprenant.nom }} {{ apprenant.prenom || '' }}</span>
+              <button class="chip-remove" (click)="removeApprenant(classe, apprenant)" title="Retirer">×</button>
+            </div>
+            <div class="more-chip" *ngIf="classe.apprenants.length > 5">
+              +{{ classe.apprenants.length - 5 }} autres
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="classe-actions">
+        <button class="btn-action" (click)="openApprenantModal(classe)" title="Gérer les apprenants">
+          👥
+        </button>
+        <button class="btn-action" (click)="openEditForm(classe)" title="Modifier">
+          ✏️
+        </button>
+        <button class="btn-action" (click)="toggleActive(classe)" [title]="classe.isActive ? 'Désactiver' : 'Activer'">
+          {{ classe.isActive ? '🔒' : '🔓' }}
+        </button>
+        <button class="btn-action delete" (click)="deleteClasse(classe)" title="Supprimer">
+          🗑️
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && classes.length === 0">
+    <div class="empty-icon">🏫</div>
+    <h3>Aucune classe trouvée</h3>
+    <p>Créez votre première classe pour organiser vos apprenants.</p>
+    <button class="btn btn-primary" (click)="openAddForm()">➕ Créer une classe</button>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button class="btn btn-icon" (click)="prevPage()" [disabled]="currentPage === 0">◀</button>
+    <span class="page-info">Page {{ currentPage + 1 }} sur {{ totalPages }}</span>
+    <button class="btn btn-icon" (click)="nextPage()" [disabled]="currentPage >= totalPages - 1">▶</button>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div class="modal-overlay" *ngIf="showAddForm || showEditForm" (click)="cancelForm()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ showEditForm ? '✏️ Modifier la classe' : '➕ Nouvelle classe' }}</h2>
+        <button class="btn-close" (click)="cancelForm()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nom *</label>
+          <input type="text" [(ngModel)]="classeForm.nom" class="form-input" placeholder="Ex: Groupe A" required />
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="classeForm.description" class="form-textarea" rows="3" 
+                    placeholder="Description de la classe..."></textarea>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group">
+            <label>Capacité max</label>
+            <input type="number" [(ngModel)]="classeForm.capaciteMax" class="form-input" 
+                   placeholder="Illimité si vide" min="1" />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Associer à une formation</label>
+          <select [(ngModel)]="classeForm.formationId" (change)="onFormationChange()" class="form-input">
+            <option [ngValue]="undefined">-- Aucune formation --</option>
+            <option *ngFor="let formation of formations" [ngValue]="formation.idFormation">
+              {{ formation.theme }}
+            </option>
+          </select>
+        </div>
+
+        <div class="form-group" *ngIf="planFormations.length > 0">
+          <label>Ou à un plan de formation spécifique</label>
+          <select [(ngModel)]="classeForm.planFormationId" class="form-input">
+            <option [ngValue]="undefined">-- Toute la formation --</option>
+            <option *ngFor="let plan of planFormations" [ngValue]="plan.idPlanFormation">
+              {{ plan.titre }}
+            </option>
+          </select>
+          <small class="form-hint">Si sélectionné, la classe sera liée à ce plan uniquement.</small>
+        </div>
+
+        <!-- Access Date Range -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>📅 Date début accès</label>
+            <input type="date" [(ngModel)]="classeForm.dateDebutAcces" class="form-input" />
+            <small class="form-hint">Date à partir de laquelle la classe est accessible</small>
+          </div>
+          <div class="form-group">
+            <label>📅 Date fin accès</label>
+            <input type="date" [(ngModel)]="classeForm.dateFinAcces" class="form-input" />
+            <small class="form-hint">Date jusqu'à laquelle la classe est accessible</small>
+          </div>
+        </div>
+
+        <div class="form-group checkbox-group" *ngIf="showEditForm">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="classeForm.isActive" />
+            <span>Classe active</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cancelForm()">Annuler</button>
+        <button class="btn btn-primary" (click)="saveClasse()">
+          {{ showEditForm ? 'Mettre à jour' : 'Créer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Apprenant Selection Modal -->
+  <div class="modal-overlay" *ngIf="showApprenantModal" (click)="closeApprenantModal()">
+    <div class="modal-content large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>👥 Gérer les apprenants - {{ selectedClasse?.nom }}</h2>
+        <button class="btn-close" (click)="closeApprenantModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-info">
+          Sélectionnez les apprenants à inclure dans cette classe.
+          <span *ngIf="selectedClasse?.capaciteMax">
+            Capacité: {{ selectedApprenantIds.length }} / {{ selectedClasse?.capaciteMax }}
+          </span>
+        </p>
+
+        <div class="apprenant-list">
+          <div class="apprenant-item" *ngFor="let apprenant of availableApprenants"
+               [class.selected]="isApprenantSelected(apprenant.id!)"
+               (click)="toggleApprenantSelection(apprenant.id!)">
+            <div class="apprenant-check">
+              <input type="checkbox" [checked]="isApprenantSelected(apprenant.id!)" />
+            </div>
+            <div class="apprenant-info">
+              <span class="apprenant-name">{{ apprenant.nom }} {{ apprenant.prenom || '' }}</span>
+              <span class="apprenant-email">{{ apprenant.email }}</span>
+            </div>
+            <span class="apprenant-matricule">{{ apprenant.matricule || '-' }}</span>
+          </div>
+
+          <div class="empty-apprenants" *ngIf="availableApprenants.length === 0">
+            Aucun apprenant disponible
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <span class="selection-count">{{ selectedApprenantIds.length }} sélectionné(s)</span>
+        <button class="btn btn-secondary" (click)="closeApprenantModal()">Annuler</button>
+        <button class="btn btn-primary" (click)="saveApprenantSelection()">
+          Enregistrer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

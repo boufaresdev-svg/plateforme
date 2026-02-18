@@ -1,0 +1,130 @@
+<div class="content-section">
+  <div class="objective-header">
+    <h2 class="objective-title">📄 {{ editingPlanId ? 'Modifier' : 'Générer' }} Plan de Formation</h2>
+    <button class="btn-close" type="button" (click)="onClose()">✕</button>
+  </div>
+
+  <div class="plan-generator-form">
+    <div class="info-box">
+      <p><strong>ℹ️ Informations</strong></p>
+      <p>Complétez les informations ci-dessous pour générer un plan de formation professionnel au format PDF.</p>
+    </div>
+
+    <div class="field">
+      <label>Titre du Plan *</label>
+      <input class="input" type="text" [(ngModel)]="planGeneratorForm.titre" name="planTitre" placeholder="Ex: Plan de formation Angular Avancé 2025" required />
+    </div>
+
+    <div class="field">
+      <label>Description</label>
+      <textarea class="textarea" rows="3" [(ngModel)]="planGeneratorForm.description" name="planDescription" placeholder="Décrivez le contexte du plan de formation..."></textarea>
+    </div>
+
+    <div class="grid mini">
+      <div class="field">
+        <label>Date de début</label>
+        <input class="input" type="date" [(ngModel)]="planGeneratorForm.dateDebut" name="planDateDebut" />
+      </div>
+      <div class="field">
+        <label>Date de fin</label>
+        <input class="input" type="date" [(ngModel)]="planGeneratorForm.dateFin" name="planDateFin" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Formateur / Responsable</label>
+      <select class="input" [(ngModel)]="planGeneratorForm.formateurId" name="planFormateur">
+        <option [value]="undefined">-- Sélectionner un formateur --</option>
+        <option *ngFor="let f of formateurs" [value]="f.idFormateur">{{ f.nom }} {{ f.prenom }}</option>
+      </select>
+    </div>
+
+    <div class="grid mini">
+      <div class="field">
+        <label>Date de lancement</label>
+        <input class="input" type="date" [(ngModel)]="planGeneratorForm.dateLancement" name="planDateLancement" />
+      </div>
+      <div class="field">
+        <label>Date de fin réel</label>
+        <input class="input" type="date" [(ngModel)]="planGeneratorForm.dateFinReel" name="planDateFinReel" />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Nombre de jours</label>
+      <input class="input" [class.error]="hasDaysMismatch" type="number" min="0" [(ngModel)]="planGeneratorForm.nombreJours" name="planNombreJours" placeholder="Ex: 5" />
+      <small class="calculated-days">
+        <span *ngIf="calculatedDays > 0">📅 Durée selon dates: <strong>{{ calculatedDays }} jours</strong></span>
+        <span *ngIf="calculatedDays > 0 && contentDaysCount > 0"> | </span>
+        <span *ngIf="contentDaysCount > 0">📚 Jours avec contenu: <strong>{{ contentDaysCount }} jours</strong></span>
+      </small>
+      <div class="warning-message" *ngIf="hasDaysMismatch">
+        ⚠️ Attention: Le nombre de jours saisi ({{ planGeneratorForm.nombreJours }}) est inférieur au nombre requis ({{ requiredDays }} jours). Vérifiez les dates ou le nombre de jours.
+      </div>
+      <div class="warning-message" *ngIf="hasDateRangeMismatch && !hasDaysMismatch">
+        ⚠️ Attention: La plage de dates ({{ calculatedDays }} jours) est insuffisante pour les {{ contentDaysCount }} jours de contenu planifiés.
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Statut</label>
+      <select class="input" [(ngModel)]="planGeneratorForm.status" name="planStatus">
+        <option value="PLANIFIEE">Planifiée</option>
+        <option value="EN_COURS">En cours</option>
+        <option value="TERMINEE">Terminée</option>
+        <option value="ANNULEE">Annulée</option>
+        <option value="REPORTEE">Reportée</option>
+      </select>
+    </div>
+
+    <div class="summary-box">
+      <h3>📊 Résumé de la formation</h3>
+      <div class="summary-grid">
+        <div class="summary-item">
+          <span class="summary-label">Thème:</span>
+          <span class="summary-value">{{ form.theme || '—' }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Type:</span>
+          <span class="summary-value">{{ form.typeFormation || '—' }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Niveau:</span>
+          <span class="summary-value">{{ form.niveau || '—' }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Durée totale:</span>
+          <span class="summary-value">{{ totalHoursOverall() }}h</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Objectifs globaux:</span>
+          <span class="summary-value">{{ getSelectedCount(objectifsGlobauxExemples) }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Objectifs spécifiques:</span>
+          <span class="summary-value">{{ getSelectedCount(objectifsSpecifiquesExemples) }}</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Contenus:</span>
+          <span class="summary-value">{{ contentItems.length }} activités</span>
+        </div>
+        <div class="summary-item">
+          <span class="summary-label">Jours de formation:</span>
+          <span class="summary-value">{{ contentDays.length }} jours</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions" style="margin-top: 20px;">
+      <button type="button" class="btn primary" (click)="onGeneratePdf()">
+        📥 Générer le PDF
+      </button>
+      <button type="button" class="btn primary" (click)="onSavePlan()" [disabled]="saving">
+        💾 {{ saving ? 'Enregistrement...' : (editingPlanId ? 'Modifier' : 'Enregistrer') }}
+      </button>
+      <button type="button" class="btn" (click)="onClose()">
+        Annuler
+      </button>
+    </div>
+  </div>
+</div>

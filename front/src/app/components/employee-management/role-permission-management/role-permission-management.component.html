@@ -1,0 +1,278 @@
+<div class="role-permission-container">
+  <!-- Tabs -->
+  <div class="tabs-header">
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'roles'"
+      (click)="activeTab = 'roles'"
+    >
+      <span class="tab-icon">👥</span>
+      Rôles
+    </button>
+    <button 
+      class="tab-button" 
+      [class.active]="activeTab === 'permissions'"
+      (click)="activeTab = 'permissions'"
+    >
+      <span class="tab-icon">🔐</span>
+      Permissions
+    </button>
+  </div>
+
+  <!-- Roles Tab -->
+  <div *ngIf="activeTab === 'roles'" class="tab-content">
+    <div class="header-section">
+      <h2>Gestion des Rôles</h2>
+      <button class="btn btn-primary" (click)="openAddRoleModal()">
+        <span class="icon">➕</span> Ajouter un rôle
+      </button>
+    </div>
+
+    <!-- Search -->
+    <div class="search-section">
+      <div class="search-box">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTermRole" 
+          (ngModelChange)="onSearchRole()"
+          placeholder="Rechercher un rôle..."
+          class="search-input"
+        />
+        <span class="search-icon">🔍</span>
+      </div>
+    </div>
+
+    <!-- Roles Grid -->
+    <div class="cards-grid">
+      <div *ngFor="let role of filteredRoles" class="role-card">
+        <div class="card-header">
+          <h3>{{ getRoleName(role) }}</h3>
+          <div class="card-actions">
+            <button class="btn-icon" (click)="openEditRoleModal(role)" title="Modifier">
+              ✏️
+            </button>
+            <button class="btn-icon btn-delete" (click)="deleteRole(role)" title="Supprimer">
+              🗑️
+            </button>
+          </div>
+        </div>
+        <p class="card-description">{{ getRoleDescription(role) }}</p>
+        <div class="card-footer">
+          <div class="permissions-info">
+            <span class="info-label">Permissions:</span>
+            <span class="info-value">{{ getRolePermissionsCount(role) }}</span>
+          </div>
+          <div class="permissions-list">
+            <span 
+              *ngFor="let permission of getRolePermissions(role).slice(0, 3)" 
+              class="permission-badge"
+            >
+              {{ getPermissionDisplayName(permission) }}
+            </span>
+            <span 
+              *ngIf="getRolePermissionsCount(role) > 3" 
+              class="more-badge"
+            >
+              +{{ getRolePermissionsCount(role) - 3 }} autres
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="filteredRoles.length === 0" class="no-data">
+        <p>Aucun rôle trouvé</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Permissions Tab -->
+  <div *ngIf="activeTab === 'permissions'" class="tab-content">
+    <div class="header-section">
+      <h2>Gestion des Permissions</h2>
+      <div class="info-message">
+        <i class="fas fa-info-circle"></i>
+        Les permissions sont générées automatiquement par le système
+      </div>
+    </div>
+
+    <!-- Search -->
+    <div class="search-section">
+      <div class="search-box">
+        <input 
+          type="text" 
+          [(ngModel)]="searchTermPermission" 
+          (ngModelChange)="onSearchPermission()"
+          placeholder="Rechercher une permission..."
+          class="search-input"
+        />
+        <span class="search-icon">🔍</span>
+      </div>
+    </div>
+
+    <!-- Permissions Grouped by Module -->
+    <div class="modules-container">
+      <div *ngFor="let module of modules" class="module-section">
+        <div class="module-header" (click)="toggleModule(module.code)">
+          <div class="module-info">
+            <i class="fas {{ getModuleIcon(module.code) }} module-icon"></i>
+            <h3 class="module-title">{{ getModuleDisplayName(module.code) }}</h3>
+            <span class="module-count">{{ module.permissionCount }} permissions</span>
+          </div>
+          <i class="fas" [class.fa-chevron-down]="!isModuleExpanded(module.code)" 
+             [class.fa-chevron-up]="isModuleExpanded(module.code)"></i>
+        </div>
+
+        <div class="module-content" *ngIf="isModuleExpanded(module.code)">
+          <div class="permissions-grid">
+            <div *ngFor="let permission of getFilteredPermissionsForModule(module.code)" 
+                 class="permission-card">
+              <div class="permission-card-header">
+                <h4 class="permission-name">
+                  {{ getPermissionDisplayName(permission) }}
+                </h4>
+              </div>
+              <div class="permission-card-body">
+                <div class="permission-detail">
+                  <span class="detail-label">Ressource:</span>
+                  <span class="detail-value">{{ getPermissionResource(permission) }}</span>
+                </div>
+                <div class="permission-detail">
+                  <span class="detail-label">Action:</span>
+                  <span [class]="'action-badge ' + getActionBadgeClass(permission.action)">
+                    {{ getActionLabel(permission.action) }}
+                  </span>
+                </div>
+                <div class="permission-detail" *ngIf="permission.description">
+                  <span class="detail-label">Description:</span>
+                  <span class="detail-value">{{ permission.description }}</span>
+                </div>
+              </div>
+            </div>
+            
+            <div *ngIf="getFilteredPermissionsForModule(module.code).length === 0" class="no-permissions">
+              <p>Aucune permission trouvée dans ce module</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div *ngIf="modules.length === 0" class="no-data">
+        <p>Aucun module trouvé</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Role Modal -->
+<div class="modal-overlay" *ngIf="showRoleModal" (click)="closeRoleModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ isEditMode ? 'Modifier le rôle' : 'Ajouter un rôle' }}</h3>
+      <button class="btn-close" (click)="closeRoleModal()">✕</button>
+    </div>
+
+    <form [formGroup]="roleForm" (ngSubmit)="saveRole()">
+      <div class="modal-body">
+        <div class="form-group">
+          <label>Nom du rôle <span class="required">*</span></label>
+          <input 
+            type="text" 
+            formControlName="nom" 
+            class="form-control"
+            placeholder="Ex: Administrateur, Manager, etc."
+          />
+          <div class="error-message" *ngIf="roleForm.get('nom')?.invalid && roleForm.get('nom')?.touched">
+            Nom requis (min. 3 caractères)
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Description</label>
+          <textarea 
+            formControlName="description" 
+            class="form-control"
+            rows="3"
+            placeholder="Description du rôle..."
+          ></textarea>
+        </div>
+
+        <div class="form-group">
+          <label>Permissions par Module</label>
+          <div class="search-permissions">
+            <input 
+              type="text" 
+              [(ngModel)]="modalSearchTerm"
+              [ngModelOptions]="{standalone: true}"
+              placeholder="🔍 Rechercher des permissions..."
+              class="search-input-modal"
+            />
+          </div>
+          
+          <div class="permissions-modules-container">
+            <div *ngFor="let module of modules" class="permission-module-section">
+              <div class="module-header-checkbox" (click)="onModuleHeaderClick($event, module.code)">
+                <input 
+                  type="checkbox"
+                  [id]="'module-' + module.code"
+                  [checked]="isModuleFullySelected(module.code)"
+                  [indeterminate]="isModulePartiallySelected(module.code)"
+                  (change)="onModuleCheckboxChange($event, module.code)"
+                  class="module-checkbox"
+                />
+                <label [for]="'module-' + module.code" class="module-label">
+                  <i class="fas {{ getModuleIcon(module.code) }}"></i>
+                  <span class="module-name">{{ getModuleDisplayName(module.code) }}</span>
+                  <span class="module-permission-count">
+                    {{ getSelectedPermissionsCountForModule(module.code) }} / {{ getPermissionsForModule(module.code).length }}
+                  </span>
+                </label>
+                <button
+                  type="button"
+                  class="toggle-module-btn"
+                  (click)="toggleModuleInModal(module.code)"
+                >
+                  <i class="fas" [class.fa-chevron-down]="!isModuleExpandedInModal(module.code)" 
+                     [class.fa-chevron-up]="isModuleExpandedInModal(module.code)"></i>
+                </button>
+              </div>
+
+              <div class="module-permissions-list" *ngIf="isModuleExpandedInModal(module.code)">
+                <label 
+                  *ngFor="let permission of getFilteredPermissionsForModuleInModal(module.code)" 
+                  class="permission-checkbox-label"
+                >
+                  <input 
+                    type="checkbox" 
+                    [value]="permission.id"
+                    [checked]="roleForm.get('permissions')?.value?.includes(permission.id)"
+                    (change)="onPermissionCheckboxChange($event, permission.id)"
+                  />
+                  <div class="permission-details">
+                    <span class="permission-name">{{ getPermissionDisplayName(permission) }}</span>
+                    <span [class]="'action-badge-mini ' + getActionBadgeClass(permission.action)">
+                      {{ getActionLabel(permission.action) }}
+                    </span>
+                  </div>
+                </label>
+                <div *ngIf="getFilteredPermissionsForModuleInModal(module.code).length === 0" class="no-permissions">
+                  Aucune permission trouvée
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" (click)="closeRoleModal()">
+          Annuler
+        </button>
+        <button type="submit" class="btn btn-primary" [disabled]="roleForm.invalid">
+          {{ isEditMode ? 'Modifier' : 'Ajouter' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Permission Modal - Removed (Permissions are auto-generated) -->

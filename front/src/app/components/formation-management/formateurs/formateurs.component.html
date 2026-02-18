@@ -1,0 +1,139 @@
+<div class="formateurs-view">
+  <!-- Loading Overlay -->
+  <div *ngIf="isLoading" class="loading-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+    <div style="text-align: center;">
+      <div style="font-size: 48px; animation: spin 1s linear infinite;">⏳</div>
+      <p style="margin-top: 16px; font-size: 18px; color: #666;">Chargement des formateurs...</p>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <!-- HEADER -->
+    <div class="table-header">
+      <h2>👨‍🏫 Liste des Formateurs</h2>
+      <div class="header-actions">
+        <div class="search-bar">
+          <div class="search-field wide">
+            <span class="search-icon">🔍</span>
+            <input
+              type="text"
+              [(ngModel)]="searchTerm"
+              placeholder="Nom, spécialité, contact..."
+              class="form-input"
+            />
+          </div>
+          <button
+            class="btn-secondary subtle"
+            type="button"
+            (click)="searchTerm = ''"
+          >
+            Réinitialiser
+          </button>
+        </div>
+
+        <button class="btn-primary" (click)="openModal('formateur')">
+          ➕ Nouveau Formateur
+        </button>
+      </div>
+    </div>
+
+    <!-- TABLE DES FORMATEURS -->
+    <div class="modern-table" *ngIf="formateurs.length; else noFormateurs">
+      <div class="table-row header">
+        <div>Nom</div>
+        <div>Prénom</div>
+        <div>Spécialité</div>
+        <div>Contact</div>
+        <div>Expérience</div>
+        <div>Actions</div>
+      </div>
+
+      <ng-container *ngFor="let f of filteredFormateurs()">
+        <div class="table-row">
+          <div>{{ f.nom }}</div>
+          <div>{{ f.prenom }}</div>
+          <div>{{ f.specialite || '—' }}</div>
+          <div>{{ f.contact || '—' }}</div>
+          <div>{{ f.experience || '—' }}</div>
+          <div class="actions">
+            <button class="action-btn" (click)="editFormateur(f)">✏️</button>
+            <button class="action-btn danger" (click)="deleteFormateur(f.idFormateur!)">🗑️</button>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
+    <ng-template #noFormateurs>
+      <p class="no-data">Aucun formateur à afficher</p>
+    </ng-template>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal" *ngIf="showModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>{{ modalTitle }}</h2>
+        <button class="btn-close" (click)="closeModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nom</label>
+            <input
+              type="text"
+              [(ngModel)]="formateurFormData.nom"
+              class="form-input"
+              placeholder="Nom"
+            />
+          </div>
+          <div class="form-group">
+            <label>Prénom</label>
+            <input
+              type="text"
+              [(ngModel)]="formateurFormData.prenom"
+              class="form-input"
+              placeholder="Prénom"
+            />
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Spécialité</label>
+          <input
+            type="text"
+            [(ngModel)]="formateurFormData.specialite"
+            class="form-input"
+            placeholder="Spécialité"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Contact</label>
+          <input
+            type="text"
+            [(ngModel)]="formateurFormData.contact"
+            class="form-input"
+            placeholder="Contact (email, téléphone, etc.)"
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Expérience</label>
+          <textarea
+            [(ngModel)]="formateurFormData.experience"
+            class="form-input"
+            placeholder="Expérience professionnelle"
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeModal()">Annuler</button>
+        <button class="btn-primary" (click)="saveFormateur()">
+          Enregistrer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

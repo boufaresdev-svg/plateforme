@@ -1,0 +1,189 @@
+<div class="categories-management">
+  <div class="section-header">
+    <h2>Gestion des Catégories</h2>
+    <button class="btn-primary" (click)="showAddCategorieForm()" [disabled]="loading">
+      <span class="icon">+</span>
+      Nouvelle Catégorie
+    </button>
+  </div>
+
+  <!-- Error Message -->
+  <div class="alert alert-error" *ngIf="error">
+    {{ error }}
+  </div>
+
+  <!-- Loading Indicator -->
+  <div class="loading-indicator" *ngIf="loading">
+    <span>Chargement...</span>
+  </div>
+
+  <div class="search-filters">
+    <div class="search-box">
+      <input type="text" 
+             placeholder="Rechercher une catégorie..." 
+             [(ngModel)]="searchCategories"
+             (input)="onSearch()"
+             class="search-input">
+    </div>
+    <button class="btn-secondary" (click)="refreshCategories()" [disabled]="loading">
+      Actualiser
+    </button>
+  </div>
+
+  <div class="categories-table-container" *ngIf="!loading">
+    <table class="categories-table">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Description</th>
+          <th>Statut</th>
+          <th>Nombre de Produits</th>
+          <th>Date création</th>
+          <th>Dernière modification</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let categorie of filteredCategories" class="category-row">
+          <td class="category-cell">
+            <div class="category-name">{{ categorie.nom }}</div>
+          </td>
+          <td class="description-cell">
+            <div class="description-text">{{ categorie.description || '-' }}</div>
+          </td>
+          <td class="status-cell">
+            <span class="status-badge" [class.active]="categorie.estActif" [class.inactive]="!categorie.estActif">
+              {{ categorie.estActif ? 'Active' : 'Inactive' }}
+            </span>
+          </td>
+          <td class="count-cell">
+            <div class="count-text">{{ categorie.nombreProduits || 0 }}</div>
+          </td>
+          <td class="date-cell">
+            <div class="date-info">{{ categorie.createdAt | date:'dd/MM/yyyy HH:mm' }}</div>
+          </td>
+          <td class="date-cell">
+            <div class="date-info">{{ categorie.updatedAt | date:'dd/MM/yyyy HH:mm' }}</div>
+          </td>
+          <td class="actions-cell">
+            <div class="action-buttons">
+              <button class="btn-icon" (click)="editCategorie(categorie)" title="Modifier" [disabled]="loading">
+                Modifier
+              </button>
+              <button class="btn-icon danger" (click)="deleteCategorie(categorie.id)" title="Supprimer" [disabled]="loading">
+                Supprimer
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filteredCategories.length === 0">
+          <td colspan="7" class="no-data">
+            Aucune catégorie trouvée
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <div class="pagination-container" *ngIf="totalPages > 0">
+      <div class="pagination-info">
+        Affichage de {{ currentPage * pageSize + 1 }} à {{ Math.min((currentPage + 1) * pageSize, totalElements) }} sur {{ totalElements }} catégories
+      </div>
+      <div class="pagination-controls">
+        <div class="page-size-selector">
+          <label>Lignes par page:</label>
+          <select [(ngModel)]="pageSize" (change)="onPageSizeChange()" class="page-size-select">
+            <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+          </select>
+        </div>
+        <div class="page-buttons">
+          <button class="btn-page" 
+                  (click)="onPageChange(0)" 
+                  [disabled]="currentPage === 0">
+            Première
+          </button>
+          <button class="btn-page" 
+                  (click)="onPageChange(currentPage - 1)" 
+                  [disabled]="currentPage === 0">
+            Précédent
+          </button>
+          <span class="page-indicator">
+            Page {{ currentPage + 1 }} / {{ totalPages }}
+          </span>
+          <button class="btn-page" 
+                  (click)="onPageChange(currentPage + 1)" 
+                  [disabled]="currentPage >= totalPages - 1">
+            Suivant
+          </button>
+          <button class="btn-page" 
+                  (click)="onPageChange(totalPages - 1)" 
+                  [disabled]="currentPage >= totalPages - 1">
+            Dernière
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Catégorie -->
+  <div class="modal-overlay" *ngIf="showCategorieModal" (click)="closeCategorieModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ isEditingCategorie ? 'Modifier' : 'Nouvelle' }} Catégorie</h3>
+        <button class="btn-close" (click)="closeCategorieModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <!-- Error Message in Modal -->
+        <div class="alert alert-error" *ngIf="error">
+          {{ error }}
+        </div>
+
+        <form (ngSubmit)="saveCategorieForm()" #categorieForm="ngForm">
+          <div class="form-group">
+            <label for="name">Nom *</label>
+            <input type="text" 
+                   id="name" 
+                   [(ngModel)]="currentCategorie.nom" 
+                   name="nom" 
+                   required 
+                   class="form-control"
+                   placeholder="Entrez le nom de la catégorie">
+          </div>
+          
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" 
+                      [(ngModel)]="currentCategorie.description" 
+                      name="description" 
+                      class="form-control"
+                      placeholder="Description optionnelle de la catégorie"
+                      rows="3"></textarea>
+          </div>
+          
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" 
+                     [(ngModel)]="currentCategorie.estActif" 
+                     name="estActif">
+              Catégorie active
+            </label>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" 
+                    class="btn-secondary" 
+                    (click)="closeCategorieModal()"
+                    [disabled]="loading">
+              Annuler
+            </button>
+            <button type="submit" 
+                    class="btn-primary" 
+                    [disabled]="!categorieForm.valid || loading">
+              {{ loading ? 'Traitement...' : (isEditingCategorie ? 'Modifier' : 'Créer') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,482 @@
+[
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "API S7 300/400",
+    "niveau": "Niveau 1",
+    "typeFormation": "Inter Entreprise",
+    "date": "11/10/2025",
+    "prix": 200
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "API S7 300/400",
+    "niveau": "Niveau 2",
+    "typeFormation": "Inter Entreprise",
+    "date": "12/10/2025",
+    "prix": 400
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "API S7 300/400",
+    "niveau": "Niveau 3",
+    "typeFormation": "Inter Entreprise",
+    "date": "13/10/2025",
+    "prix": 600
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "API S7 300/400",
+    "niveau": "Niveau 4",
+    "typeFormation": "Inter Entreprise",
+    "date": "14/10/2025",
+    "prix": 800
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "API S7 300/400",
+    "niveau": "Niveau 5",
+    "typeFormation": "Inter Entreprise",
+    "date": "15/10/2025",
+    "prix": 1000
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "API S7 1500/1200",
+    "niveau": "Niveau 1",
+    "typeFormation": "Inter Entreprise",
+    "date": "16/10/2025",
+    "prix": 200
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "API S7 1500/1200",
+    "niveau": "Niveau 2",
+    "typeFormation": "Inter Entreprise",
+    "date": "17/10/2025",
+    "prix": 400
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "API S7 1500/1200",
+    "niveau": "Niveau 3",
+    "typeFormation": "Inter Entreprise",
+    "date": "18/10/2025",
+    "prix": 600
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "API S7 1500/1200",
+    "niveau": "Niveau 4",
+    "typeFormation": "Inter Entreprise",
+    "date": "19/10/2025",
+    "prix": 800
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "API S7 1500/1200",
+    "niveau": "Niveau 5",
+    "typeFormation": "Inter Entreprise",
+    "date": "20/10/2025",
+    "prix": 1000
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "S5",
+    "niveau": "Niveau 1",
+    "typeFormation": "Inter Entreprise",
+    "date": "21/10/2025",
+    "prix": 200
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "S5",
+    "niveau": "Niveau 2",
+    "typeFormation": "Inter Entreprise",
+    "date": "22/10/2025",
+    "prix": 400
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "S5",
+    "niveau": "Niveau 3",
+    "typeFormation": "Inter Entreprise",
+    "date": "23/10/2025",
+    "prix": 600
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "S5",
+    "niveau": "Niveau 4",
+    "typeFormation": "Inter Entreprise",
+    "date": "24/10/2025",
+    "prix": 800
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "S5",
+    "niveau": "Niveau 5",
+    "typeFormation": "Inter Entreprise",
+    "date": "25/10/2025",
+    "prix": 1000
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "Motion control",
+    "niveau": "Niveau 1",
+    "typeFormation": "Inter Entreprise",
+    "date": "26/10/2025",
+    "prix": 200
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "Motion control",
+    "niveau": "Niveau 2",
+    "typeFormation": "Inter Entreprise",
+    "date": "27/10/2025",
+    "prix": 400
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "Motion control",
+    "niveau": "Niveau 3",
+    "typeFormation": "Inter Entreprise",
+    "date": "28/10/2025",
+    "prix": 600
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "Motion control",
+    "niveau": "Niveau 4",
+    "typeFormation": "Inter Entreprise",
+    "date": "29/10/2025",
+    "prix": 800
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Siemens",
+    "sousCategorie": "Motion control",
+    "niveau": "Niveau 5",
+    "typeFormation": "Inter Entreprise",
+    "date": "30/10/2025",
+    "prix": 1000
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Rockwell",
+    "sousCategorie": "HMI",
+    "niveau": "Niveau 3",
+    "typeFormation": "Intra Entreprise",
+    "date": "27/12/2025",
+    "prix": 700
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Rockwell",
+    "sousCategorie": "HMI",
+    "niveau": "Niveau 4",
+    "typeFormation": "Intra Entreprise",
+    "date": "28/12/2025",
+    "prix": 900
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Rockwell",
+    "sousCategorie": "HMI",
+    "niveau": "Niveau 5",
+    "typeFormation": "Intra Entreprise",
+    "date": "29/12/2025",
+    "prix": 1100
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Schneider",
+    "sousCategorie": "API",
+    "niveau": "Niveau 1",
+    "typeFormation": "Intra Entreprise",
+    "date": "30/12/2025",
+    "prix": 300
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Schneider",
+    "sousCategorie": "API",
+    "niveau": "Niveau 2",
+    "typeFormation": "Intra Entreprise",
+    "date": "31/12/2025",
+    "prix": 500
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Schneider",
+    "sousCategorie": "API",
+    "niveau": "Niveau 3",
+    "typeFormation": "Intra Entreprise",
+    "date": "01/01/2026",
+    "prix": 700
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Schneider",
+    "sousCategorie": "API",
+    "niveau": "Niveau 4",
+    "typeFormation": "Intra Entreprise",
+    "date": "02/01/2026",
+    "prix": 900
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Schneider",
+    "sousCategorie": "API",
+    "niveau": "Niveau 5",
+    "typeFormation": "Intra Entreprise",
+    "date": "03/01/2026",
+    "prix": 1100
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Schneider",
+    "sousCategorie": "supervision intouch wonderware",
+    "niveau": "Niveau 1",
+    "typeFormation": "En Ligne",
+    "date": "25/02/2026",
+    "prix": 400
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Schneider",
+    "sousCategorie": "supervision intouch wonderware",
+    "niveau": "Niveau 2",
+    "typeFormation": "En Ligne",
+    "date": "26/02/2026",
+    "prix": 600
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Schneider",
+    "sousCategorie": "supervision intouch wonderware",
+    "niveau": "Niveau 3",
+    "typeFormation": "En Ligne",
+    "date": "27/02/2026",
+    "prix": 800
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Schneider",
+    "sousCategorie": "supervision intouch wonderware",
+    "niveau": "Niveau 4",
+    "typeFormation": "En Ligne",
+    "date": "28/02/2026",
+    "prix": 1000
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Automatisme",
+    "categorie": "Schneider",
+    "sousCategorie": "supervision intouch wonderware",
+    "niveau": "Niveau 5",
+    "typeFormation": "En Ligne",
+    "date": "01/03/2026",
+    "prix": 1200
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Electronique",
+    "categorie": "Siemens",
+    "sousCategorie": "cartes variateurs",
+    "niveau": "Niveau 1",
+    "typeFormation": "En Ligne",
+    "date": "02/03/2026",
+    "prix": 400
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Electronique",
+    "categorie": "Siemens",
+    "sousCategorie": "cartes variateurs",
+    "niveau": "Niveau 2",
+    "typeFormation": "En Ligne",
+    "date": "03/03/2026",
+    "prix": 600
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Electronique",
+    "categorie": "Siemens",
+    "sousCategorie": "cartes variateurs",
+    "niveau": "Niveau 3",
+    "typeFormation": "En Ligne",
+    "date": "04/03/2026",
+    "prix": 800
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Electronique",
+    "categorie": "Siemens",
+    "sousCategorie": "cartes variateurs",
+    "niveau": "Niveau 4",
+    "typeFormation": "En Ligne",
+    "date": "05/03/2026",
+    "prix": 1000
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Electronique",
+    "categorie": "Siemens",
+    "sousCategorie": "cartes variateurs",
+    "niveau": "Niveau 5",
+    "typeFormation": "En Ligne",
+    "date": "06/03/2026",
+    "prix": 1200
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Electronique",
+    "categorie": "Siemens",
+    "sousCategorie": "Drive et motion control",
+    "niveau": "Niveau 1",
+    "typeFormation": "En Ligne",
+    "date": "07/03/2026",
+    "prix": 400
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Electronique",
+    "categorie": "Siemens",
+    "sousCategorie": "Drive et motion control",
+    "niveau": "Niveau 2",
+    "typeFormation": "En Ligne",
+    "date": "08/03/2026",
+    "prix": 600
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Electronique",
+    "categorie": "Siemens",
+    "sousCategorie": "Drive et motion control",
+    "niveau": "Niveau 3",
+    "typeFormation": "En Ligne",
+    "date": "09/03/2026",
+    "prix": 800
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Electronique",
+    "categorie": "Siemens",
+    "sousCategorie": "Drive et motion control",
+    "niveau": "Niveau 4",
+    "typeFormation": "En Ligne",
+    "date": "10/03/2026",
+    "prix": 1000
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Electronique",
+    "categorie": "Siemens",
+    "sousCategorie": "Drive et motion control",
+    "niveau": "Niveau 5",
+    "typeFormation": "En Ligne",
+    "date": "11/03/2026",
+    "prix": 1200
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Electronique",
+    "categorie": "Siemens",
+    "sousCategorie": "Technique de diagnostic",
+    "niveau": "Niveau 1",
+    "typeFormation": "En Ligne",
+    "date": "12/03/2026",
+    "prix": 400
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Electronique",
+    "categorie": "Siemens",
+    "sousCategorie": "Technique de diagnostic",
+    "niveau": "Niveau 2",
+    "typeFormation": "En Ligne",
+    "date": "13/03/2026",
+    "prix": 600
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Electronique",
+    "categorie": "Siemens",
+    "sousCategorie": "Technique de diagnostic",
+    "niveau": "Niveau 3",
+    "typeFormation": "En Ligne",
+    "date": "14/03/2026",
+    "prix": 800
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Electronique",
+    "categorie": "Siemens",
+    "sousCategorie": "Technique de diagnostic",
+    "niveau": "Niveau 4",
+    "typeFormation": "En Ligne",
+    "date": "15/03/2026",
+    "prix": 1000
+  },
+  {
+    "domaine": "Industrie laitière",
+    "type": "Electronique",
+    "categorie": "Siemens",
+    "sousCategorie": "Technique de diagnostic",
+    "niveau": "Niveau 5",
+    "typeFormation": "En Ligne",
+    "date": "16/03/2026",
+    "prix": 1200
+  }
+]

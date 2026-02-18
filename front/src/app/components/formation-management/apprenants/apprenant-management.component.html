@@ -1,0 +1,350 @@
+<div class="apprenant-management">
+  <!-- Header -->
+  <div class="page-header">
+    <div class="header-left">
+      <h2>👥 Gestion des Apprenants</h2>
+      <p class="subtitle" *ngIf="!formationId">Gérez les apprenants inscrits aux formations</p>
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-secondary" (click)="openImportModal()">
+        📥 Importer CSV
+      </button>
+      <button class="btn btn-primary" (click)="openAddForm()">
+        ➕ Nouvel Apprenant
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-cards" *ngIf="!formationId">
+    <div class="stat-card">
+      <div class="stat-icon">👥</div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats.total }}</span>
+        <span class="stat-label">Total</span>
+      </div>
+    </div>
+    <div class="stat-card active">
+      <div class="stat-icon">✅</div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats.active }}</span>
+        <span class="stat-label">Actifs</span>
+      </div>
+    </div>
+    <div class="stat-card blocked">
+      <div class="stat-icon">🚫</div>
+      <div class="stat-content">
+        <span class="stat-value">{{ stats.blocked }}</span>
+        <span class="stat-label">Bloqués</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Search & Filters -->
+  <div class="filters-bar">
+    <div class="search-box">
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (keyup.enter)="onSearch()"
+        placeholder="Rechercher par nom, email, matricule..."
+        class="search-input"
+      />
+      <button class="btn btn-icon" (click)="onSearch()">🔍</button>
+    </div>
+    <div class="filter-group">
+      <select [(ngModel)]="filterStatus" (change)="onFilterChange()" class="filter-select">
+        <option value="all">Tous les statuts</option>
+        <option value="active">Actifs</option>
+        <option value="blocked">Bloqués</option>
+        <option value="staff">Staff</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="spinner"></div>
+    <p>Chargement...</p>
+  </div>
+
+  <!-- Table -->
+  <div class="table-container" *ngIf="!isLoading && apprenants.length > 0">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Matricule</th>
+          <th>Nom</th>
+          <th>Prénom</th>
+          <th>Email</th>
+          <th>Téléphone</th>
+          <th>Statut</th>
+          <th>Staff</th>
+          <th>Plan Formation</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let apprenant of apprenants" [class.blocked]="apprenant.isBlocked">
+          <td class="matricule">{{ apprenant.matricule || '-' }}</td>
+          <td>{{ apprenant.nom }}</td>
+          <td>{{ apprenant.prenom || '-' }}</td>
+          <td>{{ apprenant.email }}</td>
+          <td>{{ apprenant.telephone || '-' }}</td>
+          <td>
+            <span class="status-badge" [class.active]="apprenant.isActive && !apprenant.isBlocked" 
+                                        [class.blocked]="apprenant.isBlocked"
+                                        [class.pending]="!apprenant.isActive && !apprenant.isBlocked">
+              {{ getStatusLabel(apprenant) }}
+            </span>
+          </td>
+          <td>
+            <span class="staff-badge" [class.is-staff]="apprenant.isStaff">
+              {{ apprenant.isStaff ? '⭐ Staff' : '-' }}
+            </span>
+          </td>
+          <td>{{ getPlanFormationLabel(apprenant) }}</td>
+          <td class="actions-cell">
+            <button class="btn-action edit" (click)="openEditForm(apprenant)" title="Modifier">
+              ✏️
+            </button>
+            <button class="btn-action password" (click)="openPasswordModal(apprenant)" title="Mot de passe">
+              🔑
+            </button>
+            <button 
+              class="btn-action block" 
+              (click)="toggleBlock(apprenant)" 
+              [title]="apprenant.isBlocked ? 'Débloquer' : 'Bloquer'"
+            >
+              {{ apprenant.isBlocked ? '🔓' : '🔒' }}
+            </button>
+            <button 
+              class="btn-action staff" 
+              (click)="toggleStaff(apprenant)" 
+              title="Toggle Staff"
+            >
+              {{ apprenant.isStaff ? '👤' : '⭐' }}
+            </button>
+            <button class="btn-action delete" (click)="deleteApprenant(apprenant)" title="Supprimer">
+              🗑️
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Empty State -->
+  <div class="empty-state" *ngIf="!isLoading && apprenants.length === 0">
+    <div class="empty-icon">👥</div>
+    <h3>Aucun apprenant trouvé</h3>
+    <p>Commencez par ajouter des apprenants ou importez un fichier CSV.</p>
+    <div class="empty-actions">
+      <button class="btn btn-primary" (click)="openAddForm()">➕ Ajouter un apprenant</button>
+      <button class="btn btn-secondary" (click)="openImportModal()">📥 Importer CSV</button>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button class="btn btn-icon" (click)="prevPage()" [disabled]="currentPage === 0">
+      ◀
+    </button>
+    <span class="page-info">
+      Page {{ currentPage + 1 }} sur {{ totalPages }} ({{ totalItems }} résultats)
+    </span>
+    <button class="btn btn-icon" (click)="nextPage()" [disabled]="currentPage >= totalPages - 1">
+      ▶
+    </button>
+  </div>
+
+  <!-- Add/Edit Form Modal -->
+  <div class="modal-overlay" *ngIf="showAddForm || showEditForm" (click)="cancelForm()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>{{ showEditForm ? '✏️ Modifier l\'apprenant' : '➕ Nouvel apprenant' }}</h2>
+        <button class="btn-close" (click)="cancelForm()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nom *</label>
+            <input type="text" [(ngModel)]="apprenantForm.nom" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label>Prénom</label>
+            <input type="text" [(ngModel)]="apprenantForm.prenom" class="form-input" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Email *</label>
+            <input type="email" [(ngModel)]="apprenantForm.email" class="form-input" required />
+          </div>
+          <div class="form-group">
+            <label>Téléphone</label>
+            <input type="tel" [(ngModel)]="apprenantForm.telephone" class="form-input" />
+          </div>
+        </div>
+        <div class="form-group full-width">
+          <label>Adresse</label>
+          <input type="text" [(ngModel)]="apprenantForm.adresse" class="form-input" />
+        </div>
+        <div class="form-group full-width">
+          <label>Prérequis</label>
+          <textarea [(ngModel)]="apprenantForm.prerequis" class="form-textarea" rows="3"></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Statut d'inscription</label>
+            <select [(ngModel)]="apprenantForm.statusInscription" class="form-input">
+              <option *ngFor="let status of statusInscriptionOptions" [value]="status">
+                {{ status }}
+              </option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Plan de formation</label>
+            <select [(ngModel)]="apprenantForm.idPlanFormation" class="form-input">
+              <option [ngValue]="undefined">-- Aucun --</option>
+              <option *ngFor="let plan of planFormations" [ngValue]="plan.idPlanFormation">
+                {{ plan.titre }}
+              </option>
+            </select>
+          </div>
+        </div>
+        <div class="form-row" *ngIf="!showEditForm">
+          <div class="form-group">
+            <label>Mot de passe (optionnel)</label>
+            <input type="password" [(ngModel)]="apprenantForm.password" class="form-input" 
+                   placeholder="Généré automatiquement si vide" />
+          </div>
+        </div>
+        <div class="form-row checkboxes">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="apprenantForm.isStaff" />
+            <span>Staff</span>
+          </label>
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="apprenantForm.isActive" />
+            <span>Actif</span>
+          </label>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="cancelForm()">Annuler</button>
+        <button class="btn btn-primary" (click)="saveApprenant()">
+          {{ showEditForm ? 'Mettre à jour' : 'Créer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Password Modal -->
+  <div class="modal-overlay" *ngIf="showPasswordModal" (click)="closePasswordModal()">
+    <div class="modal-content small" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>🔑 Gestion du mot de passe</h2>
+        <button class="btn-close" (click)="closePasswordModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-info">
+          Apprenant: <strong>{{ selectedApprenant?.nom }} {{ selectedApprenant?.prenom }}</strong>
+        </p>
+        <div class="form-group">
+          <label>Nouveau mot de passe</label>
+          <input type="text" [(ngModel)]="newPassword" class="form-input" 
+                 placeholder="Saisir un mot de passe" />
+        </div>
+        <div class="generated-password" *ngIf="generatedPassword">
+          <p>Mot de passe généré: <strong>{{ generatedPassword }}</strong></p>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="generatePassword()">
+          🎲 Générer
+        </button>
+        <button class="btn btn-primary" (click)="savePassword()" [disabled]="!newPassword">
+          💾 Enregistrer
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Import Modal -->
+  <div class="modal-overlay" *ngIf="showImportModal" (click)="closeImportModal()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>📥 Importer des apprenants</h2>
+        <button class="btn-close" (click)="closeImportModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="import-info">
+          <p>Importez une liste d'apprenants depuis un fichier CSV.</p>
+          <button class="btn btn-link" (click)="downloadCsvTemplate()">
+            📄 Télécharger le modèle CSV
+          </button>
+        </div>
+        
+        <div class="form-group">
+          <label>Fichier CSV *</label>
+          <input type="file" accept=".csv" (change)="onFileSelected($event)" class="form-input" />
+        </div>
+
+        <div class="form-group">
+          <label>Associer à un plan de formation (optionnel)</label>
+          <select [(ngModel)]="importPlanFormationId" class="form-input">
+            <option [ngValue]="undefined">-- Aucun --</option>
+            <option *ngFor="let plan of planFormations" [ngValue]="plan.idPlanFormation">
+              {{ plan.titre }}
+            </option>
+          </select>
+        </div>
+
+        <label class="checkbox-label">
+          <input type="checkbox" [(ngModel)]="generatePasswordsOnImport" />
+          <span>Générer des mots de passe automatiquement</span>
+        </label>
+
+        <!-- Import Result -->
+        <div class="import-result" *ngIf="importResult">
+          <h4>Résultat de l'import</h4>
+          <p class="success">✅ {{ importResult.imported }} apprenant(s) importé(s)</p>
+          <div class="errors" *ngIf="importResult.errors?.length > 0">
+            <p class="error-title">❌ Erreurs ({{ importResult.errors.length }}):</p>
+            <ul>
+              <li *ngFor="let err of importResult.errors">
+                Ligne {{ err.line }}: {{ err.error }}
+              </li>
+            </ul>
+          </div>
+          <div class="credentials" *ngIf="importResult.credentials?.length > 0">
+            <p class="cred-title">🔑 Identifiants générés:</p>
+            <table class="cred-table">
+              <thead>
+                <tr>
+                  <th>Matricule</th>
+                  <th>Email</th>
+                  <th>Mot de passe</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let cred of importResult.credentials">
+                  <td>{{ cred.matricule }}</td>
+                  <td>{{ cred.email }}</td>
+                  <td>{{ cred.password }}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" (click)="closeImportModal()">Fermer</button>
+        <button class="btn btn-primary" (click)="importCsv()" [disabled]="!selectedFile || isLoading">
+          {{ isLoading ? 'Import en cours...' : 'Importer' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

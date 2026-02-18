@@ -1,0 +1,1081 @@
+.vehicle-management {
+  width: 100%;
+  background: #f8fafc;
+  padding: 0;
+}
+
+/* Header moderne */
+.header-section {
+  background: #2057e0;
+  color: white;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  width: 100%;
+  border-radius: 16px;
+}
+
+.header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  max-width: none;
+}
+
+.header-title h1 {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin: 0 0 0.5rem 0;
+}
+
+.subtitle {
+  opacity: 0.9;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.header-actions {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.nav-pill {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.2);
+  border-radius: 50px;
+  color: white;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-weight: 500;
+}
+
+.nav-pill:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.4);
+}
+
+.nav-pill.active {
+  background: white;
+  color: #667eea;
+  border-color: white;
+}
+
+.btn-primary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+  background: #059669;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+}
+
+.btn-outline {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: transparent;
+  color: #6b7280;
+  border: 2px solid #e5e7eb;
+  border-radius: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-outline:hover {
+  border-color: #667eea;
+  color: #667eea;
+}
+
+.btn-back {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background: #f3f4f6;
+  color: #374151;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-back:hover {
+  background: #e5e7eb;
+}
+
+.icon {
+  font-size: 1rem;
+}
+
+/* Dashboard moderne */
+.dashboard-view {
+  width: 100%;
+  padding: 0 2rem;
+}
+
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 1.5rem;
+  margin-bottom: 3rem;
+}
+
+.stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+  border-left: 4px solid transparent;
+}
+
+.stat-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.stat-card.primary { border-left-color: #667eea; }
+.stat-card.success { border-left-color: #10b981; }
+.stat-card.warning { border-left-color: #f59e0b; }
+.stat-card.danger { border-left-color: #ef4444; }
+.stat-card.info { border-left-color: #3b82f6; }
+
+.stat-icon {
+  font-size: 3rem;
+  opacity: 0.8;
+}
+
+.stat-number {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  line-height: 1;
+}
+
+.stat-label {
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-top: 0.25rem;
+}
+
+/* Section récente */
+.recent-section {
+  margin-bottom: 3rem;
+}
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.section-header h2 {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.papiers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.5rem;
+}
+
+.papier-card.modern {
+  background: white;
+  border-radius: 16px;
+  padding: 1.5rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  border-left: 4px solid #10b981;
+}
+
+.papier-card.modern:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+  border-color: #667eea;
+}
+
+.papier-card.modern.warning {
+  border-left-color: #f59e0b;
+  background: #fffbeb;
+}
+
+.papier-card.modern.danger {
+  border-left-color: #ef4444;
+  background: #fef2f2;
+}
+
+/* Styles pour les tableaux du dashboard */
+.reparation-type-badge {
+  background: #dbeafe;
+  color: #1e40af;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.price-value {
+  font-weight: 600;
+  color: #10b981;
+}
+
+.quantity-value {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.description-text {
+  color: #6b7280;
+  font-size: 0.9rem;
+  font-style: italic;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.station-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.station-name {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.9rem;
+}
+
+.station-address {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.carte-vehicle {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.conducteur-name {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.empty-state-table {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.empty-state-table .empty-icon {
+  font-size: 2rem;
+  margin-bottom: 0.5rem;
+  opacity: 0.5;
+}
+
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 1rem;
+}
+
+.papier-info h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 0.25rem 0;
+}
+
+.vehicle-serie {
+  background: #f3f4f6;
+  color: #6b7280;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.alert-indicator {
+  margin-left: auto;
+}
+
+.alert-badge {
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.alert-badge.warning {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.alert-badge.danger {
+  background: #fee2e2;
+  color: #991b1b;
+}
+
+.card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.papier-date {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.date-label {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.date-value {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.date-value.warning {
+  color: #f59e0b;
+}
+
+.date-value.danger {
+  color: #ef4444;
+}
+
+.papier-status {
+  text-align: center;
+}
+
+.status-message {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.status-message.warning {
+  color: #92400e;
+}
+
+.status-message.danger {
+  color: #991b1b;
+}
+
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 3rem;
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.empty-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  opacity: 0.6;
+}
+
+.empty-state h3 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #10b981;
+  margin: 0 0 0.5rem 0;
+}
+
+.empty-state p {
+  color: #6b7280;
+  margin: 0;
+}
+
+/* Vues Réparations et Transactions */
+.reparations-view, .transactions-view {
+  width: 100%;
+  padding: 0 2rem;
+}
+
+.filters-section {
+  display: flex;
+  gap: 1rem;
+  align-items: end;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.filter-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  min-width: 150px;
+}
+
+.filter-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.filter-select, .filter-input {
+  padding: 0.5rem 0.75rem;
+  border: 2px solid #f3f4f6;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.filter-select:focus, .filter-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.table-header h2 {
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 1rem 0;
+}
+
+/* Tables modernes */
+.vehicles-view, .cartes-view {
+  width: 100%;
+  padding: 0 2rem;
+}
+
+.table-container {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+}
+
+.table-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.search-bar {
+  position: relative;
+  flex: 1;
+  max-width: 400px;
+}
+
+.search-icon {
+  position: absolute;
+  left: 1rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #9ca3af;
+}
+
+.search-input {
+  width: 100%;
+  padding: 0.75rem 1rem 0.75rem 3rem;
+  border: 2px solid #f3f4f6;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.table-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.modern-table {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  overflow-x: auto;
+}
+
+.table-row {
+  display: grid;
+  grid-template-columns: 2fr 1.2fr 1.5fr 1.2fr 1.2fr 1fr;
+  align-items: center;
+  padding: 1.5rem 2rem;
+  border-bottom: 1px solid #f3f4f6;
+  transition: all 0.3s ease;
+  min-width: 800px;
+}
+
+.table-row.header {
+  background: #f8fafc;
+  font-weight: 600;
+  color: #374151;
+  border-bottom: 2px solid #e5e7eb;
+}
+
+.table-row.clickable:hover {
+  background: #f8fafc;
+  cursor: pointer;
+}
+
+.table-cell {
+  display: flex;
+  align-items: center;
+}
+
+.vehicle-info, .carte-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.vehicle-avatar, .carte-avatar {
+  width: 40px;
+  height: 40px;
+  background: #f3f4f6;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.vehicle-details, .carte-details {
+  display: flex;
+  flex-direction: column;
+}
+
+.vehicle-name, .carte-numero {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.carte-expiration {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.km-value, .date-value {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.km-value.warning, .date-value.expired {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.fournisseur, .plafond {
+  font-weight: 500;
+  color: #1f2937;
+}
+
+.consumption-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  width: 100%;
+}
+
+.consumption-value {
+  font-weight: 600;
+  color: #1f2937;
+  font-size: 0.9rem;
+}
+
+.consumption-value.warning {
+  color: #f59e0b;
+}
+
+.consumption-bar {
+  width: 60px;
+  height: 4px;
+  background: #f3f4f6;
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.consumption-fill {
+  height: 100%;
+  background: #10b981;
+  transition: width 0.3s ease;
+}
+
+.status-badge {
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.status-badge.active { background: #d1fae5; color: #065f46; }
+.status-badge.suspendue { background: #fef3c7; color: #92400e; }
+.status-badge.expiree { background: #fee2e2; color: #991b1b; }
+.status-badge.bloquee { background: #f3f4f6; color: #374151; }
+.status-badge.perdue { background: #fee2e2; color: #991b1b; }
+
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.action-btn {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 8px;
+  background: #f3f4f6;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-btn:hover {
+  background: #e5e7eb;
+  transform: scale(1.1);
+}
+
+.action-btn.danger:hover {
+  background: #fee2e2;
+}
+
+/* Détails véhicule */
+.details-view, .carte-details-view {
+  width: 100%;
+  padding: 0 2rem;
+}
+
+.details-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.vehicle-title h1, .carte-title h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.vehicle-serie-large, .carte-vehicle-large {
+  color: #6b7280;
+  font-size: 1.1rem;
+}
+
+.details-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 2rem;
+}
+
+.info-card, .echeances-card, .reparations-card, .cartes-associees-card, .transactions-card {
+  background: white;
+  border-radius: 16px;
+  padding: 2rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.info-card h3, .echeances-card h3, .reparations-card h3, .cartes-associees-card h3, .transactions-card h3 {
+  font-size: 1.3rem;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 1.5rem 0;
+}
+
+.info-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.info-label {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.info-value {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.info-value.highlight {
+  color: #667eea;
+}
+
+.info-value.warning {
+  color: #f59e0b;
+}
+
+.card-header-with-action {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.echeances-list, .reparations-list, .cartes-list, .transactions-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.echeance-item, .reparation-item, .carte-item, .transaction-item {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.echeance-icon, .reparation-icon, .carte-icon, .transaction-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.echeance-icon.expired {
+  background: #fee2e2;
+}
+
+.echeance-content, .reparation-content, .carte-content, .transaction-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.echeance-title, .reparation-type, .carte-numero, .transaction-station {
+  font-weight: 600;
+  color: #1f2937;
+  margin-bottom: 0.25rem;
+}
+
+.echeance-date, .reparation-date, .carte-fournisseur, .transaction-date {
+  color: #6b7280;
+  font-size: 0.9rem;
+}
+
+.echeance-date.expired {
+  color: #ef4444;
+  font-weight: 600;
+}
+
+.reparation-prix, .carte-plafond, .transaction-details {
+  color: #10b981;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.carte-statut {
+  font-size: 0.8rem;
+  font-weight: 500;
+  padding: 0.25rem 0.75rem;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+.carte-statut.active { background: #d1fae5; color: #065f46; }
+.carte-statut.suspendue { background: #fef3c7; color: #92400e; }
+.carte-statut.expiree { background: #fee2e2; color: #991b1b; }
+
+.empty-state {
+  text-align: center;
+  padding: 2rem;
+  color: #6b7280;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+/* Popups */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  padding: 2rem;
+}
+
+.popup-container {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: popupSlideIn 0.3s ease-out;
+}
+
+@keyframes popupSlideIn {
+  from {
+    opacity: 0;
+    transform: scale(0.9) translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.popup-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 2rem 2rem 1rem 2rem;
+  border-bottom: 1px solid #f3f4f6;
+}
+
+.popup-header h2 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #1f2937;
+  margin: 0;
+}
+
+.popup-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: #f3f4f6;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  color: #6b7280;
+}
+
+.popup-close:hover {
+  background: #e5e7eb;
+  color: #374151;
+}
+
+.popup-form {
+  padding: 2rem;
+}
+
+.form-grid {
+  display: grid;
+  margin-bottom: 2rem;
+  grid-template-columns: repeat(2, 1fr); 
+  gap: 20px; 
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.form-group.full-width {
+  grid-column: 1 / -1;
+}
+
+.form-label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.9rem;
+}
+
+.form-input {
+  padding: 0.75rem 1rem;
+  border: 2px solid #f3f4f6;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.form-input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
+.popup-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid #f3f4f6;
+}
+
+/* Responsive */
+@media (max-width: 1024px) {
+  .header-content {
+    flex-direction: column;
+    gap: 1.5rem;
+    text-align: center;
+  }
+
+  .header-actions {
+    justify-content: center;
+  }
+
+  .dashboard-view, .vehicles-view, .cartes-view, .details-view, .carte-details-view {
+    padding: 0 1rem;
+  }
+  
+  .reparations-view, .transactions-view {
+    padding: 0 1rem;
+  }
+
+  .table-row {
+    padding: 1rem;
+  }
+
+  .popup-container {
+    margin: 1rem;
+    max-width: calc(100% - 2rem);
+  }
+}
+
+@media (max-width: 768px) {
+  .header-section {
+    padding: 1.5rem 1rem;
+  }
+
+  .stats-container {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .vehicles-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .details-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .table-header {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: stretch;
+  }
+  
+  .filters-section {
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .filter-group {
+    min-width: auto;
+  }
+
+  .modern-table {
+    overflow-x: auto;
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .popup-header {
+    padding: 1.5rem;
+  }
+
+  .popup-form {
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .header-title h1 {
+    font-size: 2rem;
+  }
+
+  .nav-pill, .btn-primary, .btn-outline {
+    padding: 0.5rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  .stat-card {
+    padding: 1.5rem;
+  }
+
+  .stat-number {
+    font-size: 2rem;
+  }
+
+  .vehicle-card.modern {
+    padding: 1rem;
+  }
+
+  .popup-overlay {
+    padding: 1rem;
+  }
+
+  .popup-container {
+    margin: 0;
+    max-width: 100%;
+  }
+}
+ 

@@ -1,0 +1,596 @@
+<div class="stock-operations-modal" *ngIf="isVisible" (click)="closeModal($event)">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>
+        <span class="icon">📦</span>
+        Opérations sur le Stock
+      </h3>
+      <button class="btn-close" (click)="closeModal()">
+        <span>✕</span>
+      </button>
+    </div>
+
+    <div class="modal-body">
+      <!-- Stock Info -->
+      <div class="stock-info-card" *ngIf="stock">
+        <div class="stock-header">
+          <h4>{{ getStockName() }}</h4>
+          <span class="stock-badge" [class]="getStatusClass(getStockStatus())">
+            {{ getStockStatus() }}
+          </span>
+        </div>
+        <div class="stock-details">
+          <div class="detail-item">
+            <span class="label">Quantité actuelle:</span>
+            <span class="value current-stock">{{ getCurrentQuantity() }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Stock minimum:</span>
+            <span class="value">{{ getMinQuantity() }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="label">Prix unitaire:</span>
+            <span class="value">{{ getUnitPrice() | number:'1.2-2' }} DT</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Operation Tabs -->
+      <div class="operation-tabs">
+        <button 
+          class="tab-button" 
+          [class.active]="activeTab === 'entree'"
+          (click)="setActiveTab('entree')"
+        >
+          <span class="icon">📥</span>
+          Entrée
+        </button>
+        <button 
+          class="tab-button" 
+          [class.active]="activeTab === 'sortie'"
+          (click)="setActiveTab('sortie')"
+        >
+          <span class="icon">📤</span>
+          Sortie
+        </button>
+        <button 
+          class="tab-button" 
+          [class.active]="activeTab === 'ajustement'"
+          (click)="setActiveTab('ajustement')"
+        >
+          <span class="icon">⚖️</span>
+          Ajustement
+        </button>
+        <button 
+          class="tab-button" 
+          [class.active]="activeTab === 'transfert'"
+          (click)="setActiveTab('transfert')"
+        >
+          <span class="icon">🔄</span>
+          Transfert
+        </button>
+      </div>
+
+      <!-- Operation Forms -->
+      <form [formGroup]="operationForm" (ngSubmit)="executeOperation()" class="operation-form">
+        <!-- Entrée Form -->
+        <div *ngIf="activeTab === 'entree'" class="form-content">
+          <h4 class="section-title">🔄 Mode d'entrée</h4>
+          
+          <div class="entry-mode-selector">
+            <label class="mode-option" [class.selected]="entryMode === 'new'">
+              <input 
+                type="radio" 
+                name="entryMode" 
+                value="new"
+                [(ngModel)]="entryMode"
+                [ngModelOptions]="{standalone: true}"
+                (change)="onEntryModeChange('new')"
+              >
+              <span class="mode-content">
+                <span class="mode-icon">🆕</span>
+                <span class="mode-title">Créer un nouveau lot</span>
+                <span class="mode-desc">Nouveau batch avec prix et dates</span>
+              </span>
+            </label>
+            
+            <label class="mode-option" [class.selected]="entryMode === 'existing'">
+              <input 
+                type="radio" 
+                name="entryMode" 
+                value="existing"
+                [(ngModel)]="entryMode"
+                [ngModelOptions]="{standalone: true}"
+                (change)="onEntryModeChange('existing')"
+              >
+              <span class="mode-content">
+                <span class="mode-icon">➕</span>
+                <span class="mode-title">Ajouter à un lot existant</span>
+                <span class="mode-desc">Augmenter la quantité d'un batch</span>
+              </span>
+            </label>
+          </div>
+
+          <!-- Lot selection for adding to existing -->
+          <div *ngIf="entryMode === 'existing'" class="form-section">
+            <h4 class="section-title">🎯 Sélection du lot</h4>
+            
+            <div class="form-group">
+              <label>Lot à compléter <span class="required">*</span></label>
+              <select 
+                formControlName="stockLotId" 
+                class="form-select"
+                (change)="onLotSelected($any($event.target).value)"
+              >
+                <option value="">Sélectionner un lot</option>
+                <option *ngFor="let lot of availableLots" [value]="lot.id">
+                  {{ formatLotDisplay(lot) }}
+                </option>
+              </select>
+              <div class="error-message" *ngIf="operationForm.get('stockLotId')?.errors?.['required'] && operationForm.get('stockLotId')?.touched">
+                Sélection du lot requise
+              </div>
+              <div class="helper-text" *ngIf="availableLots.length === 0">
+                Aucun lot disponible. Créez un nouveau lot.
+              </div>
+            </div>
+
+            <div class="lot-details" *ngIf="selectedLot">
+              <div class="detail-row">
+                <span class="label">Numéro de lot:</span>
+                <span class="value">{{ selectedLot.numeroLot }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Quantité actuelle:</span>
+                <span class="value highlight">{{ selectedLot.quantiteActuelle }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Prix d'achat unitaire:</span>
+                <span class="value">{{ selectedLot.prixAchatUnitaire | number:'1.2-2' }} DT</span>
+              </div>
+              <div class="detail-row">
+                <span class="label">Prix de vente unitaire:</span>
+                <span class="value">{{ selectedLot.prixVenteUnitaire | number:'1.2-2' }} DT</span>
+              </div>
+            </div>
+          </div>
+
+          <h4 class="section-title">📋 Informations de l'entrée</h4>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Quantité à ajouter <span class="required">*</span></label>
+              <input 
+                type="number" 
+                formControlName="quantite"
+                min="1"
+                placeholder="Ex: 10"
+                class="form-input"
+              >
+              <div class="error-message" *ngIf="operationForm.get('quantite')?.errors?.['required'] && operationForm.get('quantite')?.touched">
+                Quantité requise
+              </div>
+            </div>
+            
+            <div class="form-group" *ngIf="entryMode === 'new'">
+              <label>Date d'achat <span class="required">*</span></label>
+              <input 
+                type="date" 
+                formControlName="dateAchat"
+                class="form-input"
+              >
+            </div>
+          </div>
+
+          <!-- Prix section only for new lots -->
+          <div *ngIf="entryMode === 'new'">
+            <h4 class="section-title">💰 Informations de prix</h4>
+
+          <!-- Previous lot price reference -->
+          <div class="previous-lot-reference" *ngIf="latestLot">
+            <div class="reference-header">
+              <span class="icon">📊</span>
+              <span class="title">Prix du dernier lot ({{ latestLot.numeroLot }})</span>
+            </div>
+            <div class="reference-prices">
+              <div class="price-item">
+                <span class="label">Achat:</span>
+                <span class="value">{{ latestLot.prixAchatUnitaire | number:'1.2-2' }} DT</span>
+              </div>
+              <div class="price-item">
+                <span class="label">Vente:</span>
+                <span class="value">{{ latestLot.prixVenteUnitaire | number:'1.2-2' }} DT</span>
+              </div>
+              <div class="price-item">
+                <span class="label">Date:</span>
+                <span class="value">{{ latestLot.dateAchat | date:'dd/MM/yyyy' }}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Prix d'achat unitaire (DT) <span class="required">*</span></label>
+              <input 
+                type="number" 
+                formControlName="prixAchatUnitaire"
+                min="0"
+                step="0.01"
+                placeholder="Ex: 25.50"
+                class="form-input"
+              >
+              <div class="error-message" *ngIf="operationForm.get('prixAchatUnitaire')?.errors?.['required'] && operationForm.get('prixAchatUnitaire')?.touched">
+                Prix d'achat requis
+              </div>
+            </div>
+            
+            <div class="form-group">
+              <label>Prix de vente unitaire (DT) <span class="required">*</span></label>
+              <input 
+                type="number" 
+                formControlName="prixVenteUnitaire"
+                min="0"
+                step="0.01"
+                placeholder="Ex: 35.00"
+                class="form-input"
+              >
+              <div class="error-message" *ngIf="operationForm.get('prixVenteUnitaire')?.errors?.['required'] && operationForm.get('prixVenteUnitaire')?.touched">
+                Prix de vente requis
+              </div>
+            </div>
+          </div>
+
+            <div class="info-box" *ngIf="operationForm.get('quantite')?.value && operationForm.get('prixAchatUnitaire')?.value">
+              <strong>Valeur totale d'achat:</strong> 
+              {{ (operationForm.get('quantite')?.value * operationForm.get('prixAchatUnitaire')?.value) | number:'1.2-2' }} DT
+            </div>
+          </div>
+
+          <!-- Facture section for both new and existing lots -->
+          <h4 class="section-title">📄 Facture</h4>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Numéro de facture</label>
+              <input 
+                type="text" 
+                formControlName="numeroFacture"
+                placeholder="Ex: FACT-2024-001"
+                class="form-input"
+              >
+            </div>
+            
+            <div class="form-group" *ngIf="entryMode === 'new'">
+              <label>Date d'expiration</label>
+              <input 
+                type="date" 
+                formControlName="dateExpiration"
+                class="form-input"
+              >
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Fichier facture (PDF, JPG, PNG - Max 5MB)</label>
+            <div class="file-upload-container">
+              <input 
+                type="file" 
+                id="factureFile"
+                accept=".pdf,.jpg,.jpeg,.png"
+                (change)="onFileSelected($event)"
+                class="file-input"
+              >
+              <label for="factureFile" class="file-label">
+                <span class="icon">📎</span>
+                {{ uploadedFile ? uploadedFile.name : 'Choisir un fichier' }}
+              </label>
+            </div>
+            <div class="helper-text" *ngIf="uploadedFile">
+              Fichier sélectionné: {{ uploadedFile.name }} ({{ (uploadedFile.size / 1024 / 1024).toFixed(2) }} MB)
+            </div>
+          </div>
+
+          <h4 class="section-title">📝 Informations complémentaires</h4>
+          
+          <div class="form-group">
+            <label>Référence</label>
+            <input 
+              type="text" 
+              formControlName="reference"
+              placeholder="Ex: BR-2024-001"
+              class="form-input"
+            >
+          </div>
+          
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea 
+              formControlName="notes"
+              placeholder="Informations supplémentaires..."
+              class="form-textarea"
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Sortie Form -->
+        <div *ngIf="activeTab === 'sortie'" class="form-content">
+          <h4 class="section-title">🎯 Sélection du lot</h4>
+          
+          <div class="form-group">
+            <label>Lot à utiliser <span class="required">*</span></label>
+            <select 
+              formControlName="stockLotId" 
+              class="form-select"
+              (change)="onLotSelected($any($event.target).value)"
+            >
+              <option value="">Sélectionner un lot</option>
+              <option *ngFor="let lot of availableLots" [value]="lot.id">
+                {{ formatLotDisplay(lot) }}
+              </option>
+            </select>
+            <div class="error-message" *ngIf="operationForm.get('stockLotId')?.errors?.['required'] && operationForm.get('stockLotId')?.touched">
+              Sélection du lot requise
+            </div>
+            <div class="helper-text" *ngIf="availableLots.length === 0">
+              Aucun lot disponible pour cet article
+            </div>
+          </div>
+
+          <div class="lot-details" *ngIf="selectedLot">
+            <div class="detail-row">
+              <span class="label">Numéro de lot:</span>
+              <span class="value">{{ selectedLot.numeroLot }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Date d'achat:</span>
+              <span class="value">{{ selectedLot.dateAchat | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Quantité disponible:</span>
+              <span class="value highlight">{{ selectedLot.quantiteDisponible }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Prix d'achat unitaire:</span>
+              <span class="value">{{ selectedLot.prixAchatUnitaire | number:'1.2-2' }} DT</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Prix de vente unitaire:</span>
+              <span class="value">{{ selectedLot.prixVenteUnitaire | number:'1.2-2' }} DT</span>
+            </div>
+            <div class="detail-row" *ngIf="selectedLot.dateExpiration">
+              <span class="label">Date d'expiration:</span>
+              <span class="value">{{ selectedLot.dateExpiration | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+
+          <h4 class="section-title">📦 Quantité à retirer</h4>
+          
+          <div class="form-group">
+            <label>Quantité <span class="required">*</span></label>
+            <input 
+              type="number" 
+              formControlName="quantite"
+              [max]="selectedLot ? selectedLot.quantiteDisponible : getCurrentQuantity()"
+              min="1"
+              placeholder="Ex: 5"
+              class="form-input"
+            >
+            <div class="helper-text">
+              Maximum disponible: {{ selectedLot ? selectedLot.quantiteDisponible : getCurrentQuantity() }}
+            </div>
+            <div class="error-message" *ngIf="operationForm.get('quantite')?.errors?.['max']">
+              Quantité supérieure au stock disponible dans ce lot
+            </div>
+          </div>
+
+          <div class="info-box" *ngIf="operationForm.get('quantite')?.value && selectedLot">
+            <div class="detail-row">
+              <strong>Valeur de sortie (prix d'achat):</strong> 
+              <span>{{ (operationForm.get('quantite')?.value * selectedLot.prixAchatUnitaire) | number:'1.2-2' }} DT</span>
+            </div>
+            <div class="detail-row">
+              <strong>Valeur de sortie (prix de vente):</strong> 
+              <span>{{ (operationForm.get('quantite')?.value * selectedLot.prixVenteUnitaire) | number:'1.2-2' }} DT</span>
+            </div>
+          </div>
+
+          <h4 class="section-title">📝 Informations complémentaires</h4>
+          
+          <div class="form-group">
+            <label>Référence</label>
+            <input 
+              type="text" 
+              formControlName="reference"
+              placeholder="Ex: BL-2024-001"
+              class="form-input"
+            >
+          </div>
+          <div class="form-group">
+            <label>Motif</label>
+            <textarea 
+              formControlName="motif"
+              placeholder="Ex: Livraison client"
+              class="form-textarea"
+              rows="3"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea 
+              formControlName="notes"
+              placeholder="Informations supplémentaires..."
+              class="form-textarea"
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Ajustement Form -->
+        <div *ngIf="activeTab === 'ajustement'" class="form-content">
+          <div class="form-group">
+            <label>Nouvelle quantité <span class="required">*</span></label>
+            <input 
+              type="number" 
+              formControlName="nouvelleQuantite"
+              min="0"
+              placeholder="Ex: 15"
+              class="form-input"
+            >
+            <div class="helper-text" *ngIf="stock && operationForm.get('nouvelleQuantite')?.value !== null">
+              Différence: {{ (operationForm.get('nouvelleQuantite')?.value || 0) - getCurrentQuantity() }}
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Raison / Motif</label>
+            <textarea 
+              formControlName="motif"
+              placeholder="Ex: Correction après inventaire"
+              class="form-textarea"
+              rows="3"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea 
+              formControlName="notes"
+              placeholder="Informations supplémentaires..."
+              class="form-textarea"
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Transfert Form -->
+        <div *ngIf="activeTab === 'transfert'" class="form-content">
+          <h4 class="section-title">🎯 Sélection du lot</h4>
+          
+          <div class="form-group">
+            <label>Lot à utiliser <span class="required">*</span></label>
+            <select 
+              formControlName="stockLotId" 
+              class="form-select"
+              (change)="onLotSelected($any($event.target).value)"
+            >
+              <option value="">Sélectionner un lot</option>
+              <option *ngFor="let lot of availableLots" [value]="lot.id">
+                {{ formatLotDisplay(lot) }}
+              </option>
+            </select>
+            <div class="error-message" *ngIf="operationForm.get('stockLotId')?.errors?.['required'] && operationForm.get('stockLotId')?.touched">
+              Sélection du lot requise
+            </div>
+            <div class="helper-text" *ngIf="availableLots.length === 0">
+              Aucun lot disponible pour cet article
+            </div>
+          </div>
+
+          <div class="lot-details" *ngIf="selectedLot">
+            <div class="detail-row">
+              <span class="label">Numéro de lot:</span>
+              <span class="value">{{ selectedLot.numeroLot }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Date d'achat:</span>
+              <span class="value">{{ selectedLot.dateAchat | date:'dd/MM/yyyy' }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Quantité disponible:</span>
+              <span class="value highlight">{{ selectedLot.quantiteDisponible }}</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Prix d'achat unitaire:</span>
+              <span class="value">{{ selectedLot.prixAchatUnitaire | number:'1.2-2' }} DT</span>
+            </div>
+            <div class="detail-row">
+              <span class="label">Prix de vente unitaire:</span>
+              <span class="value">{{ selectedLot.prixVenteUnitaire | number:'1.2-2' }} DT</span>
+            </div>
+            <div class="detail-row" *ngIf="selectedLot.dateExpiration">
+              <span class="label">Date d'expiration:</span>
+              <span class="value">{{ selectedLot.dateExpiration | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+
+          <h4 class="section-title">📦 Quantité à retirer</h4>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Quantité à transférer <span class="required">*</span></label>
+              <input 
+                type="number" 
+                formControlName="quantite"
+                [max]="selectedLot ? selectedLot.quantiteDisponible : getCurrentQuantity()"
+                min="1"
+                placeholder="Ex: 3"
+                class="form-input"
+              >
+              <div class="helper-text">
+                Maximum disponible: {{ selectedLot ? selectedLot.quantiteDisponible : getCurrentQuantity() }}
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Entrepôt de destination <span class="required">*</span></label>
+              <select formControlName="destinationEntrepotId" class="form-select">
+                <option value="">Sélectionner un entrepôt</option>
+                <option *ngFor="let entrepot of entrepots" [value]="entrepot.id">
+                  {{ entrepot.nom }}
+                </option>
+              </select>
+            </div>
+          </div>
+          
+          <h4 class="section-title">📝 Informations complémentaires</h4>
+          
+          <div class="form-group">
+            <label>Référence</label>
+            <input 
+              type="text" 
+              formControlName="reference"
+              placeholder="Ex: TRF-2024-001"
+              class="form-input"
+            >
+          </div>
+          <div class="form-group">
+            <label>Motif</label>
+            <textarea 
+              formControlName="motif"
+              placeholder="Ex: Redistribution inter-entrepôts"
+              class="form-textarea"
+              rows="3"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label>Notes</label>
+            <textarea 
+              formControlName="notes"
+              placeholder="Informations supplémentaires..."
+              class="form-textarea"
+              rows="3"
+            ></textarea>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <div class="form-actions">
+          <button 
+            type="button" 
+            class="btn-secondary" 
+            (click)="closeModal()"
+          >
+            Annuler
+          </button>
+          <button 
+            type="submit" 
+            class="btn-primary"
+            [disabled]="operationForm.invalid || isProcessing"
+          >
+            <span class="icon" *ngIf="!isProcessing">✓</span>
+            <span class="loading-spinner" *ngIf="isProcessing"></span>
+            {{ isProcessing ? 'Traitement...' : getSubmitButtonText() }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

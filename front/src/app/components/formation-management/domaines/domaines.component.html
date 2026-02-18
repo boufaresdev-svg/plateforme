@@ -1,0 +1,290 @@
+<div class="domaines-view">
+  <div class="domaines-container">
+    <!-- TABS -->
+    <div class="tabs-header">
+      <button
+        class="tab-btn"
+        [class.active]="currentTab === 'domaines'"
+        (click)="currentTab = 'domaines'"
+      >
+        🗂️ Domaine
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="currentTab === 'types'"
+        (click)="currentTab = 'types'"
+      >
+        📋 Types
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="currentTab === 'categories'"
+        (click)="currentTab = 'categories'"
+      >
+        📑 Catégories
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="currentTab === 'souscategories'"
+        (click)="currentTab = 'souscategories'"
+      >
+        📄 Sous-Catégories
+      </button>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="tab-content">
+      <div class="table-header">
+        <h2>
+          <span *ngIf="currentTab === 'domaines'">🗂️ Domaine</span>
+          <span *ngIf="currentTab === 'types'">📋 Types</span>
+          <span *ngIf="currentTab === 'categories'">📑 Catégories</span>
+          <span *ngIf="currentTab === 'souscategories'">📄 Sous-Catégories</span>
+        </h2>
+        <div class="header-actions">
+          <div class="search-bar">
+            <div class="search-field wide">
+              <span class="search-icon">🔍</span>
+              <input
+                type="text"
+                [(ngModel)]="searchTerm"
+                placeholder="Rechercher par nom, description..."
+                class="form-input"
+              />
+            </div>
+            <button
+              class="btn-secondary subtle"
+              type="button"
+              (click)="searchTerm = ''"
+            >
+              Réinitialiser
+            </button>
+          </div>
+
+          <button class="btn-primary" (click)="openModal(currentTab.slice(0, -1))">
+            ➕ Nouveau
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="isLoading" class="loading-indicator">
+        <p>⏳ Chargement des données...</p>
+      </div>
+
+      <div class="modern-table" *ngIf="!isLoading && filteredItems().length; else noItems">
+        <!-- MÉTADONNÉES TABLE -->
+        <ng-container *ngIf="currentTab === 'domaines'">
+          <div class="table-row header">
+            <div>Nom</div>
+            <div>Description</div>
+            <div>Actions</div>
+          </div>
+          <ng-container *ngFor="let item of filteredItems()">
+            <div class="table-row">
+              <div>{{ item.nom }}</div>
+              <div>{{ item.description || '—' }}</div>
+              <div class="actions">
+                <button class="action-btn" (click)="editDomaine(item)">✏️</button>
+                <button class="action-btn danger" (click)="deleteDomaine(item.idDomaine!)">🗑️</button>
+              </div>
+            </div>
+          </ng-container>
+        </ng-container>
+
+        <!-- TYPES TABLE -->
+        <ng-container *ngIf="currentTab === 'types'">
+          <div class="table-row header">
+            <div>Nom</div>
+            <div>Description</div>
+            <div>Domaine</div>
+            <div>Actions</div>
+          </div>
+          <ng-container *ngFor="let item of filteredItems()">
+            <div class="table-row">
+              <div>{{ item.nom }}</div>
+              <div>{{ item.description || '—' }}</div>
+              <div>{{ item.domaine?.nom || '—' }}</div>
+              <div class="actions">
+                <button class="action-btn" (click)="editType(item)">✏️</button>
+                <button class="action-btn danger" (click)="deleteType(item.idType!)">🗑️</button>
+              </div>
+            </div>
+          </ng-container>
+        </ng-container>
+
+        <!-- CATEGORIES TABLE -->
+        <ng-container *ngIf="currentTab === 'categories'">
+          <div class="table-row header">
+            <div>Nom</div>
+            <div>Description</div>
+            <div>Type</div>
+            <div>Actions</div>
+          </div>
+          <ng-container *ngFor="let item of filteredItems()">
+            <div class="table-row">
+              <div>{{ item.nom }}</div>
+              <div>{{ item.description || '—' }}</div>
+              <div>{{ item.type?.nom || '—' }}</div>
+              <div class="actions">
+                <button class="action-btn" (click)="editCategorie(item)">✏️</button>
+                <button class="action-btn danger" (click)="deleteCategorie(item.idCategorie!)">🗑️</button>
+              </div>
+            </div>
+          </ng-container>
+        </ng-container>
+
+        <!-- SOUS-CATEGORIES TABLE -->
+        <ng-container *ngIf="currentTab === 'souscategories'">
+          <div class="table-row header">
+            <div>Nom</div>
+            <div>Description</div>
+            <div>Catégorie</div>
+            <div>Actions</div>
+          </div>
+          <ng-container *ngFor="let item of filteredItems()">
+            <div class="table-row">
+              <div>{{ item.nom }}</div>
+              <div>{{ item.description || '—' }}</div>
+              <div>{{ item.categorie?.nom || '—' }}</div>
+              <div class="actions">
+                <button class="action-btn" (click)="editSousCategorie(item)">✏️</button>
+                <button class="action-btn danger" (click)="deleteSousCategorie(item.idSousCategorie!)">🗑️</button>
+              </div>
+            </div>
+          </ng-container>
+        </ng-container>
+      </div>
+
+      <ng-template #noItems>
+        <p class="no-data">Aucun élément à afficher</p>
+      </ng-template>
+    </div>
+  </div>
+
+  <!-- MODAL -->
+  <div class="modal" *ngIf="showModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h2>{{ modalTitle }}</h2>
+        <button class="btn-close" (click)="closeModal()">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Domaine Form -->
+        <ng-container *ngIf="modalType === 'domaine'">
+          <div class="form-group">
+            <label>Nom</label>
+            <input
+              type="text"
+              [(ngModel)]="domaineFormData.nom"
+              class="form-input"
+              placeholder="Nom du domaine"
+            />
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea
+              [(ngModel)]="domaineFormData.description"
+              class="form-input"
+              placeholder="Description"
+            ></textarea>
+          </div>
+        </ng-container>
+
+        <!-- Type Form -->
+        <ng-container *ngIf="modalType === 'type'">
+          <div class="form-group">
+            <label>Nom</label>
+            <input
+              type="text"
+              [(ngModel)]="typeFormData.nom"
+              class="form-input"
+              placeholder="Nom du type"
+            />
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea
+              [(ngModel)]="typeFormData.description"
+              class="form-input"
+              placeholder="Description"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label>Domaine</label>
+            <select [(ngModel)]="selectedTypeDomaineId" (ngModelChange)="onTypeDomaineChange()" class="form-input">
+              <option [ngValue]="null">-- Sélectionner --</option>
+              <option *ngFor="let d of domaines" [ngValue]="d.idDomaine">{{ d.nom }}</option>
+            </select>
+          </div>
+        </ng-container>
+
+        <!-- Categorie Form -->
+        <ng-container *ngIf="modalType === 'categorie'">
+          <div class="form-group">
+            <label>Nom</label>
+            <input
+              type="text"
+              [(ngModel)]="categorieFormData.nom"
+              class="form-input"
+              placeholder="Nom de la catégorie"
+            />
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea
+              [(ngModel)]="categorieFormData.description"
+              class="form-input"
+              placeholder="Description"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label>Type</label>
+            <select [(ngModel)]="selectedCategorieTypeId" (ngModelChange)="onCategorieTypeChange()" class="form-input">
+              <option [ngValue]="null">-- Sélectionner --</option>
+              <option *ngFor="let t of types" [ngValue]="t.idType">{{ t.nom }}</option>
+            </select>
+          </div>
+        </ng-container>
+
+        <!-- SousCategorie Form -->
+        <ng-container *ngIf="modalType === 'souscategorie'">
+          <div class="form-group">
+            <label>Nom</label>
+            <input
+              type="text"
+              [(ngModel)]="sousCategorieFormData.nom"
+              class="form-input"
+              placeholder="Nom de la sous-catégorie"
+            />
+          </div>
+          <div class="form-group">
+            <label>Description</label>
+            <textarea
+              [(ngModel)]="sousCategorieFormData.description"
+              class="form-input"
+              placeholder="Description"
+            ></textarea>
+          </div>
+          <div class="form-group">
+            <label>Catégorie</label>
+            <select [(ngModel)]="selectedSousCategorieId" (ngModelChange)="onSousCategorieChange()" class="form-input">
+              <option [ngValue]="null">-- Sélectionner --</option>
+              <option *ngFor="let c of categories" [ngValue]="c.idCategorie">{{ c.nom }}</option>
+            </select>
+          </div>
+        </ng-container>
+      </div>
+
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closeModal()">Annuler</button>
+        <button
+          class="btn-primary"
+          (click)="modalType === 'domaine' ? saveDomaine() : (modalType === 'type' ? saveType() : (modalType === 'categorie' ? saveCategorie() : saveSousCategorie()))"
+        >
+          Enregistrer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

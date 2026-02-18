@@ -1,0 +1,474 @@
+<div class="fournisseur-report-container">
+  <!-- Report Header -->
+  <div class="report-header">
+    <div class="report-title">
+      <h2>📊 Rapport des Dettes Fournisseurs</h2>
+      <p>Analyse complète de la situation financière avec les fournisseurs</p>
+      <div class="selected-fournisseur-badge" *ngIf="hasSelectedFournisseur()">
+        <span class="badge-icon">🏭</span>
+        <span class="badge-text">{{ getSelectedFournisseurName() }}</span>
+      </div>
+    </div>
+    <div class="report-actions">
+      <button 
+        class="btn btn-outline btn-sm"
+        (click)="toggleAdvancedFilters()"
+        [class.active]="showAdvancedFilters">
+        <i class="icon">🔍</i>
+        {{ showAdvancedFilters ? 'Masquer filtres' : 'Filtres avancés' }}
+      </button>
+      <button 
+        class="btn btn-outline btn-sm"
+        (click)="onPrintRapport()"
+        [disabled]="isLoadingRapport">
+        <i class="icon">🖨️</i>
+        Imprimer
+      </button>
+      <div class="export-dropdown">
+        <button class="btn btn-primary btn-sm dropdown-toggle">
+          <i class="icon">📥</i>
+          Exporter
+        </button>
+        <div class="dropdown-menu">
+          <button (click)="onExportRapport('pdf')">📄 Export PDF</button>
+          <button (click)="onExportRapport('excel')">📊 Export Excel</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Section -->
+  <div class="filter-section" [class.expanded]="showAdvancedFilters">
+    <div class="filter-card">
+      <div class="filter-header">
+        <h3>Filtres de recherche</h3>
+        <div class="filter-actions">
+          <button 
+            class="btn btn-outline btn-xs"
+            (click)="clearRapportFilter()">
+            <i class="icon">🗑️</i>
+            Effacer
+          </button>
+          <button 
+            class="btn btn-primary btn-xs"
+            (click)="applyRapportFilter()">
+            <i class="icon">🔍</i>
+            Appliquer
+          </button>
+        </div>
+      </div>
+
+      <div class="filter-content">
+        <!-- Calendar Period Selection -->
+        <div class="filter-group">
+          <label>Période d'analyse</label>
+          
+          <!-- Calendar Date Range Selector -->
+          <div class="calendar-date-container">
+            
+            <div class="calendar-date-range">
+              <!-- Start Date Calendar -->
+              <div class="calendar-input-card">
+                <div class="calendar-input-header">
+                  <span class="calendar-label-icon">�</span>
+                  <label class="calendar-label">Date de début</label>
+                </div>
+                <div class="calendar-input-wrapper">
+                  <input 
+                    type="date"
+                    class="calendar-date-input"
+                    [value]="rapportDateDebut"
+                    [max]="rapportDateFin || ''"
+                    (change)="onRapportDateDebutChange($any($event.target)?.value || '')"
+                    placeholder="Sélectionner la date de début">
+                  <div class="calendar-input-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                  </div>
+                </div>
+                <div class="calendar-helper-text" *ngIf="rapportDateDebut">
+                  <span class="helper-icon">✓</span>
+                  {{ rapportDateDebut | date:'dd MMMM yyyy':'':'fr' }}
+                </div>
+              </div>
+
+              <!-- Date Range Arrow -->
+              <div class="calendar-arrow">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M5 12h14M12 5l7 7-7 7"/>
+                </svg>
+              </div>
+
+              <!-- End Date Calendar -->
+              <div class="calendar-input-card">
+                <div class="calendar-input-header">
+                  <span class="calendar-label-icon">�</span>
+                  <label class="calendar-label">Date de fin</label>
+                </div>
+                <div class="calendar-input-wrapper">
+                  <input 
+                    type="date"
+                    class="calendar-date-input"
+                    [value]="rapportDateFin"
+                    [min]="rapportDateDebut || ''"
+                    (change)="onRapportDateFinChange($any($event.target)?.value || '')"
+                    placeholder="Sélectionner la date de fin">
+                  <div class="calendar-input-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                      <line x1="16" y1="2" x2="16" y2="6"></line>
+                      <line x1="8" y1="2" x2="8" y2="6"></line>
+                      <line x1="3" y1="10" x2="21" y2="10"></line>
+                    </svg>
+                  </div>
+                </div>
+                <div class="calendar-helper-text" *ngIf="rapportDateFin">
+                  <span class="helper-icon">✓</span>
+                  {{ rapportDateFin | date:'dd MMMM yyyy':'':'fr' }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Date Range Summary -->
+            <div class="calendar-summary" *ngIf="rapportDateDebut && rapportDateFin">
+              <div class="summary-card">
+                <span class="summary-icon">📊</span>
+                <div class="summary-content">
+                  <span class="summary-value">
+                    {{ rapportDateDebut | date:'dd/MM/yyyy' }} → {{ rapportDateFin | date:'dd/MM/yyyy' }}
+                    <span class="summary-duration">({{ getDateRangeDuration() }} jours)</span>
+                  </span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payment Status Filter -->
+        <div class="filter-group">
+          <div class="checkbox-group">
+            <label class="checkbox-label">
+              <input 
+                type="checkbox"
+                [checked]="rapportInclureDettesPayees"
+                (change)="onRapportInclureDettesPayeesChange($any($event.target)?.checked || false)">
+              <span class="checkmark"></span>
+              Inclure les dettes payées
+            </label>
+          </div>
+        </div>
+
+        <!-- Fournisseur Selection (Advanced Filters) -->
+        <div class="filter-group" *ngIf="showAdvancedFilters">
+          <label>Sélectionner un fournisseur</label>
+          <div class="fournisseur-selection">
+            <div class="selection-controls">
+              <button 
+                class="btn btn-outline btn-xs"
+                (click)="clearSelectedFournisseur()"
+                [disabled]="selectedFournisseurIds.length === 0">
+                Effacer la sélection
+              </button>
+            </div>
+            <div class="fournisseur-list">
+              <div 
+                *ngFor="let fournisseur of fournisseurs"
+                class="fournisseur-item"
+                [class.selected]="isFournisseurSelected(fournisseur.id)">
+                <label class="radio-label">
+                  <input 
+                    type="radio"
+                    name="selectedFournisseur"
+                    [checked]="isFournisseurSelected(fournisseur.id)"
+                    (change)="onFournisseurSelectionChange(fournisseur.id)">
+                  <span class="radio-checkmark"></span>
+                  <span class="fournisseur-name">{{ fournisseur.nom }}</span>
+                  <span class="fournisseur-contact">{{ fournisseur.infoContact }}</span>
+                </label>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading State -->
+  <div *ngIf="isLoadingRapport" class="loading-container">
+    <div class="loading-spinner"></div>
+    <p>Génération du rapport en cours...</p>
+  </div>
+
+  <!-- Report Content -->
+  <div *ngIf="hasRapportData()" class="report-content">
+    <!-- General Information -->
+    <div class="info-section">
+      <div class="info-card">
+        <h3>📋 Informations Générales</h3>
+        <div class="info-grid">
+          <div class="info-item">
+            <span class="label">Date de génération:</span>
+            <span class="value">{{ rapportDettes?.infosGenerales?.dateGeneration | date:'dd/MM/yyyy HH:mm' }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Période analysée:</span>
+            <span class="value">
+              {{ rapportDettes?.infosGenerales?.periodeDebut | date:'dd/MM/yyyy' }} - 
+              {{ rapportDettes?.infosGenerales?.periodeFin | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="label">Nombre total de dettes:</span>
+            <span class="value highlight">{{ rapportDettes?.infosGenerales?.nombreTotalDettes ?? 0 }}</span>
+          </div>
+          <div class="info-item">
+            <span class="label">Fournisseurs actifs:</span>
+            <span class="value highlight">{{ rapportDettes?.infosGenerales?.nombreFournisseursActifs ?? 0 }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Financial Summary -->
+    <div class="summary-section">
+      <h3>💰 Synthèse Financière</h3>
+      <div class="kpi-grid">
+        <div class="kpi-card total">
+          <div class="kpi-icon">💳</div>
+          <div class="kpi-content">
+            <h4>Montant Total</h4>
+            <div class="kpi-value">{{ getFormattedCurrency(rapportDettes?.syntheseFinanciere?.montantTotalDettes ?? 0) }}</div>
+          </div>
+        </div>
+        
+        <div class="kpi-card paid">
+          <div class="kpi-icon">✅</div>
+          <div class="kpi-content">
+            <h4>Montant Payé</h4>
+            <div class="kpi-value">{{ getFormattedCurrency(rapportDettes?.syntheseFinanciere?.montantTotalPaye ?? 0) }}</div>
+            <div class="kpi-percentage">{{ getFormattedPercentage(rapportDettes?.syntheseFinanciere?.tauxPaiement ?? 0) }}</div>
+          </div>
+        </div>
+        
+        <div class="kpi-card unpaid">
+          <div class="kpi-icon">⏳</div>
+          <div class="kpi-content">
+            <h4>Montant Impayé</h4>
+            <div class="kpi-value">{{ getFormattedCurrency(rapportDettes?.syntheseFinanciere?.montantTotalImpaye ?? 0) }}</div>
+          </div>
+        </div>
+        
+        <div class="kpi-card overdue">
+          <div class="kpi-icon">🚨</div>
+          <div class="kpi-content">
+            <h4>Montant en Retard</h4>
+            <div class="kpi-value">{{ getFormattedCurrency(rapportDettes?.syntheseFinanciere?.montantEnRetard ?? 0) }}</div>
+          </div>
+        </div>
+        
+        <div class="kpi-card average">
+          <div class="kpi-icon">📊</div>
+          <div class="kpi-content">
+            <h4>Montant Moyen/Dette</h4>
+            <div class="kpi-value">{{ getFormattedCurrency(rapportDettes?.syntheseFinanciere?.montantMoyenParDette ?? 0) }}</div>
+          </div>
+        </div>
+        
+        <div class="kpi-card average">
+          <div class="kpi-icon">🏢</div>
+          <div class="kpi-content">
+            <h4>Montant Moyen/Fournisseur</h4>
+            <div class="kpi-value">{{ getFormattedCurrency(rapportDettes?.syntheseFinanciere?.montantMoyenParFournisseur ?? 0) }}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Status Analysis -->
+    <div class="analysis-section">
+      <h3>📈 Analyse des Statuts</h3>
+      <div class="status-grid">
+        <div class="status-card paid">
+          <h4>✅ Dettes Payées</h4>
+          <div class="status-value">{{ rapportDettes?.analyseStatut?.nombreDettesPayees ?? 0 }}</div>
+          <div class="status-amount">{{ getFormattedCurrency(rapportDettes?.analyseStatut?.montantDettesPayees ?? 0) }}</div>
+          <div class="status-percentage">{{ getFormattedPercentage(rapportDettes?.analyseStatut?.pourcentageDettesPayees ?? 0) }}</div>
+        </div>
+        
+        <div class="status-card unpaid">
+          <h4>⏳ Dettes Impayées</h4>
+          <div class="status-value">{{ rapportDettes?.analyseStatut?.nombreDettesImpayes ?? 0 }}</div>
+          <div class="status-amount">{{ getFormattedCurrency(rapportDettes?.analyseStatut?.montantDettesImpayes ?? 0) }}</div>
+          <div class="status-percentage">{{ getFormattedPercentage(rapportDettes?.analyseStatut?.pourcentageDettesImpayes ?? 0) }}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overdue Analysis -->
+    <div class="overdue-section" *ngIf="(rapportDettes?.analyseRetards?.nombreDettesEnRetard ?? 0) > 0">
+      <h3>⚠️ Analyse des Retards</h3>
+      <div class="overdue-summary">
+        <div class="overdue-stats">
+          <div class="stat-item">
+            <span class="label">Dettes en retard:</span>
+            <span class="value danger">{{ rapportDettes?.analyseRetards?.nombreDettesEnRetard ?? 0 }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="label">Montant en retard:</span>
+            <span class="value danger">{{ getFormattedCurrency(rapportDettes?.analyseRetards?.montantTotalEnRetard ?? 0) }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="label">Pourcentage en retard:</span>
+            <span class="value danger">{{ getFormattedPercentage(rapportDettes?.analyseRetards?.pourcentageDettesEnRetard ?? 0) }}</span>
+          </div>
+          <div class="stat-item">
+            <span class="label">Retard moyen:</span>
+            <span class="value warning">{{ rapportDettes?.analyseRetards?.retardMoyenJours ?? 0 }} jours</span>
+          </div>
+          <div class="stat-item">
+            <span class="label">Retard maximum:</span>
+            <span class="value danger">{{ rapportDettes?.analyseRetards?.retardMaximumJours ?? 0 }} jours</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Top 5 Overdue Debts -->
+      <div class="top-overdue-table" *ngIf="(rapportDettes?.analyseRetards?.top5DettesEnRetard?.length ?? 0) > 0">
+        <h4>🔴 Top 5 des dettes en retard</h4>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>N° Facture</th>
+              <th>Fournisseur</th>
+              <th>Montant</th>
+              <th>Échéance</th>
+              <th>Jours de retard</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let dette of rapportDettes?.analyseRetards?.top5DettesEnRetard">
+              <td>{{ dette.numeroFacture }}</td>
+              <td>{{ dette.fournisseurNom }}</td>
+              <td class="amount">{{ getFormattedCurrency(dette.montant) }}</td>
+              <td>{{ dette.dateEcheance | date:'dd/MM/yyyy' }}</td>
+              <td class="danger">{{ dette.joursRetard }} jours</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Supplier Analysis -->
+    <div class="supplier-analysis-section" *ngIf="(rapportDettes?.analyseParFournisseur?.length ?? 0) > 0">
+      <h3>🏢 Analyse par Fournisseur</h3> 
+      <div class="supplier-table">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Fournisseur</th>
+              <th>Contact</th>
+              <th>Nb Dettes</th>
+              <th>Montant Total</th>
+              <th>Montant Payé</th>
+              <th>Montant Impayé</th>
+              <th>En Retard</th>
+              <th>Taux Paiement</th>
+              <th>Évaluation</th>
+              <th>Ancienneté Moy.</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let analyse of rapportDettes?.analyseParFournisseur">
+              <td class="supplier-name">{{ analyse.nomFournisseur }}</td>
+              <td class="contact">{{ analyse.infoContact }}</td>
+              <td class="center">{{ analyse.nombreDettes }}</td>
+              <td class="amount">{{ getFormattedCurrency(analyse.montantTotal) }}</td>
+              <td class="amount success">{{ getFormattedCurrency(analyse.montantPaye) }}</td>
+              <td class="amount warning">{{ getFormattedCurrency(analyse.montantImpaye) }}</td>
+              <td class="amount danger">{{ getFormattedCurrency(analyse.montantEnRetard) }}</td>
+              <td class="percentage">{{ getFormattedPercentage(analyse.tauxPaiement) }}</td>
+              <td>
+                <span class="evaluation-badge" [ngClass]="getEvaluationClass(analyse.evaluation)">
+                  {{ getEvaluationIcon(analyse.evaluation) }} {{ analyse.evaluation }}
+                </span>
+              </td>
+              <td class="center">{{ analyse.ancienneteMoyenneJours }} jours</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Monthly Distribution -->
+    <div class="monthly-distribution-section" *ngIf="(rapportDettes?.analyseTemporelle?.distributionMensuelle?.donneesParMois?.length ?? 0) > 0">
+      <h3>📅 Distribution Mensuelle</h3>
+      <div class="monthly-table">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Mois</th>
+              <th>Nb Dettes</th>
+              <th>Montant Total</th>
+              <th>Montant Payé</th>
+              <th>Montant Impayé</th>
+              <th>Taux Paiement</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let donnee of rapportDettes?.analyseTemporelle?.distributionMensuelle?.donneesParMois">
+              <td class="month">{{ donnee.mois }}</td>
+              <td class="center">{{ donnee.nombreDettes }}</td>
+              <td class="amount">{{ getFormattedCurrency(donnee.montantTotal) }}</td>
+              <td class="amount success">{{ getFormattedCurrency(donnee.montantPaye) }}</td>
+              <td class="amount warning">{{ getFormattedCurrency(donnee.montantImpaye) }}</td>
+              <td class="percentage">
+                {{ getFormattedPercentage((donnee.montantPaye / donnee.montantTotal) * 100) }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- Payment Trends -->
+    <div class="trends-section" *ngIf="rapportDettes?.analyseTemporelle?.tendancesPaiement">
+      <h3>📈 Tendances de Paiement</h3>
+      <div class="trends-grid">
+        <div class="trend-card">
+          <h4>⏱️ Délai Moyen de Paiement</h4>
+          <div class="trend-value">{{ rapportDettes?.analyseTemporelle?.tendancesPaiement?.delaiMoyenPaiementJours ?? 0 }} jours</div>
+        </div>
+        
+        <div class="trend-card">
+          <h4>📊 Taux de Respect des Échéances</h4>
+          <div class="trend-value">{{ getFormattedPercentage(rapportDettes?.analyseTemporelle?.tendancesPaiement?.tauxRespectEcheances ?? 0) }}</div>
+        </div>
+        
+        <div class="trend-card">
+          <h4>📈 Tendance Générale</h4>
+          <div class="trend-value" [ngClass]="getTendanceClass(rapportDettes?.analyseTemporelle?.tendancesPaiement?.tendanceGenerale ?? '')">
+            {{ getTendanceIcon(rapportDettes?.analyseTemporelle?.tendancesPaiement?.tendanceGenerale ?? '') }}
+            {{ (rapportDettes?.analyseTemporelle?.tendancesPaiement?.tendanceGenerale ?? '').replace('_', ' ') }}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Data State -->
+  <div *ngIf="!isLoadingRapport && !hasRapportData()" class="no-data-container">
+    <div class="no-data-content">
+      <div class="no-data-icon">📊</div>
+      <h3>Aucune donnée disponible</h3>
+      <p>Configurez les filtres et cliquez sur "Appliquer" pour générer le rapport</p>
+      <button class="btn btn-primary" (click)="applyRapportFilter()">
+        <i class="icon">🔍</i>
+        Générer le rapport
+      </button>
+    </div>
+  </div>
+</div>

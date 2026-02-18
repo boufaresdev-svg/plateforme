@@ -1,0 +1,393 @@
+<div class="articles-management">
+  <app-notification></app-notification>
+  <div class="section-header">
+    <h2>Gestion des Articles</h2>
+    <button class="btn-primary" (click)="showAddArticleForm()" [disabled]="loading">
+      <span class="icon">+</span>
+      Nouvel Article
+    </button>
+  </div>
+
+  <div class="alert alert-error" *ngIf="error">
+    {{ error }}
+  </div>
+
+  <div class="loading-indicator" *ngIf="loading">
+    <span>Chargement...</span>
+  </div>
+
+  <div class="search-filters">
+    <div class="search-box">
+      <input type="text" 
+             placeholder="Rechercher un article..." 
+             [(ngModel)]="searchArticles"
+             (input)="onSearch()"
+             class="search-input">
+    </div>
+    
+    <select [(ngModel)]="categorieFilter" (change)="onSearch()" class="filter-select">
+      <option value="">Toutes les catégories</option>
+      <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.nom }}</option>
+    </select>
+    
+    <select [(ngModel)]="marqueFilter" (change)="onSearch()" class="filter-select">
+      <option value="">Toutes les marques</option>
+      <option *ngFor="let marque of marques" [value]="marque.id">{{ marque.nom }}</option>
+    </select>
+    
+    <select [(ngModel)]="statusFilter" (change)="onSearch()" class="filter-select">
+      <option value="">Tous les statuts</option>
+      <option value="active">Actifs</option>
+      <option value="inactive">Inactifs</option>
+    </select>
+    
+    <button class="btn-secondary" (click)="refreshArticles()" [disabled]="loading">
+      Actualiser
+    </button>
+  </div>
+
+  <div class="articles-table-container" *ngIf="!loading">
+    <table class="articles-table">
+      <thead>
+        <tr>
+          <th>SKU</th>
+          <th>Nom</th>
+          <th>Catégorie</th>
+          <th>Marque</th>
+          <th>Prix Achat</th>
+          <th>Prix Vente</th>
+          <th>Stock Min/Max</th>
+          <th>Quantité Disponible</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let article of articles" class="article-row">
+          <td class="sku-cell">
+            <div class="sku-text">{{ article.sku || '-' }}</div>
+          </td>
+          <td class="nom-cell">
+            <div class="article-name">{{ article.nom }}</div>
+            <div class="article-description">{{ article.description }}</div>
+          </td>
+          <td class="categorie-cell">
+            <div class="categorie-text">{{ getCategorieNom(article) }}</div>
+          </td>
+          <td class="marque-cell">
+            <div class="marque-text">{{ getMarqueNom(article) }}</div>
+          </td>
+          <td class="prix-cell">
+            <div class="prix-text">{{ article.prixAchat | number:'1.2-2' }} DT</div>
+          </td>
+          <td class="prix-cell">
+            <div class="prix-text">{{ article.prixVente | number:'1.2-2' }} DT</div>
+          </td>
+          <td class="stock-cell">
+            <div class="stock-text">{{ article.stockMinimum || 0 }} / {{ article.stockMaximum || 0 }}</div>
+          </td>
+          <td class="quantite-cell">
+            <div class="quantite-text" 
+                 [class.stock-low]="article.quantiteDisponible && article.stockMinimum && article.quantiteDisponible < article.stockMinimum"
+                 [class.stock-ok]="article.quantiteDisponible && article.stockMinimum && article.quantiteDisponible >= article.stockMinimum">
+              {{ article.quantiteDisponible || 0 }}
+            </div>
+          </td>
+          <td class="status-cell">
+            <span class="status-badge" [class.active]="article.estActif" [class.inactive]="!article.estActif">
+              {{ article.estActif ? 'Actif' : 'Inactif' }}
+            </span>
+          </td>
+          <td class="actions-cell">
+            <div class="action-buttons">
+              <button class="btn-icon" (click)="editArticle(article)" title="Modifier" [disabled]="loading">
+                Modifier
+              </button>
+              <button class="btn-icon danger" (click)="deleteArticle(article.id)" title="Supprimer" [disabled]="loading">
+                Supprimer
+              </button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="articles.length === 0">
+          <td colspan="9" class="no-data">
+            Aucun article trouvé
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination-container">
+    <div class="pagination-info">
+      Affichage de {{ currentPage * pageSize + 1 }} à {{ Math.min((currentPage + 1) * pageSize, totalElements) }} sur {{ totalElements }} résultats
+    </div>
+    <div class="pagination-controls">
+      <div class="page-size-selector">
+        <label>Afficher:</label>
+        <select [(ngModel)]="pageSize" (change)="onPageSizeChange()" class="page-size-select">
+          <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+        </select>
+      </div>
+      <div class="page-buttons">
+        <button class="btn-page" [disabled]="currentPage === 0" (click)="onPageChange(0)">
+          Premier
+        </button>
+        <button class="btn-page" [disabled]="currentPage === 0" (click)="onPageChange(currentPage - 1)">
+          Précédent
+        </button>
+        <span class="page-info">Page {{ currentPage + 1 }} sur {{ totalPages }}</span>
+        <button class="btn-page" [disabled]="currentPage >= totalPages - 1" (click)="onPageChange(currentPage + 1)">
+          Suivant
+        </button>
+        <button class="btn-page" [disabled]="currentPage >= totalPages - 1" (click)="onPageChange(totalPages - 1)">
+          Dernier
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal Article -->
+  <div class="modal-overlay" *ngIf="showArticleModal" (click)="closeArticleModal()">
+    <div class="modal-content large" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h3>{{ isEditingArticle ? 'Modifier' : 'Nouvel' }} Article</h3>
+        <button class="btn-close" (click)="closeArticleModal()">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="alert alert-error" *ngIf="error">
+          {{ error }}
+        </div>
+
+        <form (ngSubmit)="saveArticleForm()" #articleForm="ngForm">
+          <!-- Basic Information -->
+          <div class="section-divider">
+            <h4>Informations de base</h4>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="nom">Nom *</label>
+              <input type="text" 
+                     id="nom" 
+                     [(ngModel)]="currentArticle.nom" 
+                     name="nom" 
+                     required 
+                     class="form-control"
+                     placeholder="Nom de l'article">
+            </div>
+            <div class="form-group" *ngIf="isEditingArticle">
+              <label for="sku">SKU</label>
+              <input type="text" 
+                     id="sku" 
+                     [(ngModel)]="currentArticle.sku" 
+                     name="sku" 
+                     class="form-control"
+                     readonly
+                     placeholder="Code SKU généré automatiquement">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="codebare">Code-barres</label>
+              <input type="text" 
+                     id="codebare" 
+                     [(ngModel)]="currentArticle.codebare" 
+                     name="codebare" 
+                     class="form-control"
+                     placeholder="Code-barres">
+            </div>
+            <div class="form-group">
+              <label for="unitesDeMesure">Unité de mesure</label>
+              <input type="text" 
+                     id="unitesDeMesure" 
+                     [(ngModel)]="currentArticle.unitesDeMesure" 
+                     name="unitesDeMesure" 
+                     class="form-control"
+                     placeholder="Ex: Pièce, Kg, L">
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="description">Description</label>
+            <textarea id="description" 
+                      [(ngModel)]="currentArticle.description" 
+                      name="description" 
+                      class="form-control"
+                      placeholder="Description de l'article"
+                      rows="3"></textarea>
+          </div>
+
+          <!-- Classification -->
+          <div class="section-divider">
+            <h4>Classification</h4>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="categorie">Catégorie</label>
+              <select id="categorie" 
+                      [(ngModel)]="currentArticle.categorieId" 
+                      name="categorieId" 
+                      class="form-control">
+                <option value="">Sélectionner une catégorie</option>
+                <option *ngFor="let cat of categories" [value]="cat.id">{{ cat.nom }}</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="marque">Marque</label>
+              <select id="marque" 
+                      [(ngModel)]="currentArticle.marqueId" 
+                      name="marqueId" 
+                      class="form-control">
+                <option value="">Sélectionner une marque</option>
+                <option *ngFor="let marque of marques" [value]="marque.id">{{ marque.nom }}</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Pricing -->
+          <div class="section-divider">
+            <h4>Tarification</h4>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="prixAchat">Prix d'achat (DT)</label>
+              <input type="number" 
+                     id="prixAchat" 
+                     [(ngModel)]="currentArticle.prixAchat" 
+                     name="prixAchat" 
+                     step="0.01"
+                     min="0"
+                     class="form-control"
+                     placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label for="prixVente">Prix de vente TTC (DT)</label>
+              <input type="number" 
+                     id="prixVente" 
+                     [(ngModel)]="currentArticle.prixVente" 
+                     name="prixVente" 
+                     step="0.01"
+                     min="0"
+                     (change)="calculatePrixVenteHT()"
+                     class="form-control"
+                     placeholder="0.00">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="tauxTaxe">Taux de taxe (%)</label>
+              <input type="number" 
+                     id="tauxTaxe" 
+                     [(ngModel)]="currentArticle.tauxTaxe" 
+                     name="tauxTaxe" 
+                     step="0.01"
+                     min="0"
+                     max="100"
+                     (change)="calculatePrixVenteHT()"
+                     class="form-control"
+                     placeholder="0.00">
+            </div>
+            <div class="form-group">
+              <label for="prixVenteHT">Prix de vente HT (DT)</label>
+              <input type="number" 
+                     id="prixVenteHT" 
+                     [(ngModel)]="currentArticle.prixVenteHT" 
+                     name="prixVenteHT" 
+                     step="0.01"
+                     readonly
+                     class="form-control"
+                     placeholder="0.00">
+            </div>
+          </div>
+
+          <!-- Stock -->
+          <div class="section-divider">
+            <h4>Stock</h4>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label for="stockMinimum">Stock minimum</label>
+              <input type="number" 
+                     id="stockMinimum" 
+                     [(ngModel)]="currentArticle.stockMinimum" 
+                     name="stockMinimum" 
+                     min="0"
+                     class="form-control"
+                     placeholder="0">
+            </div>
+            <div class="form-group">
+              <label for="stockMaximum">Stock maximum</label>
+              <input type="number" 
+                     id="stockMaximum" 
+                     [(ngModel)]="currentArticle.stockMaximum" 
+                     name="stockMaximum" 
+                     min="0"
+                     class="form-control"
+                     placeholder="0">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" 
+                       [(ngModel)]="currentArticle.estStockBasee" 
+                       name="estStockBasee">
+                Stock de base
+              </label>
+            </div>
+            <div class="form-group">
+              <label class="checkbox-label">
+                <input type="checkbox" 
+                       [(ngModel)]="currentArticle.estStockElever" 
+                       name="estStockElever">
+                Stock élevé
+              </label>
+            </div>
+          </div>
+
+          <!-- Image -->
+          <div class="form-group">
+            <label for="imageUrl">URL de l'image</label>
+            <input type="url" 
+                   id="imageUrl" 
+                   [(ngModel)]="currentArticle.imageUrl" 
+                   name="imageUrl" 
+                   class="form-control"
+                   placeholder="https://example.com/image.jpg">
+          </div>
+          
+          <div class="form-group">
+            <label class="checkbox-label">
+              <input type="checkbox" 
+                     [(ngModel)]="currentArticle.estActif" 
+                     name="estActif">
+              Article actif
+            </label>
+          </div>
+          
+          <div class="form-actions">
+            <button type="button" 
+                    class="btn-secondary" 
+                    (click)="closeArticleModal()"
+                    [disabled]="loading">
+              Annuler
+            </button>
+            <button type="submit" 
+                    class="btn-primary" 
+                    [disabled]="!articleForm.valid || loading">
+              {{ loading ? 'Traitement...' : (isEditingArticle ? 'Modifier' : 'Créer') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

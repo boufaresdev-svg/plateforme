@@ -1,0 +1,50 @@
+<div class="popup-overlay" *ngIf="showAffectationForm">
+  <div class="popup-container" (click)="$event.stopPropagation()">
+    <div class="popup-header">
+      <h2>Affecter un Employé</h2>
+      <button class="popup-close" (click)="closePopup()">✕</button>
+    </div>
+
+    <form [formGroup]="affectationForm" (ngSubmit)="saveAffectation()" class="popup-form">
+      <div class="form-section">
+        <h3>Affectation d'Employé</h3>
+        <div class="form-grid">
+
+          <div class="form-group">
+            <label class="form-label">Employé *</label>
+            <select class="form-input" formControlName="employeId">
+              <option [ngValue]="null">Sélectionner</option>
+              <option *ngFor="let emp of employees" [ngValue]="emp.id">
+                {{ emp.prenom }} {{ emp.nom }} ({{ emp.poste }})
+              </option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Rôle *</label>
+            <select class="form-input" formControlName="role">
+              <option [ngValue]="null">Sélectionner</option>
+              <option *ngFor="let r of rolesProjets" [ngValue]="r">{{ r }}</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Taux horaire *</label>
+            <input type="number" formControlName="tauxHoraire" class="form-input"/>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Heures allouées *</label>
+            <input type="number" formControlName="heuresAllouees" class="form-input"/>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="popup-actions">
+        <button type="button" class="btn-outline" (click)="closePopup()">Annuler</button>
+        <button type="submit" class="btn-primary">Affecter 💾</button>
+      </div>
+    </form>
+  </div>
+</div>

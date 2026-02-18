@@ -1,0 +1,223 @@
+<div class="stock-trace-container">
+  <app-notification></app-notification>
+  
+  <!-- Header Section -->
+  <div class="trace-header">
+    <div class="header-content">
+      <h2>
+        <span class="icon">📊</span>
+        Traçabilité du Stock
+      </h2>
+      <p class="subtitle">Suivez toutes les actions effectuées sur le stock</p>
+    </div>
+    
+    <!-- Filters -->
+    <div class="filters-section">
+      <div class="filter-group">
+        <label>Date de début:</label>
+        <input 
+          type="date" 
+          [(ngModel)]="filter.dateDebut"
+          (change)="loadTraces()"
+          class="form-input"
+        >
+      </div>
+      <div class="filter-group">
+        <label>Date de fin:</label>
+        <input 
+          type="date" 
+          [(ngModel)]="filter.dateFin"
+          (change)="loadTraces()"
+          class="form-input"
+        >
+      </div>
+      
+      <div class="filter-group">
+        <label>Type d'action:</label>
+        <select 
+          [(ngModel)]="filter.actionType"
+          (change)="loadTraces()"
+          class="form-select"
+        >
+          <option value="">Tous</option>
+          <option *ngFor="let type of actionTypes" [value]="type">
+            {{ type }}
+          </option>
+        </select>
+      </div>
+      
+      <div class="filter-group">
+        <label>Utilisateur:</label>
+        <input 
+          type="text" 
+          [(ngModel)]="filter.utilisateur"
+          (input)="loadTraces()"
+          placeholder="Nom utilisateur"
+          class="form-input"
+        >
+      </div>
+      
+      <button class="btn-reset" (click)="resetFilters()">
+        <span class="icon">🔄</span>
+        Réinitialiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Stats Section -->
+  <div class="stats-section" *ngIf="stats">
+    <div class="stat-card">
+      <div class="stat-icon">📈</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ stats.totalActions }}</div>
+        <div class="stat-label">Total Actions</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">📦</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ stats.quantiteTotaleModifiee }}</div>
+        <div class="stat-label">Quantité Modifiée</div>
+      </div>
+    </div>
+    
+    <div class="stat-card">
+      <div class="stat-icon">💰</div>
+      <div class="stat-content">
+        <div class="stat-number">{{ stats.valeurTotaleModifiee | number:'1.2-2' }} DT</div>
+        <div class="stat-label">Valeur Modifiée</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Traces Table -->
+  <div class="traces-section">
+    <div class="section-header">
+      <h3>Historique des Actions</h3>
+      <div class="header-actions">
+        <button class="btn-export" (click)="exportTraces()">
+          <span class="icon">📥</span>
+          Exporter
+        </button>
+      </div>
+    </div>
+    
+    <div class="table-container">
+      <table class="traces-table">
+        <thead>
+          <tr>
+            <th>Date/Heure</th>
+            <th>Article</th>
+            <th>Action</th>
+            <th>Quantité</th>
+            <th>Stock Précédent</th>
+            <th>Stock Actuel</th>
+            <th>Utilisateur</th>
+            <th>Motif</th>
+            <th>Prix Unitaire</th>
+            <th>Entrepôt</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let trace of paginatedTraces" class="trace-row">
+            <td class="date-cell">
+              <div class="date-primary">{{ trace.performedAt | date:'dd/MM/yyyy' }}</div>
+              <div class="date-secondary">{{ trace.performedAt | date:'HH:mm:ss' }}</div>
+            </td>
+            
+            <td class="article-cell">
+              <div class="article-name">{{ trace.articleNom }}</div>
+              <div class="article-code">{{ trace.stockBatch || 'N/A' }}</div>
+            </td>
+            
+            <td class="action-cell">
+              <span 
+                class="action-badge"
+                [class]="getActionClass(trace.actionType)"
+              >
+                {{ trace.actionType }}
+              </span>
+            </td>
+            
+            <td class="quantity-cell">
+              <span 
+                class="quantity-value"
+                [class]="getQuantityClass(trace.quantiteChanged)"
+              >
+                {{ trace.quantiteChanged > 0 ? '+' : '' }}{{ trace.quantiteChanged }}
+              </span>
+            </td>
+            
+            <td class="stock-cell">{{ trace.previousQuantity }}</td>
+            
+            <td class="stock-cell">
+              <strong>{{ trace.previousQuantity + trace.quantiteChanged }}</strong>
+            </td>
+            
+            <td class="user-cell">
+              <div class="user-info">
+                <span class="user-icon">👤</span>
+                {{ trace.userPerformedBy }}
+              </div>
+            </td>
+            
+            <td class="motif-cell">
+              <div class="motif-text">
+                {{ trace.motif || 'N/A' }}
+              </div>
+            </td>
+            
+            <td class="price-cell">
+              {{ trace.unitPrice | number:'1.2-2' }} DT
+            </td>
+            
+            <td class="warehouse-cell">
+              <span class="warehouse-badge">{{ trace.entrepot }}</span>
+            </td>
+          </tr>
+          
+          <tr *ngIf="filteredTraces.length === 0" class="empty-row">
+            <td colspan="10" class="empty-cell">
+              <div class="empty-state">
+                <span class="empty-icon">📋</span>
+                <h4>Aucune trace trouvée</h4>
+                <p>Aucune action ne correspond aux critères de recherche</p>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Pagination -->
+    <div class="pagination-container" *ngIf="totalElements > 0">
+      <div class="pagination-info">
+        Affichage de {{ currentPage * pageSize + 1 }} à {{ Math.min((currentPage + 1) * pageSize, totalElements) }} sur {{ totalElements }} résultats
+      </div>
+      <div class="pagination-controls">
+        <div class="page-size-selector">
+          <label>Afficher:</label>
+          <select [(ngModel)]="pageSize" (change)="onPageSizeChange()" class="page-size-select">
+            <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+          </select>
+        </div>
+        <div class="page-buttons">
+          <button class="btn-page" [disabled]="currentPage === 0" (click)="onPageChange(0)">
+            Premier
+          </button>
+          <button class="btn-page" [disabled]="currentPage === 0" (click)="onPageChange(currentPage - 1)">
+            Précédent
+          </button>
+          <span class="page-info">Page {{ currentPage + 1 }} sur {{ totalPages }}</span>
+          <button class="btn-page" [disabled]="currentPage >= totalPages - 1" (click)="onPageChange(currentPage + 1)">
+            Suivant
+          </button>
+          <button class="btn-page" [disabled]="currentPage >= totalPages - 1" (click)="onPageChange(totalPages - 1)">
+            Dernier
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

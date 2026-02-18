@@ -1,0 +1,567 @@
+<div class="formation-management">
+  <!-- Loading Overlay -->
+  <div *ngIf="isLoadingStats || isLoadingContent || isLoadingFormateurs" class="loading-overlay" style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(255,255,255,0.9); display: flex; align-items: center; justify-content: center; z-index: 9999;">
+    <div style="text-align: center;">
+      <div style="font-size: 48px; animation: spin 1s linear infinite;">⏳</div>
+      <p style="margin-top: 16px; font-size: 18px; color: #666;">
+        {{ isLoadingStats ? 'Chargement des statistiques...' : isLoadingContent ? 'Chargement du contenu...' : 'Chargement des formateurs...' }}
+      </p>
+    </div>
+  </div>
+
+  <!-- ====================== HEADER ====================== -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="header-title">
+        <h1>🎓 Gestion des Formations</h1>
+        <p class="subtitle">
+          Visualisez vos statistiques, gérez vos formations, formateurs et apprenants.
+        </p>
+      </div>
+
+      <div class="header-actions">
+        <button class="nav-pill" [class.active]="currentView === 'dashboard'" (click)="setView('dashboard')">
+          📊 Dashboard
+        </button>
+
+        <button class="nav-pill" [class.active]="currentView === 'formations'" (click)="setView('formations')">
+          🎓 Formations
+        </button>
+
+        <button class="nav-pill" [class.active]="currentView === 'contenu'" (click)="setView('contenu')">
+          📁 Contenu
+        </button>
+
+        <button class="nav-pill" [class.active]="currentView === 'domaines'" (click)="setView('domaines')">
+          🗂️ Métadonnées
+        </button>
+
+        <button class="nav-pill" [class.active]="currentView === 'formateurs'" (click)="setView('formateurs')">
+          👨‍🏫 Formateurs
+        </button>
+
+        <button class="nav-pill" [class.active]="currentView === 'apprenants'" (click)="setView('apprenants')">
+          👥 Apprenants
+        </button>
+
+        <button class="nav-pill" [class.active]="currentView === 'classes'" (click)="setView('classes')">
+          🏫 Classes
+        </button>
+
+        <!-- <button class="nav-pill" [class.active]="currentView === 'examens'" (click)="setView('examens')">
+          💬 Examens
+        </button> -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== DASHBOARD ====================== -->
+  <div *ngIf="currentView === 'dashboard'" class="dashboard-view">
+    <!-- Main Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card primary">
+        <div class="stat-icon">🎓</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.totalFormations }}</div>
+          <div class="stat-label">Total Formations</div>
+          <div class="stat-trend positive" *ngIf="stats.formationsThisMonth > 0">+{{ stats.formationsThisMonth }} ce mois</div>
+          <div class="stat-trend" *ngIf="stats.formationsThisMonth === 0">Aucune ce mois</div>
+        </div>
+      </div>
+
+      <div class="stat-card warning">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.formationsEnCours }}</div>
+          <div class="stat-label">En Cours</div>
+          <div class="stat-trend">{{ stats.activePlans }} plans actifs</div>
+        </div>
+      </div>
+
+      <div class="stat-card success">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.totalParticipants }}</div>
+          <div class="stat-label">Participants</div>
+          <div class="stat-trend">{{ stats.participantsActifs }} actifs</div>
+        </div>
+      </div>
+
+      <div class="stat-card danger">
+        <div class="stat-icon">🏆</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.certificationsDelivrees }}</div>
+          <div class="stat-label">Certifications</div>
+          <div class="stat-trend">Délivrées</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Secondary Stats Row -->
+    <div class="stats-grid secondary">
+      <div class="stat-card info">
+        <div class="stat-icon">👨‍🏫</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.totalFormateurs }}</div>
+          <div class="stat-label">Formateurs</div>
+        </div>
+      </div>
+      
+      <div class="stat-card info">
+        <div class="stat-icon">📁</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.totalContenus }}</div>
+          <div class="stat-label">Contenus</div>
+        </div>
+      </div>
+      
+      <div class="stat-card info">
+        <div class="stat-icon">💰</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.totalRevenue | number:'1.0-0' }} DT</div>
+          <div class="stat-label">Revenu Total</div>
+        </div>
+      </div>
+      
+      <div class="stat-card info">
+        <div class="stat-icon">📊</div>
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.averageFormationPrice | number:'1.0-0' }} DT</div>
+          <div class="stat-label">Prix Moyen</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Two Column Layout -->
+    <div class="dashboard-content">
+      <!-- Left Column -->
+      <div class="dashboard-column">
+        <!-- Recent Formations -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h2>🕒 Formations récentes</h2>
+            <button class="btn-link" (click)="setView('formations')">Voir tout →</button>
+          </div>
+
+          <div *ngIf="formations.length; else noRecentFormations" class="formations-list">
+            <div *ngFor="let f of formations | slice:0:5" class="formation-item">
+              <div class="formation-badge" [ngClass]="f.typeFormation">
+                {{ getTypeIcon(f.typeFormation) }}
+              </div>
+              <div class="formation-details">
+                <h3>{{ f.theme }}</h3>
+                <p class="formation-desc">{{ f.descriptionTheme || 'Aucune description' }}</p>
+                <div class="formation-meta">
+                  <span class="badge badge-price">💰 {{ f.prix || 0 }} DT</span>
+                  <span class="badge badge-hours">🕒 {{ f.nombreHeures || 0 }}h</span>
+                  <span class="badge badge-level">📊 {{ f.niveau }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <ng-template #noRecentFormations>
+            <div class="empty-state">
+              <div class="empty-icon">📚</div>
+              <p>Aucune formation disponible</p>
+              <button class="btn-primary-small" (click)="setView('formations')">Créer une formation</button>
+            </div>
+          </ng-template>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h2>⚡ Actions rapides</h2>
+          </div>
+          <div class="quick-actions-grid">
+            <button class="quick-action-btn" (click)="setView('formations')">
+              <span class="action-icon">➕</span>
+              <span class="action-label">Nouvelle Formation</span>
+            </button>
+            <button class="quick-action-btn" (click)="setView('formateurs')">
+              <span class="action-icon">👨‍🏫</span>
+              <span class="action-label">Ajouter Formateur</span>
+            </button>
+            <!-- <button class="quick-action-btn" (click)="setView('examens')">
+              <span class="action-icon">📝</span>
+              <span class="action-label">Créer Examen</span>
+            </button> -->
+            <button class="quick-action-btn" (click)="setView('contenu')">
+              <span class="action-icon">📁</span>
+              <span class="action-label">Gérer Contenu</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column -->
+      <div class="dashboard-column">
+        <!-- Activity Overview -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h2>📊 Vue d'ensemble</h2>
+          </div>
+          <div class="overview-stats">
+            <div class="overview-item">
+              <div class="overview-icon primary">📚</div>
+              <div class="overview-content">
+                <div class="overview-value">{{ stats.totalFormations }}</div>
+                <div class="overview-label">Formations</div>
+              </div>
+              <div class="overview-progress">
+                <div class="progress-bar" [style.width.%]="stats.totalFormations > 0 ? 100 : 0"></div>
+              </div>
+            </div>
+
+            <div class="overview-item">
+              <div class="overview-icon success">✅</div>
+              <div class="overview-content">
+                <div class="overview-value">{{ stats.formationsTerminees }}</div>
+                <div class="overview-label">Complétées</div>
+              </div>
+              <div class="overview-progress">
+                <div class="progress-bar success" [style.width.%]="stats.totalFormations > 0 ? (stats.formationsTerminees / stats.totalFormations * 100) : 0"></div>
+              </div>
+            </div>
+
+            <div class="overview-item">
+              <div class="overview-icon warning">⏳</div>
+              <div class="overview-content">
+                <div class="overview-value">{{ stats.formationsEnCours }}</div>
+                <div class="overview-label">En cours</div>
+              </div>
+              <div class="overview-progress">
+                <div class="progress-bar warning" [style.width.%]="stats.totalFormations > 0 ? (stats.formationsEnCours / stats.totalFormations * 100) : 0"></div>
+              </div>
+            </div>
+
+            <div class="overview-item">
+              <div class="overview-icon danger">📅</div>
+              <div class="overview-content">
+                <div class="overview-value">{{ stats.formationsPlanifiees }}</div>
+                <div class="overview-label">Planifiées</div>
+              </div>
+              <div class="overview-progress">
+                <div class="progress-bar danger" [style.width.%]="stats.totalFormations > 0 ? (stats.formationsPlanifiees / stats.totalFormations * 100) : 0"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formation Types Distribution -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h2>📈 Répartition par type</h2>
+          </div>
+          <div class="type-distribution">
+            <div class="type-item">
+              <div class="type-label">
+                <span class="type-dot online"></span>
+                En Ligne
+              </div>
+              <div class="type-bar">
+                <div class="type-fill online" [style.width.%]="getTypePercentage('En_Ligne')"></div>
+              </div>
+              <div class="type-count">{{ stats.formationsByType['En_Ligne'] || 0 }}</div>
+            </div>
+
+            <div class="type-item">
+              <div class="type-label">
+                <span class="type-dot presentiel"></span>
+                Intra Entreprise
+              </div>
+              <div class="type-bar">
+                <div class="type-fill presentiel" [style.width.%]="getTypePercentage('Intra_Entreprise')"></div>
+              </div>
+              <div class="type-count">{{ stats.formationsByType['Intra_Entreprise'] || 0 }}</div>
+            </div>
+
+            <div class="type-item">
+              <div class="type-label">
+                <span class="type-dot hybrid"></span>
+                Inter Entreprise
+              </div>
+              <div class="type-bar">
+                <div class="type-fill hybrid" [style.width.%]="getTypePercentage('Inter_Entreprise')"></div>
+              </div>
+              <div class="type-count">{{ stats.formationsByType['Inter_Entreprise'] || 0 }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Level Distribution -->
+        <div class="dashboard-card">
+          <div class="card-header">
+            <h2>🎯 Répartition par niveau</h2>
+          </div>
+          <div class="type-distribution">
+            <div class="type-item">
+              <div class="type-label">
+                <span class="type-dot" style="background: #4CAF50;"></span>
+                Débutant
+              </div>
+              <div class="type-bar">
+                <div class="type-fill" style="background: #4CAF50;" [style.width.%]="getLevelPercentage('Débutant')"></div>
+              </div>
+              <div class="type-count">{{ stats.formationsByLevel['Débutant'] || 0 }}</div>
+            </div>
+
+            <div class="type-item">
+              <div class="type-label">
+                <span class="type-dot" style="background: #FF9800;"></span>
+                Intermédiaire
+              </div>
+              <div class="type-bar">
+                <div class="type-fill" style="background: #FF9800;" [style.width.%]="getLevelPercentage('Intermédiaire')"></div>
+              </div>
+              <div class="type-count">{{ stats.formationsByLevel['Intermédiaire'] || 0 }}</div>
+            </div>
+
+            <div class="type-item">
+              <div class="type-label">
+                <span class="type-dot" style="background: #F44336;"></span>
+                Avancé
+              </div>
+              <div class="type-bar">
+                <div class="type-fill" style="background: #F44336;" [style.width.%]="getLevelPercentage('Avancé')"></div>
+              </div>
+              <div class="type-count">{{ stats.formationsByLevel['Avancé'] || 0 }}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- System Status -->
+        <div class="dashboard-card status-card">
+          <div class="card-header">
+            <h2>🔧 Statut système</h2>
+          </div>
+          <div class="status-list">
+            <div class="status-item">
+              <span class="status-indicator active"></span>
+              <span class="status-label">Base de données</span>
+              <span class="status-value">Opérationnelle</span>
+            </div>
+            <div class="status-item">
+              <span class="status-indicator active"></span>
+              <span class="status-label">Serveur API</span>
+              <span class="status-value">En ligne</span>
+            </div>
+            <div class="status-item">
+              <span class="status-indicator active"></span>
+              <span class="status-label">Stockage fichiers</span>
+              <span class="status-value">Disponible</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====================== SUBCOMPONENTS ====================== -->
+  <app-formations *ngIf="currentView === 'formations'"></app-formations>
+  
+  <app-formateurs *ngIf="currentView === 'formateurs'"></app-formateurs>
+  <app-domaines *ngIf="currentView === 'domaines'"></app-domaines>
+  <app-apprenant-management *ngIf="currentView === 'apprenants'"></app-apprenant-management>
+  <app-classe-management *ngIf="currentView === 'classes'"></app-classe-management>
+  <!-- <app-examens *ngIf="currentView === 'examens'"></app-examens> -->
+  
+  <!-- ====================== CONTENU ====================== -->
+  <div *ngIf="currentView === 'contenu'" class="content-management-view">
+    <!-- Show table view when not editing -->
+    <div *ngIf="!showContentEditor">
+      <div class="content-header">
+        <h2>📁 Gestion du Contenu</h2>
+        <div class="content-actions">
+          <input 
+            type="number" 
+            [(ngModel)]="selectedJourId" 
+            placeholder="ID Jour Formation"
+            class="jour-input"
+          />
+          <button class="btn btn-info" (click)="loadContentByJour(selectedJourId)">
+            🔍 Charger par Jour
+          </button>
+          <button class="btn btn-primary" (click)="loadAllContent()">
+            📋 Tout Charger
+          </button>
+          <button class="btn btn-success" (click)="openContentEditor()">
+            ➕ Ajouter Contenu
+          </button>
+        </div>
+      </div>
+
+      <!-- Content Table -->
+      <div class="content-table-container" *ngIf="contentList.length > 0; else noContent">
+        <table class="content-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Titre</th>
+              <th>Description</th>
+              <th>Type</th>
+              <th>Formation</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let content of contentList" class="content-row">
+              <td>{{ content.id }}</td>
+              <td class="title-cell">{{ content.title }}</td>
+              <td class="description-cell">
+                <div [innerHTML]="content.description || 'Aucune description'" class="truncate-text"></div>
+              </td>
+              <td>
+                <span class="badge" [class.badge-document]="content.type === 'document'" 
+                      [class.badge-video]="content.type === 'video'">
+                  {{ content.type === 'document' ? '📄' : '🎥' }} {{ content.type }}
+                </span>
+              </td>
+              <td>{{ content.formation }}</td>
+              <td>{{ content.uploadDate }}</td>
+              <td class="action-cell">
+                <button class="btn-action btn-view" (click)="viewContentDetails(content)" title="Détails">
+                  👁️
+                </button>
+                <button class="btn-action btn-edit" (click)="editContentItem(content)" title="Modifier">
+                  ✏️
+                </button>
+                <button class="btn-action btn-delete" (click)="deleteContent(content)" title="Supprimer">
+                  🗑️
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- CONTENT PAGINATION CONTROLS -->
+      <div class="pagination-controls" *ngIf="contentTotalItems > 0">
+        <div class="pagination-info">
+          <span>Page {{ contentCurrentPage + 1 }} sur {{ contentTotalPages }} | Total: {{ contentTotalItems }} contenus</span>
+        </div>
+        <div class="pagination-buttons">
+          <button class="btn-secondary" (click)="contentPreviousPage()" [disabled]="contentCurrentPage === 0">
+            ⬅️ Précédent
+          </button>
+          <div class="page-selector">
+            <select [(ngModel)]="contentCurrentPage" (change)="contentGoToPage(contentCurrentPage)" [disabled]="contentTotalPages <= 1">
+              <option *ngFor="let i of [].constructor(contentTotalPages); let idx = index" [value]="idx">
+                Page {{ idx + 1 }}
+              </option>
+            </select>
+          </div>
+          <button class="btn-secondary" (click)="contentNextPage()" [disabled]="contentCurrentPage === contentTotalPages - 1">
+            Suivant ➡️
+          </button>
+        </div>
+      </div>
+
+      <ng-template #noContent>
+        <div class="no-content">
+          <div class="no-content-icon">📭</div>
+          <p>Aucun contenu disponible</p>
+          <button class="btn btn-primary" (click)="openContentEditor()">
+            ➕ Ajouter le premier contenu
+          </button>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Show editor view when editing/creating -->
+    <app-contenu-detaille 
+      *ngIf="showContentEditor"
+      [contentData]="contentFormData"
+      [editMode]="contentEditMode"
+      (onClose)="closeContentEditor()"
+      (onSaved)="onContentSaved()"
+    ></app-contenu-detaille>
+  </div>
+</div>
+
+<!-- Content Details Modal -->
+<div class="modal-overlay" *ngIf="showContentDetailsModal" (click)="closeContentDetailsModal()">
+  <div class="modal-content-large" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h2>📄 Détails du Contenu</h2>
+      <button class="btn-close" (click)="closeContentDetailsModal()">✕</button>
+    </div>
+    <div class="modal-body" *ngIf="selectedContentDetails">
+      <!-- Basic Info -->
+      <div class="detail-section">
+        <h3>Informations générales</h3>
+        <div class="detail-row">
+          <span class="detail-label">ID:</span>
+          <span class="detail-value">{{ selectedContentDetails.id }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Titre:</span>
+          <span class="detail-value">{{ selectedContentDetails.title }}</span>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Description:</span>
+          <div class="detail-value" [innerHTML]="selectedContentDetails.description || 'Aucune description'"></div>
+        </div>
+        <div class="detail-row">
+          <span class="detail-label">Date de création:</span>
+          <span class="detail-value">{{ selectedContentDetails.uploadDate }}</span>
+        </div>
+        <div class="detail-row" *ngIf="selectedContentDetails.tags">
+          <span class="detail-label">Tags:</span>
+          <div class="detail-value">
+            <span class="tag-chip-display" *ngFor="let tag of getTagsArray(selectedContentDetails.tags)">
+              {{ tag }}
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Levels Content -->
+      <div class="detail-section" *ngIf="selectedContentDetails.levels && selectedContentDetails.levels.length > 0">
+        <h3>📚 Contenu par Niveau</h3>
+        <div class="level-details" *ngFor="let level of selectedContentDetails.levels">
+          <div class="level-header">
+            <span class="level-badge">{{ getLevelName(level.levelNumber) }}</span>
+            <span class="duration-info" *ngIf="level.dureeTheorique || level.dureePratique">
+              ⏱️ Théorie: {{ level.dureeTheorique || 0 }}h | Pratique: {{ level.dureePratique || 0 }}h
+            </span>
+          </div>
+          <div class="level-content-box" *ngIf="level.theorieContent">
+            <h4>📖 Théorie</h4>
+            <div [innerHTML]="level.theorieContent"></div>
+          </div>
+          <div class="level-content-box" *ngIf="level.pratiqueContent">
+            <h4>🛠️ Pratique</h4>
+            <div [innerHTML]="level.pratiqueContent"></div>
+          </div>
+          <div class="level-files" *ngIf="level.files && level.files.length > 0">
+            <h4>📎 Fichiers ({{ level.files.length }})</h4>
+            <div class="level-file" *ngFor="let file of level.files">
+              <div class="file-display">
+                <span class="file-icon">{{ getFileIcon(file.fileType) }}</span>
+                <div class="file-info-inline">
+                  <span class="file-name">{{ file.fileName }}</span>
+                  <span class="file-size">{{ formatFileSize(file.fileSize) }}</span>
+                </div>
+                <div class="file-actions-inline">
+                  <button class="btn-icon-small preview" (click)="previewFile(file.filePath)" title="Aperçu">
+                    👁️
+                  </button>
+                  <button class="btn-icon-small download" (click)="downloadFile(file.filePath, file.fileName)" title="Télécharger">
+                    ⬇️
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" (click)="closeContentDetailsModal()">Fermer</button>
+      <button class="btn btn-primary" (click)="editFromDetailsModal()">✏️ Modifier</button>
+    </div>
+  </div>
+</div>

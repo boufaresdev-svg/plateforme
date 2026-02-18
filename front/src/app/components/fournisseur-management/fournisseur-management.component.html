@@ -1,0 +1,445 @@
+<div class="fournisseur-management">
+  <!-- Header moderne -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="header-title">
+        <h1>🏭 Gestion Fournisseurs</h1>
+        <p class="subtitle">Gérez vos fournisseurs et suivez vos dettes</p>
+      </div>
+      <div class="header-actions">
+        <button class="nav-pill" [class.active]="currentView === 'dashboard'" (click)="setView('dashboard')">
+          <span class="icon">📊</span>
+          Dashboard
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'fournisseurs'" (click)="setView('fournisseurs')">
+          <span class="icon">🏭</span>
+          Fournisseurs
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'dettes'" (click)="setView('dettes')">
+          <span class="icon">💰</span>
+          Dettes
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'rapport'" (click)="showRapport()">
+          <span class="icon">📈</span>
+          Rapport
+        </button>
+        <button class="btn-primary" (click)="showAddFournisseurForm()" *ngIf="currentView === 'fournisseurs'">
+          <span class="icon">➕</span>
+          Nouveau Fournisseur
+        </button>
+        <button class="btn-primary" (click)="showAddDetteForm()" *ngIf="currentView === 'dettes'">
+          <span class="icon">➕</span>
+          Nouvelle Dette
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <app-fournisseur-dashboard 
+    *ngIf="currentView === 'dashboard'"
+    [stats]="stats"
+    [fournisseurs]="fournisseurs"
+    [dettes]="dettes"
+    (viewChange)="onDashboardViewChange($event)"
+    (fournisseurSelect)="onDashboardFournisseurSelect($event)">
+  </app-fournisseur-dashboard>
+
+
+  <!-- Liste des Fournisseurs -->
+  <div class="fournisseurs-view" *ngIf="currentView === 'fournisseurs'">
+    <app-fournisseur-list
+      [fournisseurs]="fournisseurs"
+      [filteredFournisseurs]="filteredFournisseurs"
+      [pagination]="fournisseurPagination"
+      [searchTerm]="searchTerm"
+      [showForm]="showFournisseurForm"
+      [isEditMode]="isEditMode"
+      [selectedFournisseur]="selectedFournisseur"
+      (searchTermChange)="onFournisseurListSearchTermChange($event)"
+      (filterFournisseurs)="onFournisseurListFilterFournisseurs()"
+      (sortChange)="onFournisseurListSortChange($event)"
+      (pageChange)="onFournisseurListPageChange($event)"
+      (pageSizeChange)="onFournisseurListPageSizeChange($event)"
+      (fournisseurView)="onFournisseurListView($event)"
+      (fournisseurEdit)="onFournisseurListEdit($event)"
+      (fournisseurDelete)="onFournisseurListDelete($event)"
+      (fournisseurAdd)="onFournisseurListAdd()"
+      (fournisseurSaved)="onFournisseurListSaved()"
+      (formCancel)="onFournisseurListFormCancel()">
+    </app-fournisseur-list>
+  </div>
+
+  <!-- Gestion des Dettes -->
+  <div *ngIf="currentView === 'dettes'" class="dettes-view">
+    <app-dette-management
+      [dettes]="dettes"
+      [filteredDettes]="filteredDettes"
+      [fournisseurs]="fournisseurs"
+      [pagination]="dettePagination"
+      [searchTermDette]="searchTermDette"
+      [filterPaid]="filterPaid"
+      [filterOverdue]="filterOverdue"
+      [showForm]="showDetteForm"
+      [isEditMode]="isEditMode"
+      [selectedDette]="selectedDette"
+      [submitted]="submitted"
+      [numeroFactureError]="numeroFactureError"
+      [numeroFactureValid]="numeroFactureValid"
+      [isValidatingNumeroFacture]="isValidatingNumeroFacture"
+      [trancheValidationError]="trancheValidationError"
+      (searchTermChange)="onDetteManagementSearchTermChange($event)"
+      (filterPaidChange)="onDetteManagementFilterPaidChange($event)"
+      (filterOverdueChange)="onDetteManagementFilterOverdueChange($event)"
+      (filterDettes)="onDetteManagementFilterDettes()"
+      (sortChange)="onDetteManagementSortChange($event)"
+      (pageChange)="onDetteManagementPageChange($event)"
+      (pageSizeChange)="onDetteManagementPageSizeChange($event)"
+      (detteDetails)="onDetteManagementView($event)"
+      (detteMarkPaid)="onDetteManagementMarkPaid($event)"
+      (detteEdit)="onDetteManagementEdit($event)"
+      (detteDelete)="onDetteManagementDelete($event)"
+      (detteAdd)="onDetteManagementAdd()"
+      (formCancel)="onDetteManagementFormCancel()"
+      (detteCreated)="onDetteCreated()"
+      (detteUpdated)="onDetteUpdated()">
+    </app-dette-management>
+  </div>
+
+  <!-- Détails Fournisseur -->
+  <!-- Enhanced Fournisseur Details View -->
+  <div class="details-view" *ngIf="currentView === 'details' && selectedFournisseur">
+    <div class="details-container">
+      <!-- Header with breadcrumb -->
+      <div class="details-header">
+        <div class="breadcrumb">
+          <span class="breadcrumb-item" (click)="setView('dashboard')">Dashboard</span>
+          <span class="breadcrumb-separator">›</span>
+          <span class="breadcrumb-item" (click)="setView('fournisseurs')">Fournisseurs</span>
+          <span class="breadcrumb-separator">›</span>
+          <span class="breadcrumb-item current">{{ selectedFournisseur.nom }}</span>
+        </div>
+        <button class="btn-close" (click)="setView('fournisseurs')">×</button>
+      </div>
+
+      <!-- Fournisseur Profile Card -->
+      <div class="profile-card">
+        <div class="profile-header">
+          <div class="profile-avatar">
+            <span class="avatar-text">{{ getInitials(selectedFournisseur.nom) }}</span>
+          </div>
+          <div class="profile-info">
+            <h2 class="profile-name">{{ selectedFournisseur.nom }}</h2>
+            <p class="profile-contact">{{ selectedFournisseur.infoContact }}</p>
+            <div class="profile-stats">
+              <div class="stat-badge">
+                <span class="stat-value">{{ getFournisseurDettes(selectedFournisseur.id).length }}</span>
+                <span class="stat-label">Nombre Dettes</span>
+              </div>
+              <div class="stat-badge" style="background: #fff3e0; border: 2px solid #ff9800;">
+                <span class="stat-value" style="color: #e65100;">{{ (selectedFournisseur.soldeTotal ?? 0) | number:'1.2-2' }}</span>
+                <span class="stat-label" style="color: #e65100;">💰 Solde Total (DT)</span>
+              </div>
+              <div class="stat-badge" 
+                   [style.background]="(selectedFournisseur.montantAPayer ?? 0) > 0 ? '#ffebee' : '#e8f5e9'"
+                   [style.border]="(selectedFournisseur.montantAPayer ?? 0) > 0 ? '2px solid #d32f2f' : '2px solid #2e7d32'">
+                <span class="stat-value" 
+                      [style.color]="(selectedFournisseur.montantAPayer ?? 0) > 0 ? '#d32f2f' : '#2e7d32'">
+                  {{ (selectedFournisseur.montantAPayer ?? 0) | number:'1.2-2' }}
+                </span>
+                <span class="stat-label" 
+                      [style.color]="(selectedFournisseur.montantAPayer ?? 0) > 0 ? '#d32f2f' : '#2e7d32'">
+                  ⚠ Montant à Payer (DT)
+                </span>
+              </div>
+              <div class="stat-badge" 
+                   style="background: #e3f2fd; border: 2px solid #1976d2;">
+                <span class="stat-value" style="color: #0d47a1;">
+                  {{ ((selectedFournisseur.soldeTotal ?? 0) - (selectedFournisseur.montantAPayer ?? 0)) | number:'1.2-2' }}
+                </span>
+                <span class="stat-label" style="color: #0d47a1;">✓ Montant Payé (DT)</span>
+              </div>
+              <div class="stat-badge" 
+                   [class.status-paid]="(selectedFournisseur.montantAPayer ?? 0) === 0 && (selectedFournisseur.soldeTotal ?? 0) > 0"
+                   [class.status-outstanding]="(selectedFournisseur.montantAPayer ?? 0) > 0"
+                   [class.status-none]="(selectedFournisseur.soldeTotal ?? 0) === 0">
+                <span class="stat-value">
+                  <span *ngIf="(selectedFournisseur.montantAPayer ?? 0) === 0 && (selectedFournisseur.soldeTotal ?? 0) > 0">✓ Payé</span>
+                  <span *ngIf="(selectedFournisseur.montantAPayer ?? 0) > 0">⚠ En cours</span>
+                  <span *ngIf="(selectedFournisseur.soldeTotal ?? 0) === 0">Aucune dette</span>
+                </span>
+                <span class="stat-label">Statut Paiement</span>
+              </div>
+            </div>
+          </div>
+          <div class="profile-actions">
+            <button class="btn-icon" (click)="editFournisseur(selectedFournisseur)" title="Modifier">
+              <span class="icon">✏️</span>
+            </button>
+            <button class="btn-icon" (click)="exportFournisseurData(selectedFournisseur)" title="Exporter">
+              <span class="icon">📊</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Information Cards Grid -->
+      <div class="info-cards-grid">
+        <div class="info-card">
+          <div class="card-icon">📞</div>
+          <div class="card-content">
+            <h4>Contact</h4>
+            <p>{{ selectedFournisseur.telephone }}</p>
+            <small>{{ selectedFournisseur.infoContact }}</small>
+          </div>
+        </div>
+        
+        <div class="info-card">
+          <div class="card-icon">🏢</div>
+          <div class="card-content">
+            <h4>Matricule Fiscal</h4>
+            <p>{{ selectedFournisseur.matriculeFiscale }}</p>
+          </div>
+        </div>
+        
+        <div class="info-card full-width">
+          <div class="card-icon">📍</div>
+          <div class="card-content">
+            <h4>Adresse</h4>
+            <p>{{ selectedFournisseur.adresse }}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Debt Management Section -->
+      <div class="debt-management-section">
+        <div class="section-header">
+          <h3>📋 Gestion des Dettes</h3>
+          <div class="section-actions">
+            <button class="btn-primary" (click)="addDetteForFournisseur(selectedFournisseur)">
+              <span class="icon">➕</span>
+              Nouvelle Dette
+            </button>
+          </div>
+        </div>
+
+        <!-- Debt List with Table Format -->
+        <div class="debt-list-container" 
+             style="max-height: 70vh; overflow-y: auto; padding: 1rem; border: 1px solid #e2e8f0; border-radius: 8px; background: white; margin-top: 1rem;">
+          
+          <div class="debt-filters" 
+               style="margin-bottom: 1rem; padding: 1rem; background: #f8fafc; border-radius: 6px; border-bottom: 1px solid #e2e8f0;">
+            <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <label style="font-weight: 500; color: #4a5568; font-size: 0.9rem;">Filtre:</label>
+                <select [(ngModel)]="debtFilter" (change)="filterFournisseurDettes()" 
+                        style="padding: 0.5rem 0.75rem; border: 1px solid #cbd5e0; border-radius: 4px; background: white; font-size: 0.9rem;">
+                  <option value="">Toutes les dettes</option>
+                  <option value="unpaid">Non payées</option>
+                  <option value="paid">Payées</option>
+                  <option value="overdue">En retard</option>
+                </select>
+              </div>
+              
+              <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <label style="font-weight: 500; color: #4a5568; font-size: 0.9rem;">Tri:</label>
+                <select [(ngModel)]="debtSort" (change)="sortFournisseurDettes()" 
+                        style="padding: 0.5rem 0.75rem; border: 1px solid #cbd5e0; border-radius: 4px; background: white; font-size: 0.9rem;">
+                  <option value="date-desc">Plus récentes</option>
+                  <option value="date-asc">Plus anciennes</option>
+                  <option value="amount-desc">Montant décroissant</option>
+                  <option value="amount-asc">Montant croissant</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Dettes Table -->
+          <div class="table-container" *ngIf="selectedFournisseur" style="overflow-x: auto;">
+            <div class="no-debts-message" *ngIf="filteredFournisseurDettes.length === 0" 
+                 style="text-align: center; padding: 2rem; color: #718096; background: #f8fafc; border-radius: 8px; border: 1px dashed #cbd5e0;">
+              <p style="margin: 0; font-size: 1.1rem; font-weight: 500;">Aucune dette trouvée pour ce fournisseur.</p>
+              <p style="margin: 0.5rem 0 0 0; font-size: 0.9rem;"><small>Total dettes dans le système: {{ dettes.length }}</small></p>
+            </div>
+            
+            <table class="data-table" *ngIf="filteredFournisseurDettes.length > 0" 
+                   style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+              <thead>
+                <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+                  <th style="padding: 1rem; text-align: left; font-weight: 600;">N° Facture</th>
+                  <th style="padding: 1rem; text-align: left; font-weight: 600;">Titre</th>
+                  <th style="padding: 1rem; text-align: right; font-weight: 600;">Montant Total</th>
+                  <th style="padding: 1rem; text-align: right; font-weight: 600;">Payé</th>
+                  <th style="padding: 1rem; text-align: right; font-weight: 600;">Restant</th>
+                  <th style="padding: 1rem; text-align: center; font-weight: 600;">Échéance</th>
+                  <th style="padding: 1rem; text-align: center; font-weight: 600;">Statut</th>
+                  <th style="padding: 1rem; text-align: center; font-weight: 600;">Tranches</th>
+                  <th style="padding: 1rem; text-align: center; font-weight: 600;">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let dette of filteredFournisseurDettes; trackBy: trackByDetteId"
+                    class="dette-table-row"
+                    [style.background]="dette.estPaye ? '#f0fdf4' : (isOverdue(dette) ? '#fef2f2' : 'white')"
+                    [attr.data-paid]="dette.estPaye"
+                    [attr.data-overdue]="isOverdue(dette)">
+                  
+                  <td style="padding: 1rem; color: #1f2937; font-weight: 500;">
+                    {{ dette.numeroFacture || 'N/A' }}
+                  </td>
+                  
+                  <td style="padding: 1rem; color: #1f2937; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" 
+                      [title]="dette.titre">
+                    {{ dette.titre }}
+                  </td>
+                  
+                  <td style="padding: 1rem; text-align: right; color: #2563eb; font-weight: 600;">
+                    {{ dette.montantTotal | number:'1.2-2' }} DT
+                  </td>
+                  
+                  <td style="padding: 1rem; text-align: right; color: #16a34a; font-weight: 600;">
+                    {{ getTotalPaidTranches(dette.id) | number:'1.2-2' }} DT
+                  </td>
+                  
+                  <td style="padding: 1rem; text-align: right; font-weight: 600;"
+                      [style.color]="(dette.soldeRestant !== undefined ? dette.soldeRestant : dette.montantDu) > 0 ? '#dc2626' : '#16a34a'">
+                    {{ (dette.soldeRestant !== undefined ? dette.soldeRestant : dette.montantDu) | number:'1.2-2' }} DT
+                  </td>
+                  
+                  <td style="padding: 1rem; text-align: center; color: #4b5563;">
+                    {{ dette.datePaiementPrevue | date:'dd/MM/yyyy' }}
+                  </td>
+                  
+                  <td style="padding: 1rem; text-align: center;">
+                    <span class="status-badge" 
+                          [style.background]="dette.estPaye ? '#dcfce7' : (isOverdue(dette) ? '#fee2e2' : '#fef3c7')"
+                          [style.color]="dette.estPaye ? '#166534' : (isOverdue(dette) ? '#991b1b' : '#92400e')"
+                          [style.border]="dette.estPaye ? '1px solid #86efac' : (isOverdue(dette) ? '1px solid #fca5a5' : '1px solid #fde047')"
+                          style="padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.75rem; font-weight: 600; display: inline-block;">
+                      <span *ngIf="dette.estPaye">✅ Payée</span>
+                      <span *ngIf="!dette.estPaye && isOverdue(dette)">🚨 En retard</span>
+                      <span *ngIf="!dette.estPaye && !isOverdue(dette)">⏳ En cours</span>
+                    </span>
+                  </td>
+                  
+                  <td style="padding: 1rem; text-align: center;">
+                    <button type="button"
+                            (click)="loadTranchesForDette(dette.id, true)"
+                            style="padding: 0.25rem 0.75rem; background: #667eea; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.75rem; font-weight: 600;">
+                      {{ getTranchesForDette(dette.id).length }} 💰
+                    </button>
+                  </td>
+                  
+                  <td style="padding: 1rem; text-align: center;">
+                    <div style="display: flex; gap: 0.5rem; justify-content: center;">
+                      <button *ngIf="!dette.estPaye" 
+                              (click)="markDetteAsPaid(dette)"
+                              style="padding: 0.4rem 0.6rem; background: #10b981; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;"
+                              title="Marquer comme payée">
+                        💰
+                      </button>
+                      
+                      <button (click)="editDette(dette)"
+                              style="padding: 0.4rem 0.6rem; background: #3b82f6; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;"
+                              title="Modifier">
+                        ✏️
+                      </button>
+                      
+                      <button (click)="deleteDette(dette)"
+                              style="padding: 0.4rem 0.6rem; background: #ef4444; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.8rem;"
+                              title="Supprimer">
+                        🗑️
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="filteredFournisseurDettes.length === 0" class="empty-state">
+            <div class="empty-icon">📋</div>
+            <h4>Aucune dette trouvée</h4>
+            <p>Ce fournisseur n'a pas de dettes correspondant aux critères sélectionnés.</p>
+            <button class="btn-primary" (click)="addDetteForFournisseur(selectedFournisseur)">
+              Ajouter une dette
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Timeline Section -->
+      <div class="timeline-section" *ngIf="getFournisseurTimeline(selectedFournisseur.id).length > 0">
+        <h3>📅 Historique des Transactions</h3>
+        <div class="timeline">
+          <div *ngFor="let event of getFournisseurTimeline(selectedFournisseur.id)" class="timeline-item">
+            <div class="timeline-marker" [ngClass]="getTimelineMarkerClass(event)">
+              <span class="timeline-icon">
+                <ng-container [ngSwitch]="event.type">
+                  <span *ngSwitchCase="'debt_created'">📋</span>
+                  <span *ngSwitchCase="'debt_paid'">✅</span>
+                  <span *ngSwitchCase="'tranche_paid'">💰</span>
+                  <span *ngSwitchCase="'tranche_due'">⏰</span>
+                  <span *ngSwitchDefault>📌</span>
+                </ng-container>
+              </span>
+            </div>
+            <div class="timeline-content">
+              <div class="timeline-header">
+                <span class="timeline-title">{{ event.title }}</span>
+                <span class="timeline-date">{{ formatDate(event.date) }}</span>
+              </div>
+              <p class="timeline-description">{{ event.description }}</p>
+              <div class="timeline-amount" *ngIf="event.amount">
+                {{ event.amount | number:'1.0-0' }} DT
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Action Buttons -->
+      <div class="details-actions">
+        <button class="btn-primary" (click)="editFournisseur(selectedFournisseur)">
+          <span class="icon">✏️</span>
+          Modifier Fournisseur
+        </button>
+        <button class="btn-success" (click)="addDetteForFournisseur(selectedFournisseur)">
+          <span class="icon">➕</span>
+          Nouvelle Dette
+        </button>
+        <button class="btn-outline" (click)="exportFournisseurData(selectedFournisseur)">
+          <span class="icon">📊</span>
+          Exporter Données
+        </button>
+        <button class="btn-outline" (click)="setView('fournisseurs')">
+          <span class="icon">⬅️</span>
+          Retour à la liste
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rapport View -->
+  <app-fournisseur-report
+    *ngIf="currentView === 'rapport'"
+    [fournisseurs]="fournisseurs"
+    [rapportDettes]="rapportDettes"
+    [isLoadingRapport]="isLoadingRapport"
+    [rapportDateDebut]="rapportDateDebut"
+    [rapportDateFin]="rapportDateFin"
+    [rapportInclureDettesPayees]="rapportInclureDettesPayees"
+    [selectedFournisseurIds]="selectedFournisseurIds"
+    (rapportDateDebutChange)="onRapportDateDebutChange($event)"
+    (rapportDateFinChange)="onRapportDateFinChange($event)"
+    (rapportInclureDettesPayeesChange)="onRapportInclureDettesPayeesChange($event)"
+    (selectedFournisseurIdsChange)="onSelectedFournisseurIdsChange($event)"
+    (applyFilter)="onRapportApplyFilter($event)"
+    (clearFilter)="onRapportClearFilter()"
+    (printRapport)="onRapportPrint()"
+    (exportRapport)="onRapportExport($event)">
+  </app-fournisseur-report>
+</div>
+
+

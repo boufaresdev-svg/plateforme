@@ -1,0 +1,1272 @@
+<div class="sous-traitance-management">
+  <!-- Header moderne -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="header-title">
+        <h1>🤝 Gestion Sous-Traitance</h1>
+        <p class="subtitle">Gérez vos prestataires et contrats de sous-traitance</p>
+      </div>
+      <div class="header-actions">
+        <button class="nav-pill" [class.active]="currentView === 'dashboard'" (click)="setView('dashboard')">
+          <span class="icon">📊</span>
+          Dashboard
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'sous-traitances'"
+          (click)="setView('sous-traitances')">
+          <span class="icon">🤝</span>
+          Contrats
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'interventions'" (click)="setView('interventions')">
+          <span class="icon">🔧</span>
+          Interventions
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'prestataires'" (click)="setView('prestataires')">
+          <span class="icon">👥</span>
+          Prestataires
+        </button>
+        <button class="btn-primary" (click)="showAddSousTraitanceForm()" *ngIf="currentView === 'sous-traitances'">
+          <span class="icon">➕</span>
+          Nouveau Contrat
+        </button>
+        <button class="btn-primary" (click)="showAddPrestataireForm()" *ngIf="currentView === 'prestataires'">
+          <span class="icon">➕</span>
+          Nouveau Prestataire
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard-view" *ngIf="currentView === 'dashboard'">
+    <div class="stats-container">
+      <div class="stat-card primary">
+        <div class="stat-icon">🤝</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.totalSousTraitances }}</div>
+          <div class="stat-label">Total Contrats</div>
+        </div>
+      </div>
+
+      <div class="stat-card warning">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.sousTraitancesEnCours }}</div>
+          <div class="stat-label">En Cours</div>
+        </div>
+      </div>
+
+      <div class="stat-card info">
+        <div class="stat-icon">📅</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.sousTraitancesPlanifiees }}</div>
+          <div class="stat-label">Planifiées</div>
+        </div>
+      </div>
+
+      <div class="stat-card success">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.nombreSousTraitants }}</div>
+          <div class="stat-label">Prestataires</div>
+        </div>
+      </div>
+
+      <div class="stat-card danger">
+        <div class="stat-icon">💰</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.coutTotalSousTraitance | number }}</div>
+          <div class="stat-label">Coût Total (DT)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Contrats récents -->
+    <div class="recent-section">
+      <div class="section-header">
+        <h2>Contrats Récents</h2>
+        <button class="btn-outline" (click)="setView('sous-traitances')">
+          Voir tout
+          <span class="icon">→</span>
+        </button>
+      </div>
+
+      <div class="sous-traitances-grid">
+        <div *ngFor="let sousTraitance of sousTraitances.slice(0, 6)" class="sous-traitance-card modern"
+          (click)="viewSousTraitanceDetails(sousTraitance)">
+          <div class="card-header">
+            <div class="sous-traitance-info">
+              <h3>{{ sousTraitance.titre }}</h3>
+              <span class="sous-traitance-type" [class]="getTypeClass(sousTraitance.type)">
+                {{ sousTraitance.type }}
+              </span>
+            </div>
+            <div class="priority-indicator">
+              <span class="priority-dot" [class]="getPriorityClass(sousTraitance.priorite)"></span>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <div class="sous-traitance-prestataire">{{ sousTraitance.sousTraitant }}</div>
+            <div class="sous-traitance-contact">{{ sousTraitance.contactSousTraitant }}</div>
+            <div class="sous-traitance-dates">
+              <span class="date-label">Échéance:</span>
+              <span class="date-value" [class.overdue]="isOverdue(sousTraitance)">
+                {{ sousTraitance.dateFinPrevue | date:'dd/MM/yyyy' }}
+              </span>
+            </div>
+            <div class="sous-traitance-cost">
+              Coût: {{ getTotalCost(sousTraitance) | number }} DT
+            </div>
+            <div class="sous-traitance-status">
+              <span class="status-badge" [class]="getStatusClass(sousTraitance.statut)">
+                {{ sousTraitance.statut }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Prestataires actifs -->
+    <div class="recent-section">
+      <div class="section-header">
+        <h2>Prestataires Actifs</h2>
+        <button class="btn-outline" (click)="setView('prestataires')">
+          Voir tout
+          <span class="icon">→</span>
+        </button>
+      </div>
+
+      <div class="prestataires-grid">
+        <div *ngFor="let prestataire of prestataires.slice(0, 6)" class="prestataire-card modern"
+          (click)="viewPrestataireDetails(prestataire)">
+          <div class="card-header">
+            <div class="prestataire-info">
+              <h3>{{ prestataire.nom }}</h3>
+              <span class="prestataire-secteur">{{ prestataire.secteur }}</span>
+            </div>
+            <div class="status-indicator">
+              <span class="status-dot" [class]="getPrestataireStatusClass(prestataire.statut)"></span>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <div class="prestataire-contact">{{ prestataire.contactPrincipal.nom }} {{
+              prestataire.contactPrincipal.prenom }}</div>
+            <div class="prestataire-email">{{ prestataire.email }}</div>
+            <div class="prestataire-contrats">
+              Contrats actifs: {{ getPrestataireActiveContractsCount(prestataire.nom) }}
+            </div>
+            <div class="prestataire-total">
+              Total: {{ getPrestataireActiveContractsCount(prestataire.nom) }} contrat(s)
+            </div>
+            <div class="prestataire-status">
+              <span class="status-badge" [class]="getPrestataireStatusClass(prestataire.statut)">
+                {{ prestataire.statut }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste des sous-traitances -->
+  <div class="sous-traitances-view" *ngIf="currentView === 'sous-traitances'">
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Rechercher un contrat..." [(ngModel)]="searchTerm" class="search-input">
+        </div>
+        <div class="filters-section">
+          <div class="filter-group">
+            <label class="filter-label">Type</label>
+            <select class="filter-select" [(ngModel)]="filterType" (change)="filterSousTraitances()">
+              <option value="">Tous les types</option>
+              <option *ngFor="let type of typesSousTraitance" [value]="type">
+                {{ type }}
+              </option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Statut</label>
+            <select class="filter-select" [(ngModel)]="filterStatut" (change)="filterSousTraitances()">
+              <option value="">Tous les statuts</option>
+              <option *ngFor="let statut of statutsSousTraitance" [value]="statut">
+                {{ statut }}
+              </option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Prestataire</label>
+            <input type="text" class="filter-input" [(ngModel)]="filterPrestataire" (input)="filterSousTraitances()"
+              placeholder="Nom du prestataire">
+          </div>
+          <button class="btn-outline" (click)="clearSousTraitanceFilters()">
+            <span class="icon">🗑️</span>
+            Effacer
+          </button>
+        </div>
+        <div class="table-actions">
+          <button class="btn-outline">
+            <span class="icon">📊</span>
+            Exporter
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Contrat</div>
+          <div class="table-cell">Prestataire</div>
+          <div class="table-cell">Type</div>
+          <div class="table-cell">Priorité</div>
+          <div class="table-cell">Dates</div>
+          <div class="table-cell">Coût (DT)</div>
+          <div class="table-cell">Statut</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let sousTraitance of filteredSousTraitances" class="table-row clickable"
+          (click)="viewSousTraitanceDetails(sousTraitance)">
+          <div class="table-cell sous-traitance-info">
+            <div class="sous-traitance-avatar">🤝</div>
+            <div class="sous-traitance-details">
+              <div class="sous-traitance-name">{{ sousTraitance.titre }}</div>
+              <div class="sous-traitance-description">{{ sousTraitance.description }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <div class="prestataire-info">
+              <div class="prestataire-name">{{ sousTraitance.sousTraitant }}</div>
+              <div class="prestataire-contact">{{ sousTraitance.contactSousTraitant }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="type-badge" [class]="getTypeClass(sousTraitance.type)">
+              {{ sousTraitance.type }}
+            </span>
+          </div>
+
+          <div class="table-cell">
+            <span class="priority-badge" [class]="getPriorityClass(sousTraitance.priorite)">
+              {{ sousTraitance.priorite }}
+            </span>
+          </div>
+
+          <div class="table-cell">
+            <div class="dates-info">
+              <span class="date-debut">{{ sousTraitance.dateDebutPrevue | date:'dd/MM/yyyy' }}</span>
+              <span class="date-separator">→</span>
+              <span class="date-fin" [class.overdue]="isOverdue(sousTraitance)">
+                {{ sousTraitance.dateFinPrevue | date:'dd/MM/yyyy' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="cost-value">{{ getTotalCost(sousTraitance) | number }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="status-badge" [class]="getStatusClass(sousTraitance.statut)">
+              {{ sousTraitance.statut }}
+            </span>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editSousTraitance(sousTraitance)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn" (click)="addIntervention(sousTraitance)" title="Intervention">
+                🔧
+              </button>
+              <button class="action-btn danger" (click)="deleteSousTraitance(sousTraitance.id)" title="Supprimer">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredSousTraitances.length === 0" class="empty-state-table">
+          <div class="empty-icon">🤝</div>
+          <p>Aucun contrat trouvé</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste des interventions -->
+  <div class="interventions-view" *ngIf="currentView === 'interventions'">
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Rechercher une intervention..." [(ngModel)]="searchTermIntervention"
+            class="search-input">
+        </div>
+        <div class="filters-section">
+          <div class="filter-group">
+            <label class="filter-label">Contrat</label>
+            <select class="filter-select" [(ngModel)]="filterSousTraitanceId" (change)="applyInterventionFilters()">
+              <option value="">Tous les contrats</option>
+              <option *ngFor="let sousTraitance of sousTraitances" [value]="sousTraitance.id">
+                {{ sousTraitance.titre }}
+              </option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Statut</label>
+            <select class="filter-select" [(ngModel)]="filterStatutIntervention" (change)="applyInterventionFilters()">
+              <option value="">Tous les statuts</option>
+              <option *ngFor="let statut of statutsIntervention" [value]="statut">
+                {{ statut }}
+              </option>
+            </select>
+          </div>
+          <button class="btn-outline" (click)="clearInterventionFilters()">
+            <span class="icon">🗑️</span>
+            Effacer
+          </button>
+        </div>
+        <div class="table-actions">
+          <button class="btn-outline">
+            <span class="icon">📊</span>
+            Exporter
+          </button>
+          <button class="btn-primary" (click)="showAddInterventionForm()">
+            <span class="icon">➕</span>
+            Nouvelle Intervention
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Intervention</div>
+          <div class="table-cell">Contrat</div>
+          <div class="table-cell">Technicien</div>
+          <div class="table-cell">Date</div>
+          <div class="table-cell">Durée (h)</div>
+          <div class="table-cell">Statut</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let intervention of filteredInterventions" class="table-row clickable"
+          (click)="viewInterventionDetails(intervention)">
+          <div class="table-cell intervention-info">
+            <div class="intervention-avatar">🔧</div>
+            <div class="intervention-details">
+              <div class="intervention-description">{{ intervention.description }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="contrat-name">{{ getSousTraitanceName(intervention.sousTraitanceId) }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="technicien-name">{{ intervention.technicien }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="intervention-date">{{ intervention.dateIntervention | date:'dd/MM/yyyy' }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="duree-value">{{ intervention.duree }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="status-badge" [class]="getStatusClass(intervention.statut)">
+              {{ intervention.statut }}
+            </span>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editIntervention(intervention)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn" (click)="viewInterventionDetails(intervention)" title="Détails">
+                👁️
+              </button>
+              <button class="action-btn danger" (click)="deleteIntervention(intervention.id)" title="Supprimer">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredInterventions.length === 0" class="empty-state-table">
+          <div class="empty-icon">🔧</div>
+          <p>Aucune intervention trouvée</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste des prestataires -->
+  <div class="prestataires-view" *ngIf="currentView === 'prestataires'">
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Rechercher un prestataire..." [(ngModel)]="searchTermPrestataire"
+            class="search-input">
+        </div>
+        <div class="filters-section">
+          <div class="filter-group">
+            <label class="filter-label">Secteur</label>
+            <select class="filter-select" [(ngModel)]="filterSecteurPrestataire" (change)="applyPrestataireFilters()">
+              <option value="">Tous les secteurs</option>
+              <option *ngFor="let secteur of secteursPrestataire" [value]="secteur">
+                {{ secteur }}
+              </option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Type</label>
+            <select class="filter-select" [(ngModel)]="filterTypePrestataire" (change)="applyPrestataireFilters()">
+              <option value="">Tous les types</option>
+              <option *ngFor="let type of typesPrestataire" [value]="type">
+                {{ type }}
+              </option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Statut</label>
+            <select class="filter-select" [(ngModel)]="filterStatutPrestataire" (change)="applyPrestataireFilters()">
+              <option value="">Tous les statuts</option>
+              <option *ngFor="let statut of statutsPrestataire" [value]="statut">
+                {{ statut }}
+              </option>
+            </select>
+          </div>
+          <button class="btn-outline" (click)="clearPrestataireFilters()">
+            <span class="icon">🗑️</span>
+            Effacer
+          </button>
+        </div>
+        <div class="table-actions">
+          <button class="btn-outline">
+            <span class="icon">📊</span>
+            Exporter
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Prestataire</div>
+          <div class="table-cell">Secteur</div>
+          <div class="table-cell">Type</div>
+          <div class="table-cell">Contact Principal</div>
+          <div class="table-cell">Note</div>
+          <div class="table-cell">Statut</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let prestataire of filteredPrestataires" class="table-row clickable"
+          (click)="viewPrestataireDetails(prestataire)">
+          <div class="table-cell prestataire-info">
+            <div class="prestataire-avatar">{{ getPrestataireInitials(prestataire) }}</div>
+            <div class="prestataire-details">
+              <div class="prestataire-name">{{ prestataire.nom }}</div>
+              <div class="prestataire-email">{{ prestataire.email }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="type-badge" [class]="getSecteurClass(prestataire.secteur)">
+              {{ prestataire.secteur }}
+            </span>
+          </div>
+
+          <div class="table-cell">
+            <span class="type-badge" [class]="getPrestataireTypeClass(prestataire.type)">
+              {{ prestataire.type }}
+            </span>
+          </div>
+
+          <div class="table-cell">
+            <div class="contact-info">
+              <div class="contact-name">{{ prestataire.contactPrincipal.nom }} {{ prestataire.contactPrincipal.prenom
+                }}</div>
+              <div class="contact-poste">{{ prestataire.contactPrincipal.poste }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <div class="note-display">
+              <span class="note-stars">⭐</span>
+              <span class="note-value">{{ getPrestataireNote(prestataire.id) }}/5</span>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="status-badge" [class]="getPrestataireStatusClass(prestataire.statut)">
+              {{ prestataire.statut }}
+            </span>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editPrestataire(prestataire)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn" (click)="addEvaluationPrestataire(prestataire)" title="Évaluer">
+                ⭐
+              </button>
+              <button class="action-btn danger" (click)="deletePrestataire(prestataire.id)" title="Supprimer">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredPrestataires.length === 0" class="empty-state-table">
+          <div class="empty-icon">👥</div>
+          <p>Aucun prestataire trouvé</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vue en développement pour les interventions -->
+  <div *ngIf="currentView === 'interventions'" class="development-view">
+    <div class="development-card">
+      <div class="development-icon">🚧</div>
+      <h2>{{ getViewTitle() }}</h2>
+      <p>Cette section est en cours de développement</p>
+      <div class="development-features">
+        <h4>Fonctionnalités prévues:</h4>
+        <ul>
+          <li *ngFor="let feature of getViewFeatures()">{{ feature }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup détails sous-traitance -->
+  <div class="popup-overlay" *ngIf="showSousTraitanceDetails" (click)="closeSousTraitanceDetails()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>Détails du Contrat</h2>
+        <button class="popup-close" (click)="closeSousTraitanceDetails()">✕</button>
+      </div>
+
+      <div class="popup-content" *ngIf="selectedSousTraitance">
+        <div class="details-grid">
+          <div class="info-section">
+            <h3>Informations Générales</h3>
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-label">Titre</span>
+                <span class="info-value">{{ selectedSousTraitance.titre }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Type</span>
+                <span class="info-value">{{ selectedSousTraitance.type }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Priorité</span>
+                <span class="info-value">{{ selectedSousTraitance.priorite }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Statut</span>
+                <span class="info-value">{{ selectedSousTraitance.statut }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Domaine</span>
+                <span class="info-value">{{ selectedSousTraitance.domaine }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Emplacement</span>
+                <span class="info-value">{{ selectedSousTraitance.emplacement }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="prestataire-section">
+            <h3>Prestataire</h3>
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-label">Nom</span>
+                <span class="info-value">{{ selectedSousTraitance.sousTraitant }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Contact</span>
+                <span class="info-value">{{ selectedSousTraitance.contactSousTraitant }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Téléphone</span>
+                <span class="info-value">{{ selectedSousTraitance.telephoneSousTraitant }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Email</span>
+                <span class="info-value">{{ selectedSousTraitance.emailSousTraitant }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="planning-section">
+            <h3>Planning</h3>
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-label">Date début prévue</span>
+                <span class="info-value">{{ selectedSousTraitance.dateDebutPrevue | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Date fin prévue</span>
+                <span class="info-value">{{ selectedSousTraitance.dateFinPrevue | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="info-item" *ngIf="selectedSousTraitance.dateDebutEffective">
+                <span class="info-label">Date début effective</span>
+                <span class="info-value">{{ selectedSousTraitance.dateDebutEffective | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="info-item" *ngIf="selectedSousTraitance.dateFinEffective">
+                <span class="info-label">Date fin effective</span>
+                <span class="info-value">{{ selectedSousTraitance.dateFinEffective | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Coût estimé</span>
+                <span class="info-value highlight">{{ selectedSousTraitance.coutEstime | number }} DT</span>
+              </div>
+              <div class="info-item" *ngIf="selectedSousTraitance.coutReel">
+                <span class="info-label">Coût réel</span>
+                <span class="info-value highlight">{{ selectedSousTraitance.coutReel | number }} DT</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="interventions-section">
+            <div class="section-header-with-action">
+              <h3>Interventions</h3>
+              <button class="btn-primary" (click)="addIntervention(selectedSousTraitance)">
+                <span class="icon">➕</span>
+                Ajouter
+              </button>
+            </div>
+
+            <div class="interventions-list">
+              <div *ngFor="let intervention of getSousTraitanceInterventions(selectedSousTraitance.id)"
+                class="intervention-item" (click)="viewInterventionDetails(intervention)">
+                <div class="intervention-icon">🔧</div>
+                <div class="intervention-content">
+                  <div class="intervention-technicien">{{ intervention.technicien }}</div>
+                  <div class="intervention-meta">
+                    <span>{{ intervention.dateIntervention | date:'dd/MM/yyyy' }}</span>
+                    <span>{{ intervention.duree }}h</span>
+                    <span class="intervention-statut" [class]="getStatusClass(intervention.statut)">
+                      {{ intervention.statut }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div *ngIf="getSousTraitanceInterventions(selectedSousTraitance.id).length === 0" class="empty-state">
+                <div class="empty-icon">🔧</div>
+                <p>Aucune intervention programmée</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="description-section">
+            <h3>Description</h3>
+            <div class="description-content">
+              <div class="description-item">
+                <h4>Mission</h4>
+                <p>{{ selectedSousTraitance.description }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup détails prestataire -->
+  <div class="popup-overlay" *ngIf="showPrestataireDetails" (click)="closePrestataireDetails()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>Détails du Prestataire</h2>
+        <button class="popup-close" (click)="closePrestataireDetails()">✕</button>
+      </div>
+
+      <div class="popup-content" *ngIf="selectedPrestataire">
+        <div class="details-grid">
+          <div class="info-section">
+            <h3>Informations Générales</h3>
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-label">Nom</span>
+                <span class="info-value">{{ selectedPrestataire.nom }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Raison sociale</span>
+                <span class="info-value">{{ selectedPrestataire.raisonSociale }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Secteur</span>
+                <span class="info-value">{{ selectedPrestataire.secteur }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Type</span>
+                <span class="info-value">{{ selectedPrestataire.type }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Email</span>
+                <span class="info-value">{{ selectedPrestataire.email }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Téléphone</span>
+                <span class="info-value">{{ selectedPrestataire.telephone }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="contact-principal-section">
+            <h3>Contact Principal</h3>
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-label">Nom</span>
+                <span class="info-value">{{ selectedPrestataire.contactPrincipal.nom }} {{
+                  selectedPrestataire.contactPrincipal.prenom }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Poste</span>
+                <span class="info-value">{{ selectedPrestataire.contactPrincipal.poste }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Téléphone</span>
+                <span class="info-value">{{ selectedPrestataire.contactPrincipal.telephone }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Email</span>
+                <span class="info-value">{{ selectedPrestataire.contactPrincipal.email }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="conditions-section">
+            <h3>Conditions</h3>
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-label">Délai paiement</span>
+                <span class="info-value">{{ selectedPrestataire.conditions.delaiPaiement }} jours</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Remise</span>
+                <span class="info-value">{{ selectedPrestataire.conditions.remise }}%</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Frais déplacement</span>
+                <span class="info-value">{{ selectedPrestataire.conditions.fraisDeplacementKm }} DT/km</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Garantie</span>
+                <span class="info-value">{{ selectedPrestataire.conditions.garantie }} mois</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup formulaire sous-traitance -->
+  <div class="popup-overlay" *ngIf="showSousTraitanceForm" (click)="closeSousTraitanceForm()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>{{ isEditMode ? 'Modifier' : 'Nouveau' }} Contrat</h2>
+        <button class="popup-close" (click)="closeSousTraitanceForm()">✕</button>
+      </div>
+
+      <form (ngSubmit)="saveSousTraitance()" #sousTraitanceForm="ngForm" class="popup-form">
+        <div class="form-section">
+          <h3>Informations Générales</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Titre *</label>
+              <input type="text" class="form-input" [(ngModel)]="sousTraitanceFormData.titre" name="titre" required
+                placeholder="Maintenance informatique serveurs" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Type *</label>
+              <select class="form-input" [(ngModel)]="sousTraitanceFormData.type" name="type" required>
+                <option value="">Sélectionner</option>
+                <option *ngFor="let type of typesSousTraitance" [value]="type">
+                  {{ type }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Priorité *</label>
+              <select class="form-input" [(ngModel)]="sousTraitanceFormData.priorite" name="priorite" required>
+                <option value="">Sélectionner</option>
+                <option *ngFor="let priorite of prioritesSousTraitance" [value]="priorite">
+                  {{ priorite }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Statut *</label>
+              <select class="form-input" [(ngModel)]="sousTraitanceFormData.statut" name="statut" required>
+                <option value="">Sélectionner</option>
+                <option *ngFor="let statut of statutsSousTraitance" [value]="statut">
+                  {{ statut }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Domaine</label>
+              <input type="text" class="form-input" [(ngModel)]="sousTraitanceFormData.domaine" name="domaine"
+                placeholder="Informatique" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Emplacement</label>
+              <input type="text" class="form-input" [(ngModel)]="sousTraitanceFormData.emplacement" name="emplacement"
+                placeholder="Salle serveur - Rack 1" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Description</h3>
+          <div class="form-group full-width">
+            <label class="form-label">Description détaillée *</label>
+            <textarea class="form-input" [(ngModel)]="sousTraitanceFormData.description" name="description" required
+              rows="4" placeholder="Décrivez en détail la mission à réaliser..."></textarea>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Prestataire</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Nom du prestataire *</label>
+              <input type="text" class="form-input" [(ngModel)]="sousTraitanceFormData.sousTraitant" name="sousTraitant"
+                required placeholder="TechnoServ SARL" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Contact *</label>
+              <input type="text" class="form-input" [(ngModel)]="sousTraitanceFormData.contactSousTraitant"
+                name="contactSousTraitant" required placeholder="Ahmed Benali" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Téléphone</label>
+              <input type="tel" class="form-input" [(ngModel)]="sousTraitanceFormData.telephoneSousTraitant"
+                name="telephoneSousTraitant" placeholder="+216 71 123 456" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-input" [(ngModel)]="sousTraitanceFormData.emailSousTraitant"
+                name="emailSousTraitant" placeholder="contact@technoserv.tn" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Planning et Budget</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Date début prévue *</label>
+              <input type="date" class="form-input" [(ngModel)]="sousTraitanceFormData.dateDebutPrevue"
+                name="dateDebutPrevue" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Date fin prévue *</label>
+              <input type="date" class="form-input" [(ngModel)]="sousTraitanceFormData.dateFinPrevue"
+                name="dateFinPrevue" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Date début effective</label>
+              <input type="date" class="form-input" [(ngModel)]="sousTraitanceFormData.dateDebutEffective"
+                name="dateDebutEffective" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Date fin effective</label>
+              <input type="date" class="form-input" [(ngModel)]="sousTraitanceFormData.dateFinEffective"
+                name="dateFinEffective" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Coût estimé (DT) *</label>
+              <input type="number" class="form-input" [(ngModel)]="sousTraitanceFormData.coutEstime" name="coutEstime"
+                required min="0" placeholder="1500" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Coût réel (DT)</label>
+              <input type="number" class="form-input" [(ngModel)]="sousTraitanceFormData.coutReel" name="coutReel"
+                min="0" placeholder="1600" />
+            </div>
+          </div>
+        </div>
+
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeSousTraitanceForm()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="sousTraitanceForm.invalid">
+            <span class="icon">💾</span>
+            {{ isEditMode ? 'Modifier' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Popup formulaire prestataire -->
+  <div class="popup-overlay" *ngIf="showPrestataireForm" (click)="closePrestataireForm()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>{{ isEditModePrestataire ? 'Modifier' : 'Nouveau' }} Prestataire</h2>
+        <button class="popup-close" (click)="closePrestataireForm()">✕</button>
+      </div>
+
+      <form (ngSubmit)="savePrestataire()" #prestataireForm="ngForm" class="popup-form">
+        <div class="form-section">
+          <h3>Informations Générales</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Nom *</label>
+              <input type="text" class="form-input" [(ngModel)]="prestataireFormData.nom" name="nom" required
+                placeholder="TechnoServ" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Raison sociale *</label>
+              <input type="text" class="form-input" [(ngModel)]="prestataireFormData.raisonSociale" name="raisonSociale"
+                required placeholder="TechnoServ SARL" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">SIRET</label>
+              <input type="text" class="form-input" [(ngModel)]="prestataireFormData.siret" name="siret"
+                placeholder="12345678901234" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Secteur *</label>
+              <select class="form-input" [(ngModel)]="prestataireFormData.secteur" name="secteur" required>
+                <option value="">Sélectionner</option>
+                <option *ngFor="let secteur of secteursPrestataire" [value]="secteur">
+                  {{ secteur }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Type *</label>
+              <select class="form-input" [(ngModel)]="prestataireFormData.type" name="type" required>
+                <option value="">Sélectionner</option>
+                <option *ngFor="let type of typesPrestataire" [value]="type">
+                  {{ type }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Statut *</label>
+              <select class="form-input" [(ngModel)]="prestataireFormData.statut" name="statut" required>
+                <option value="">Sélectionner</option>
+                <option *ngFor="let statut of statutsPrestataire" [value]="statut">
+                  {{ statut }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Contact</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Téléphone *</label>
+              <input type="tel" class="form-input" [(ngModel)]="prestataireFormData.telephone" name="telephone" required
+                placeholder="+216 71 123 456" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Email *</label>
+              <input type="email" class="form-input" [(ngModel)]="prestataireFormData.email" name="email" required
+                placeholder="contact@prestataire.com" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Site web</label>
+              <input type="url" class="form-input" [(ngModel)]="prestataireFormData.siteWeb" name="siteWeb"
+                placeholder="https://prestataire.com" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Adresse *</label>
+              <input type="text" class="form-input" [(ngModel)]="prestataireFormData.adresse" name="adresse" required
+                placeholder="123 Avenue de la Technologie" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Ville *</label>
+              <input type="text" class="form-input" [(ngModel)]="prestataireFormData.ville" name="ville" required
+                placeholder="Tunis" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Code postal</label>
+              <input type="text" class="form-input" [(ngModel)]="prestataireFormData.codePostal" name="codePostal"
+                placeholder="1000" />
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Contact Principal</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Nom *</label>
+              <input type="text" class="form-input" [(ngModel)]="prestataireFormData.contactPrincipal.nom"
+                name="contactNom" required placeholder="Benali" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Prénom *</label>
+              <input type="text" class="form-input" [(ngModel)]="prestataireFormData.contactPrincipal.prenom"
+                name="contactPrenom" required placeholder="Ahmed" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Poste</label>
+              <input type="text" class="form-input" [(ngModel)]="prestataireFormData.contactPrincipal.poste"
+                name="contactPoste" placeholder="Directeur Technique" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Téléphone contact</label>
+              <input type="tel" class="form-input" [(ngModel)]="prestataireFormData.contactPrincipal.telephone"
+                name="contactTelephone" placeholder="+216 20 123 456" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Email contact</label>
+              <input type="email" class="form-input" [(ngModel)]="prestataireFormData.contactPrincipal.email"
+                name="contactEmail" placeholder="ahmed.benali@prestataire.com" />
+            </div>
+          </div>
+        </div>
+
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closePrestataireForm()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="prestataireForm.invalid">
+            <span class="icon">💾</span>
+            {{ isEditModePrestataire ? 'Modifier' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Popup formulaire intervention -->
+  <div class="popup-overlay" *ngIf="showInterventionForm" (click)="closeInterventionForm()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>{{ isEditModeIntervention ? 'Modifier' : 'Nouvelle' }} Intervention</h2>
+        <button class="popup-close" (click)="closeInterventionForm()">✕</button>
+      </div>
+
+      <form (ngSubmit)="saveIntervention()" #interventionForm="ngForm" class="popup-form">
+        <div class="form-section">
+          <h3>Détails de l'Intervention</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Contrat *</label>
+              <select class="form-input" [(ngModel)]="interventionFormData.sousTraitanceId" name="sousTraitanceId"
+                required>
+                <option value="">Sélectionner un contrat</option>
+                <option *ngFor="let sousTraitance of sousTraitances" [value]="sousTraitance.id">
+                  {{ sousTraitance.titre }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Technicien *</label>
+              <input type="text" class="form-input" [(ngModel)]="interventionFormData.technicien" name="technicien"
+                required placeholder="Nom du technicien" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Date d'intervention *</label>
+              <input type="date" class="form-input" [(ngModel)]="interventionFormData.dateIntervention"
+                name="dateIntervention" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Durée (heures) *</label>
+              <input type="number" class="form-input" [(ngModel)]="interventionFormData.duree" name="duree" required
+                min="0" step="0.5" placeholder="4" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Statut *</label>
+              <select class="form-input" [(ngModel)]="interventionFormData.statut" name="statut" required>
+                <option value="">Sélectionner</option>
+                <option *ngFor="let statut of statutsIntervention" [value]="statut">
+                  {{ statut }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Description et Observations</h3>
+          <div class="form-group full-width">
+            <label class="form-label">Description *</label>
+            <textarea class="form-input" [(ngModel)]="interventionFormData.description" name="description" required
+              rows="3" placeholder="Description de l'intervention..."></textarea>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Observations</label>
+            <textarea class="form-input" [(ngModel)]="interventionFormData.observations" name="observations" rows="3"
+              placeholder="Observations particulières..."></textarea>
+          </div>
+        </div>
+
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeInterventionForm()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="interventionForm.invalid">
+            <span class="icon">💾</span>
+            {{ isEditModeIntervention ? 'Modifier' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Popup formulaire évaluation -->
+  <div class="popup-overlay" *ngIf="showEvaluationForm" (click)="closeEvaluationForm()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>Évaluer le Prestataire</h2>
+        <button class="popup-close" (click)="closeEvaluationForm()">✕</button>
+      </div>
+
+      <form (ngSubmit)="saveEvaluation()" #evaluationForm="ngForm" class="popup-form">
+        <div class="form-section">
+          <h3>Critères d'Évaluation</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Qualité (1-5) *</label>
+              <select class="form-input" [(ngModel)]="evaluationFormData.qualite" name="qualite" required
+                (change)="updateNoteGlobale()">
+                <option value="1">1 - Très mauvais</option>
+                <option value="2">2 - Mauvais</option>
+                <option value="3">3 - Moyen</option>
+                <option value="4">4 - Bon</option>
+                <option value="5">5 - Excellent</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Délais (1-5) *</label>
+              <select class="form-input" [(ngModel)]="evaluationFormData.delais" name="delais" required
+                (change)="updateNoteGlobale()">
+                <option value="1">1 - Très mauvais</option>
+                <option value="2">2 - Mauvais</option>
+                <option value="3">3 - Moyen</option>
+                <option value="4">4 - Bon</option>
+                <option value="5">5 - Excellent</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Service (1-5) *</label>
+              <select class="form-input" [(ngModel)]="evaluationFormData.service" name="service" required
+                (change)="updateNoteGlobale()">
+                <option value="1">1 - Très mauvais</option>
+                <option value="2">2 - Mauvais</option>
+                <option value="3">3 - Moyen</option>
+                <option value="4">4 - Bon</option>
+                <option value="5">5 - Excellent</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Prix (1-5) *</label>
+              <select class="form-input" [(ngModel)]="evaluationFormData.prix" name="prix" required
+                (change)="updateNoteGlobale()">
+                <option value="1">1 - Très cher</option>
+                <option value="2">2 - Cher</option>
+                <option value="3">3 - Correct</option>
+                <option value="4">4 - Bon prix</option>
+                <option value="5">5 - Excellent prix</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Date d'évaluation *</label>
+              <input type="date" class="form-input" [(ngModel)]="evaluationFormData.date" name="date" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Évaluateur *</label>
+              <input type="text" class="form-input" [(ngModel)]="evaluationFormData.evaluateur" name="evaluateur"
+                required placeholder="Nom de l'évaluateur" />
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Note globale</label>
+            <div class="note-display">
+              <span class="note-value">{{ evaluationFormData.noteGlobale || 0 }}/5</span>
+              <div class="note-stars">
+                <span *ngFor="let star of [1,2,3,4,5]" class="star"
+                  [class.filled]="star <= (evaluationFormData.noteGlobale || 0)">
+                  ⭐
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Commentaires</label>
+            <textarea class="form-input" [(ngModel)]="evaluationFormData.commentaires" name="commentaires" rows="4"
+              placeholder="Commentaires sur la performance du prestataire..."></textarea>
+          </div>
+        </div>
+
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeEvaluationForm()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="evaluationForm.invalid">
+            <span class="icon">💾</span>
+            Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

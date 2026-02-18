@@ -1,0 +1,1667 @@
+<div class="vehicle-management">
+  <!-- Header moderne -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="header-title">
+        <h1>🚗 Gestion Véhicules</h1>
+        <p class="subtitle">Gérez votre parc automobile et cartes gazoil</p>
+      </div>
+      <div class="header-actions">
+        <button class="nav-pill" [class.active]="currentView === 'dashboard'" (click)="setView('dashboard')">
+          <span class="icon">📊</span>
+          Dashboard
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'vehicles'" (click)="setView('vehicles')">
+          <span class="icon">🚗</span>
+          Véhicules
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'cartes'" (click)="setView('cartes')">
+          <span class="icon">⛽</span>
+          Cartes Gazoil
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'telepeage'" (click)="setView('telepeage')">
+          <span class="icon">🛣️</span>
+          Cartes Télépéage
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'reparations'" (click)="setView('reparations')">
+          <span class="icon">🔧</span>
+          Réparations
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'transactions'" (click)="setView('transactions')">
+          <span class="icon">💳</span>
+          Transactions
+        </button>
+        <button class="btn-primary" (click)="showAddVehicleForm()" *ngIf="currentView === 'vehicles'">
+          <span class="icon">➕</span>
+          Nouveau Véhicule
+        </button>
+        <button class="btn-primary" (click)="showAddCarteForm()" *ngIf="currentView === 'cartes'">
+          <span class="icon">➕</span>
+          Nouvelle Carte
+        </button>
+        <button class="btn-primary" (click)="showAddReparationForm()" *ngIf="currentView === 'reparations'">
+          <span class="icon">➕</span>
+          Nouvelle Réparation
+        </button>
+        <button class="btn-primary" (click)="showAddTransactionForm()" *ngIf="currentView === 'transactions'">
+          <span class="icon">➕</span>
+          Nouvelle Transaction
+        </button>
+        <button class="btn-primary" (click)="showAddTelepeageForm()" *ngIf="currentView === 'telepeage'">
+          <span class="icon">➕</span>
+          Nouvelle Carte Télépéage
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard-view" *ngIf="currentView === 'dashboard'">
+    <div class="stats-container">
+      <div class="stat-card primary">
+        <div class="stat-icon">🚗</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ vehicles.length }}</div>
+          <div class="stat-label">Total Véhicules</div>
+        </div>
+      </div>
+      <div class="stat-card info">
+        <div class="stat-icon">⛽</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ cartes.length}}</div>
+          <div class="stat-label">Cartes Gazoil</div>
+        </div>
+      </div>
+      <div class="stat-card warning" *ngIf="vehicleStats.prochainVidangeKm > 0">
+        <div class="stat-icon">🔧</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ vehicleStats.prochainVidangeKm }}</div>
+          <div class="stat-label">Vidanges Dues</div>
+        </div>
+      </div>
+
+      <div class="stat-card danger">
+        <div class="stat-icon">⚠️</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ nb_visite_expirees }}</div>
+          <div class="stat-label">Visites Expirées</div>
+        </div>
+      </div>
+
+      <div class="stat-card danger">
+        <div class="stat-icon">🛡️</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ nb_assurance_expirees }}</div>
+          <div class="stat-label">Assurances Expirées</div>
+        </div>
+      </div>
+
+      <div class="stat-card danger">
+        <div class="stat-icon">💰</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ nb_taxe_expirees }}</div>
+          <div class="stat-label">Taxes Expirées</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Réparations récentes -->
+    <div class="recent-section">
+      <div class="section-header">
+        <h2>Réparations Récentes</h2>
+        <button class="btn-outline" (click)="setView('vehicles')">
+          Voir tout
+          <span class="icon">→</span>
+        </button>
+      </div>
+
+      <div class="table-container">
+        <div class="modern-table">
+          <div class="table-row header">
+            <div class="table-cell">Véhicule</div>
+            <div class="table-cell">Type Réparation</div>
+            <div class="table-cell">Date</div>
+            <div class="table-cell">Prix</div>
+            <div class="table-cell">Description</div>
+          </div>
+
+          <div *ngFor="let reparation of getRecentReparations()" class="table-row clickable"
+            (click)="viewVehicleByReparation(reparation)">
+            <div class="table-cell vehicle-info">
+              <div class="vehicle-avatar">🚗</div>
+              <div class="vehicle-details">
+                <div class="vehicle-name">{{reparation.vehicule?.marque }}</div>
+                <div class="vehicle-serie">{{reparation.vehicule?.serie }}</div>
+              </div>
+            </div>
+
+            <div class="table-cell">
+              <span class="reparation-type-badge">{{ reparation.type }}</span>
+            </div>
+
+            <div class="table-cell">
+              <span class="date-value">{{ reparation.date | date:'dd/MM/yyyy' }}</span>
+            </div>
+
+            <div class="table-cell">
+              <span class="price-value">{{ reparation.prix }} DT</span>
+            </div>
+
+            <div class="table-cell">
+              <span class="description-text">{{ reparation.description || 'Aucune description' }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="getRecentReparations().length === 0" class="empty-state-table">
+            <div class="empty-icon">🔧</div>
+            <p>Aucune réparation récente</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Transactions récentes -->
+    <div class="recent-section">
+      <div class="section-header">
+        <h2>Transactions Carburant Récentes</h2>
+        <button class="btn-outline" (click)="setView('cartes')">
+          Voir tout
+          <span class="icon">→</span>
+        </button>
+      </div>
+
+      <div class="table-container">
+        <div class="modern-table">
+          <div class="table-row header">
+            <div class="table-cell">Carte</div>
+            <div class="table-cell">Station</div>
+            <div class="table-cell">Date</div>
+            <div class="table-cell">Quantité</div>
+            <div class="table-cell">Montant</div>
+            <div class="table-cell">Conducteur</div>
+          </div>
+
+          <div *ngFor="let transaction of getRecentTransactions()" class="table-row clickable"
+            (click)="viewCarteByTransaction(transaction)">
+            <div class="table-cell carte-info">
+              <div class="carte-avatar">⛽</div>
+              <div class="carte-details">
+                <div class="carte-numero">{{ getCarteByTransaction(transaction.carteId)?.numero }}</div>
+              </div>
+            </div>
+
+            <div class="table-cell">
+              <div class="station-info">
+                <div class="station-name">{{ transaction.station }}</div>
+                <div class="station-address">{{ transaction.adresseStation }}</div>
+              </div>
+            </div>
+
+            <div class="table-cell">
+              <span class="date-value">{{ transaction.date | date:'dd/MM/yyyy' }}</span>
+            </div>
+
+            <div class="table-cell">
+              <span class="quantity-value">{{ transaction.quantite | number }}L</span>
+            </div>
+
+            <div class="table-cell">
+              <span class="price-value">{{ transaction.montantTotal }} DT</span>
+            </div>
+
+            <div class="table-cell">
+              <span class="conducteur-name">{{ transaction.conducteur || 'Non spécifié' }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="getRecentTransactions().length === 0" class="empty-state-table">
+            <div class="empty-icon">⛽</div>
+            <p>Aucune transaction récente</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Papiers à expirer -->
+    <div class="recent-section">
+      <div class="section-header">
+        <h2>Papiers à Expirer</h2>
+        <button class="btn-outline" (click)="setView('vehicles')">
+          Voir tout
+          <span class="icon">→</span>
+        </button>
+      </div>
+
+      <div class="papiers-grid">
+        <div *ngFor="let papier of getPapiersAExpirer()" class="papier-card modern"
+          [class.warning]="papier.joursRestants <= 30 && papier.joursRestants > 7"
+          [class.danger]="papier.joursRestants <= 7" (click)="viewVehicleDetails(papier.vehicle)">
+          <div class="card-header">
+            <div class="papier-info">
+              <h3>{{ papier.type }}</h3>
+              <span class="vehicle-serie">{{ papier.vehicle.marque }} - {{ papier.vehicle.serie }}</span>
+            </div>
+            <div class="alert-indicator">
+              <span class="alert-badge" [class.warning]="papier.joursRestants <= 30 && papier.joursRestants > 7"
+                [class.danger]="papier.joursRestants <= 7">
+                {{ papier.joursRestants }}j
+              </span>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <div class="papier-date">
+              <span class="date-label">Date d'expiration:</span>
+              <span class="date-value" [class.warning]="papier.joursRestants <= 30 && papier.joursRestants > 7"
+                [class.danger]="papier.joursRestants <= 7">
+                {{ papier.dateExpiration | date:'dd/MM/yyyy' }}
+              </span>
+            </div>
+            <div class="papier-status">
+              <span class="status-message" [class.warning]="papier.joursRestants <= 30 && papier.joursRestants > 7"
+                [class.danger]="papier.joursRestants <= 7">
+                {{ getStatusMessage(papier.joursRestants) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="getPapiersAExpirer().length === 0" class="empty-state">
+          <div class="empty-icon">✅</div>
+          <h3>Tous les papiers sont à jour</h3>
+          <p>Aucun document n'expire dans les 30 prochains jours</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Entretiens à prévoir -->
+    <div class="recent-section">
+      <div class="section-header">
+        <h2>Entretiens à Prévoir</h2>
+        <button class="btn-outline" (click)="setView('vehicles')">
+          Voir tout
+          <span class="icon">→</span>
+        </button>
+      </div>
+
+      <div class="papiers-grid">
+        <div *ngFor="let entretien of getEntretiensAExpirer()" class="papier-card modern"
+          [class.warning]="entretien.kmRestants <= 1000 && entretien.kmRestants > 200"
+          [class.danger]="entretien.kmRestants <= 200" (click)="viewVehicleDetails(entretien.vehicle)">
+
+          <div class="card-header">
+            <div class="papier-info">
+              <h3>{{ entretien.type }}</h3>
+              <span class="vehicle-serie">{{ entretien.vehicle.marque }} - {{ entretien.vehicle.serie }}</span>
+            </div>
+            <div class="alert-indicator">
+              <span class="alert-badge" [class.warning]="entretien.kmRestants <= 1000 && entretien.kmRestants > 200"
+                [class.danger]="entretien.kmRestants <= 200">
+                {{ entretien.kmRestants }} km
+              </span>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <div class="papier-date">
+              <span class="date-label">Échéance:</span>
+              <span class="date-value" [class.warning]="entretien.kmRestants <= 1000 && entretien.kmRestants > 200"
+                [class.danger]="entretien.kmRestants <= 200">
+                {{ entretien.kmEcheance }} km
+              </span>
+            </div>
+            <div class="papier-status">
+              <span class="status-message" [class.warning]="entretien.kmRestants <= 1000 && entretien.kmRestants > 200"
+                [class.danger]="entretien.kmRestants <= 200">
+                {{ getKmStatusMessage(entretien.kmRestants) }}
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="getEntretiensAExpirer().length === 0" class="empty-state">
+          <div class="empty-icon">✅</div>
+          <h3>Tous les entretiens sont à jour</h3>
+          <p>Aucun entretien à prévoir dans les 1000 prochains km</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Liste des véhicules -->
+  <div class="vehicles-view" *ngIf="currentView === 'vehicles'">
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Filtrer par marque ou série" [(ngModel)]="searchTerm"
+            (input)="filterVehicles()" class="search-input">
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Véhicule</div>
+          <div class="table-cell">Km Actuel</div>
+          <div class="table-cell">Prochaine Vidange</div>
+          <div class="table-cell">Visite Technique</div>
+          <div class="table-cell">Assurance</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let vehicle of filteredVehicles" class="table-row clickable" (click)="viewVehicleDetails(vehicle)">
+          <div class="table-cell vehicle-info">
+            <div class="vehicle-avatar">🚗</div>
+            <div class="vehicle-details">
+              <div class="vehicle-name">{{ vehicle.marque }}</div>
+              <div class="vehicle-serie">{{ vehicle.serie }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="km-value">{{ vehicle.kmActuel | number }} km</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="km-value" [class.warning]="vehicle.kmActuel >= vehicle.prochainVidangeKm">
+              {{ vehicle.prochainVidangeKm | number }} km
+            </span>
+          </div>
+
+          <div class="table-cell">
+            <span class="date-value" [class.expired]="isDateExpired(vehicle.dateVisiteTechnique)">
+              {{ vehicle.dateVisiteTechnique | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+
+          <div class="table-cell">
+            <span class="date-value" [class.expired]="isDateExpired(vehicle.dateAssurance)">
+              {{ vehicle.dateAssurance | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editVehicle(vehicle)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn danger" (click)="deleteVehicle(vehicle.id)" title="Supprimer">
+                🗑️
+              </button>
+              <button class="action-btn danger" (click)="exportSelectedVehicle(vehicle)" title="  Exporter Véhicule">
+                📤
+              </button>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gestion des cartes gazoil -->
+  <div class="cartes-view" *ngIf="currentView === 'cartes'">
+    <div class="stats-container">
+      <!-- Essence -->
+      <div class="stat-card primary" (click)="showAddPrixForm( )">
+        <div class="stat-icon">⛽</div>
+        <div class="stat-content">
+          <div class="stat-label">Prix Essence</div>
+
+          <div class="fuel-value">{{ PrixCarburant.essence || 0 }} DT</div>
+        </div>
+      </div>
+
+      <!-- Gasoil -->
+      <div class="stat-card info" (click)="showAddPrixForm( )">
+        <div class="stat-icon">🛢️</div>
+        <div class="stat-content">
+          <div class="fuel-value">{{ PrixCarburant.gasoil || 0 }} DT</div>
+          <div class="stat-label">Prix Gasoil</div>
+        </div>
+      </div>
+
+      <!-- Gasoil 50 -->
+      <div class="stat-card warning" (click)="showAddPrixForm( )">
+        <div class="stat-icon">⛽</div>
+        <div class="stat-content">
+          <div class="fuel-value">{{ PrixCarburant .gasoil_50 || 0 }} DT</div>
+          <div class="stat-label">Prix Gasoil 50</div>
+        </div>
+      </div>
+
+      <!-- GPL -->
+      <div class="stat-card success" (click)="showAddPrixForm( )">
+        <div class="stat-icon">🔥</div>
+        <div class="stat-content">
+          <div class="fuel-value">{{ PrixCarburant .gpl || 0 }} DT</div>
+          <div class="stat-label">Prix GPL</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input placeholder="Rechercher par numéro ou fournisseur..." [(ngModel)]="searchTermCarte"
+            (input)="filterCartes()" class="search-input">
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Carte</div>
+          <div class="table-cell">Date d'Émission</div>
+          <div class="table-cell">Fournisseur</div>
+          <div class="table-cell">Consommation</div>
+          <div class="table-cell">Solde</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let carte of filteredCartes" class="table-row clickable" (click)="viewCarteDetails(carte)">
+          <div class="table-cell carte-info">
+            <div class="carte-avatar">⛽</div>
+            <div class="carte-details">
+              <div class="carte-numero">{{ carte.numero }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell carte-info">
+            <span class="fournisseur">{{ carte.dateEmission }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="fournisseur">{{ carte.fournisseur }}</span>
+          </div>
+
+          <div class="table-cell">
+            <div class="consumption-info">
+              <span class="consumption-value">
+                {{ carte.consomation }} DT
+              </span>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="status-badge">
+              {{ carte.solde }} DT
+            </span>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editCarte(carte)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn" (click)="chargerCarte(carte)" title="Charger Carte">
+                💵
+              </button>
+              <button class="action-btn danger" (click)="deleteCarte(carte.id)" title="Supprimer">
+                🗑️
+              </button>
+              <button class="action-btn danger" (click)="exportSelectedCarte(carte)" title="  Exporter Carte">
+                📤
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Gestion des cartes télépéage -->
+  <div class="telepeages-view" *ngIf="currentView === 'telepeage'">
+    <div class="table-container">
+
+      <!-- Barre de recherche -->
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Rechercher par numéro ou fournisseur..." [(ngModel)]="searchTermTelepeage"
+            (input)="filterTelepeages()" class="search-input">
+        </div>
+        <button class="btn-primary" (click)="showAddTelepeageForm()">➕ Ajouter Carte</button>
+      </div>
+
+      <!-- Tableau -->
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Carte</div>
+          <div class="table-cell">Date d'Émission</div>
+          <div class="table-cell">Fournisseur</div>
+          <div class="table-cell">Solde</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let carte of filteredTelepeages" class="table-row clickable" (click)="viewTelepeageDetails(carte)">
+          <div class="table-cell">
+            <div class="carte-numero">{{ carte.numero }}</div>
+          </div>
+          <div class="table-cell">{{ carte.dateEmission | date:'dd/MM/yyyy' }}</div>
+          <div class="table-cell">{{ carte.fournisseur }}</div>
+          <div class="table-cell">{{ carte.solde }} DT</div>
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <button class="action-btn" (click)="editTelepeage(carte)" title="Modifier">✏️</button>
+            <button class="action-btn" (click)="chargerCarteTelepeage(carte)" title="Charger Carte"> 💵 </button>
+            <button class="action-btn danger" (click)="deleteTelepeage(carte.id!)" title="Supprimer">🗑️</button>
+            <button class="action-btn danger" (click)="exportSelectedCarteTelepeage(carte)" title="  Exporter Carte"> 📤
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="filteredTelepeages.length === 0" class="empty-state-table">
+          <div class="empty-icon">🛣️</div>
+          <p>Aucune carte télépéage</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vue Réparations -->
+  <div class="reparations-view" *ngIf="currentView === 'reparations'">
+    <div class="table-container">
+      <div class="table-header">
+        <h2>Toutes les Réparations</h2>
+        <div class="filters-section">
+          <div class="filter-group">
+            <label class="filter-label">Véhicule:</label>
+            <select class="filter-select" [(ngModel)]="filterVehicleId" (change)="applyReparationFilters()">
+              <option value="">Tous les véhicules</option>
+              <option *ngFor="let vehicle of vehicles" [value]="vehicle.id">
+                {{ vehicle.marque }} - {{ vehicle.serie }}
+              </option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Type:</label>
+            <select class="filter-select" [(ngModel)]="filterTypeReparation" (change)="applyReparationFilters()">
+              <option value="">Tous les types</option>
+              <option *ngFor="let type of typesReparation" [value]="type">
+                {{ type }}
+              </option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Prix min:</label>
+            <input type="number" class="filter-input" [(ngModel)]="filterPrixMin" (input)="applyReparationFilters()"
+              placeholder="0">
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Prix max:</label>
+            <input type="number" class="filter-input" [(ngModel)]="filterPrixMax" (input)="applyReparationFilters()"
+              placeholder="1000">
+          </div>
+          <button class="btn-outline" (click)="clearReparationFilters()">
+            <span class="icon">🗑️</span>
+            Effacer
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Véhicule</div>
+          <div class="table-cell">Type Réparation</div>
+          <div class="table-cell">Date</div>
+          <div class="table-cell">Prix (DT)</div>
+          <div class="table-cell">Description</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let reparation of filteredReparations" class="table-row clickable"
+          (click)="viewVehicleByReparation(reparation)">
+          <div class="table-cell vehicle-info">
+            <div class="vehicle-avatar">🚗</div>
+            <div class="vehicle-details">
+              <div class="vehicle-name">{{reparation.vehicule?.marque }}</div>
+              <div class="vehicle-serie">{{reparation.vehicule?.serie }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="reparation-type-badge">{{ reparation.type }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="date-value">{{ reparation.date | date:'dd/MM/yyyy' }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="price-value">{{ reparation.prix | number }} DT</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="description-text">{{ reparation.description || 'Aucune description' }}</span>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editReparation(reparation)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn danger" (click)="deleteReparation(reparation.id)" title="Supprimer">
+                🗑️
+              </button>
+              <button class="action-btn danger" (click)="reparation.url && downloadFile(reparation.url)"
+                title="Télécharger pièce jointe PDF">
+                📑
+              </button>
+
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredReparations.length === 0" class="empty-state-table">
+          <div class="empty-icon">🔧</div>
+          <p>Aucune réparation trouvée avec ces filtres</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vue Transactions -->
+  <div class="transactions-view" *ngIf="currentView === 'transactions'">
+    <div class="table-container">
+      <div class="table-header">
+        <h2>Toutes les Transactions</h2>
+        <div class="filters-section">
+          <div class="filter-group">
+            <label class="filter-label">Véhicule:</label>
+            <select class="filter-select" [(ngModel)]="filterVehicleIdTransaction" (change)="applyTransactionFilters()">
+              <option value="">Tous les véhicules</option>
+              <option *ngFor="let vehicle of vehicles" [value]="vehicle.id">
+                {{ vehicle.marque }} - {{ vehicle.serie }}
+              </option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Conducteur:</label>
+            <input type="text" class="filter-input" [(ngModel)]="filterConducteur" (input)="applyTransactionFilters()"
+              placeholder="Nom du conducteur">
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Montant min:</label>
+            <input type="number" class="filter-input" [(ngModel)]="filterMontantMin" (input)="applyTransactionFilters()"
+              placeholder="0">
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Montant max:</label>
+            <input type="number" class="filter-input" [(ngModel)]="filterMontantMax" (input)="applyTransactionFilters()"
+              placeholder="200">
+          </div>
+          <button class="btn-outline" (click)="clearTransactionFilters()">
+            <span class="icon">🗑️</span>
+            Effacer
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Carte / Véhicule </div>
+          <div class="table-cell">Station / Date</div>
+          <div class="table-cell">Montant (DT)</div>
+          <div class="table-cell">Télépéage</div>
+          <div class="table-cell">Consommation</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let transaction of filteredTransactions" class="table-row clickable">
+
+          <div class="table-cell vehicle-info">
+
+            <div class="vehicle-details">
+              <div class="vehicle-name">{{ transaction.carte.fournisseur}} - {{ transaction.carte.numero}}</div>
+              <div class="vehicle-serie">{{transaction.vehicule.marque}} - {{ transaction.vehicule.serie}}</div>
+            </div>
+          </div>
+          <div class="table-cell">
+            <div class="vehicle-details">
+              <div class="vehicle-name">{{ transaction.station }}</div>
+              <div class="vehicle-serie">{{ transaction.date | date:'dd/MM/yyyy' }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="price-value">{{ transaction.montantTotal | number }} DT</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="conducteur-name">{{ transaction.montantTelepeage | number }} DT</span>
+          </div>
+          <div class="table-cell">
+            <div class="vehicle-details">
+              <div class="vehicle-name">{{ transaction.consommation }} / 100 KM</div>
+              <div class="vehicle-serie">{{ transaction.vehicule.consommation100km }} / 100 KM</div>
+            </div>
+          </div>
+
+          <div class="table-cell" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editTransaction(transaction)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn danger" (click)="deleteTransaction(transaction.id)" title="Supprimer">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredTransactions.length === 0" class="empty-state-table">
+          <div class="empty-icon">💳</div>
+          <p>Aucune transaction trouvée avec ces filtres</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Détails véhicule -->
+  <div id="print-vehicule" class="details-view" *ngIf="currentView === 'details' && selectedVehicle">
+    <div class="details-header">
+      <button class="btn-back" (click)="goBack()">
+        <span class="icon">←</span>
+        Retour
+      </button>
+      <div class="vehicle-title">
+        <h1>{{ selectedVehicle.marque }}</h1>
+        <span class="vehicle-serie-large">{{ selectedVehicle.serie }}</span>
+      </div>
+      <button class="btn-primary" (click)="printVehicle( )">
+        <span class="icon">🖨️</span>
+        Imprimer Détails
+      </button>
+
+    </div>
+
+    <div class="details-grid">
+      <!-- Informations véhicule -->
+      <div class="info-card">
+        <h3>Informations Véhicule</h3>
+        <div class="info-list">
+          <div class="info-item">
+            <span class="info-label">Série</span>
+            <span class="info-value">{{ selectedVehicle.serie }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Marque</span>
+            <span class="info-value">{{ selectedVehicle.marque }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Km Actuel</span>
+            <span class="info-value highlight">{{ selectedVehicle.kmActuel | number }} km</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Prochaine Vidange</span>
+            <span class="info-value" [class.warning]="selectedVehicle.kmActuel >= selectedVehicle.prochainVidangeKm">
+              {{ selectedVehicle.prochainVidangeKm | number }} km
+            </span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Prochaine prochaine Chaine </span>
+            <span class="info-value" [class.warning]="selectedVehicle.kmActuel >= selectedVehicle.prochaineChaineKm">
+              {{ selectedVehicle.prochaineChaineKm | number }} km
+            </span>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- Échéances -->
+      <div class="echeances-card">
+        <h3>Échéances</h3>
+        <div class="echeances-list">
+          <div class="echeance-item">
+            <div class="echeance-icon" [class.expired]="isDateExpired(selectedVehicle.dateVisiteTechnique)">
+              🔍
+            </div>
+            <div class="echeance-content">
+              <span class="echeance-title">Visite Technique</span>
+              <span class="echeance-date" [class.expired]="isDateExpired(selectedVehicle.dateVisiteTechnique)">
+                {{ selectedVehicle.dateVisiteTechnique | date:'dd/MM/yyyy' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="echeance-item">
+            <div class="echeance-icon" [class.expired]="isDateExpired(selectedVehicle.dateAssurance)">
+              🛡️
+            </div>
+            <div class="echeance-content">
+              <span class="echeance-title">Assurance</span>
+              <span class="echeance-date" [class.expired]="isDateExpired(selectedVehicle.dateAssurance)">
+                {{ selectedVehicle.dateAssurance | date:'dd/MM/yyyy' }}
+              </span>
+            </div>
+          </div>
+
+          <div class="echeance-item">
+            <div class="echeance-icon" [class.expired]="isDateExpired(selectedVehicle.dateTaxe)">
+              💰
+            </div>
+            <div class="echeance-content">
+              <span class="echeance-title">Taxe</span>
+              <span class="echeance-date" [class.expired]="isDateExpired(selectedVehicle.dateTaxe)">
+                {{ selectedVehicle.dateTaxe | date:'dd/MM/yyyy' }}
+              </span>
+            </div>
+          </div>
+          <div class="echeance-item">
+            <div class="echeance-icon" [class.expired]="isDateExpired(selectedVehicle.dateTaxe)">
+              🔋
+            </div>
+            <div class="echeance-content">
+              <span class="echeance-title">Batterie</span>
+              <span class="echeance-date">
+                {{ selectedVehicle.dateChangementBatterie | date:'dd/MM/yyyy' }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="recent-section">
+      <div class="section-header">
+        <h2 style="margin-top: 2%;">Historique Réparations</h2>
+      </div>
+
+      <div class="table-container">
+        <div class="modern-table">
+          <div class="table-row header">
+            <div class="table-cell">Date</div>
+            <div class="table-cell">Type </div>
+
+            <div class="table-cell">Prix</div>
+            <div class="table-cell">Description</div>
+          </div>
+
+          <div *ngFor="let reparation of selectedVehicle.reparations" class="table-row clickable"
+            (click)="viewVehicleByReparation(reparation)">
+
+            <div class="table-cell">
+              <span class="date-value">{{ reparation.date | date:'dd/MM/yyyy' }}</span>
+            </div>
+
+            <div class="table-cell">
+              <span class="reparation-type-badge">{{ reparation.type }}</span>
+            </div>
+
+            <div class="table-cell">
+              <span class="price-value">{{ reparation.prix }} DT</span>
+            </div>
+
+            <div class="table-cell">
+              <span class="description-text">{{ reparation.description || 'Aucune description' }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="selectedVehicle.reparations.length === 0" class="empty-state-table">
+            <div class="empty-icon">🔧</div>
+            <p>Aucune réparation récente</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Détails carte gazoil -->
+  <div id="print-carte" class="carte-details-view" *ngIf="currentView === 'carte-details' && selectedCarte">
+    <div class="details-header">
+      <button class="btn-back" (click)="goBackToCartes()">
+        <span class="icon">←</span>
+        Retour
+      </button>
+      <div class="carte-title">
+        <h1>{{ selectedCarte.numero }}</h1>
+      </div>
+      <button class="btn-primary" (click)="printCarte( )">
+        <span class="icon">🖨️</span>
+        Imprimer Détails
+      </button>
+    </div>
+
+    <div class="details-grid">
+      <!-- Informations carte -->
+      <div class="info-card">
+        <h3>Informations Carte</h3>
+        <div class="info-list">
+          <div class="info-item">
+            <span class="info-label">Numéro</span>
+            <span class="info-value">{{ selectedCarte.numero }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Fournisseur</span>
+            <span class="info-value">{{ selectedCarte.fournisseur }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Solde </span>
+            <span class="info-value highlight">{{ selectedCarte.solde }} DT</span>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <div class="recent-section">
+      <div class="section-header">
+        <h2 style="margin-top: 2%;">Historique Transactions Carburant </h2>
+      </div>
+
+      <div class="table-container">
+        <div class="modern-table">
+          <div class="table-row header">
+
+            <div class="table-cell">Date</div>
+            <div class="table-cell">Station</div>
+            <div class="table-cell">Quantité</div>
+            <div class="table-cell">Montant</div>
+            <div class="table-cell">Conducteur</div>
+          </div>
+
+          <div *ngFor="let t of selectedCarte.transactions" class="table-row clickable">
+
+            <div class="table-cell">
+              <span class="date-value">{{ t.date | date:'dd/MM/yyyy' }}</span>
+            </div>
+
+            <div class="table-cell">
+              <div class="station-info">
+                <div class="station-name">{{ t.station }}</div>
+                <div class="station-address">{{ t.adresseStation }}</div>
+              </div>
+            </div>
+
+            <div class="table-cell">
+              <span class="quantity-value">{{ t.quantite }}L</span>
+            </div>
+
+            <div class="table-cell">
+              <span class="price-value">{{ t.montantTotal }} DT</span>
+            </div>
+
+            <div class="table-cell">
+              <span class="conducteur-name">{{ t.conducteur || 'Non spécifié' }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="selectedCarte.transactions.length === 0" class="empty-state-table">
+            <div class="empty-icon">⛽</div>
+            <p>Aucune transaction récente</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Détails carte télépéage -->
+  <div id="print-telepeage" class="carte-details-view" *ngIf="currentView === 'telepeage-details' && selectedTelepeage">
+    <div class="details-header">
+      <button class="btn-back" (click)="goBackToTelepeages()">
+        <span class="icon">←</span>
+        Retour
+      </button>
+      <div class="carte-title">
+        <h1>{{ selectedTelepeage.numero }}</h1>
+      </div>
+      <button class="btn-primary" (click)="printTelepeage()">
+        <span class="icon">🖨️</span>
+        Imprimer Détails
+      </button>
+    </div>
+
+    <div class="details-grid">
+      <div class="info-card">
+        <h3>Informations Carte Télépéage</h3>
+        <div class="info-list">
+          <div class="info-item">
+            <span class="info-label">Numéro</span>
+            <span class="info-value">{{ selectedTelepeage.numero }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Fournisseur</span>
+            <span class="info-value">{{ selectedTelepeage.fournisseur }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Solde</span>
+            <span class="info-value highlight">{{ selectedTelepeage.solde }} DT</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- <div class="recent-section">
+      <div class="section-header">
+        <h2 style="margin-top: 2%;">Historique Passages Télépéage</h2>
+      </div>
+
+      <div class="table-container">
+        <div class="modern-table">
+          <div class="table-row header">
+            <div class="table-cell">Date</div>
+            <div class="table-cell">Montant</div>
+            <div class="table-cell">Conducteur</div>
+            <div class="table-cell">Description</div>
+          </div>
+
+          <div *ngFor="let t of selectedTelepeage.transactions" class="table-row clickable">
+            <div class="table-cell">
+              <span class="date-value">{{ t.date | date:'dd/MM/yyyy HH:mm' }}</span>
+            </div>
+            <div class="table-cell">
+              <span class="price-value">{{ t.montant }} DT</span>
+            </div>
+            <div class="table-cell">
+              <span class="conducteur-name">{{ t.conducteur || 'Non spécifié' }}</span>
+            </div>
+            <div class="table-cell">
+              <span class="description">{{ t.description || '—' }}</span>
+            </div>
+          </div>
+
+          <div *ngIf="!selectedTelepeage.transactions || selectedTelepeage.transactions.length === 0"
+            class="empty-state-table">
+            <div class="empty-icon">🛣️</div>
+            <p>Aucun passage enregistré</p>
+          </div>
+        </div>
+      </div>
+    </div> -->
+  </div>
+
+</div>
+
+<!-- Popup Formulaire Véhicule -->
+<div class="popup-overlay" *ngIf="showVehicleForm"  >
+  <div class="popup-container" (click)="$event.stopPropagation()">
+    <div class="popup-header">
+      <h2>{{ isEditMode ? 'Modifier' : 'Nouveau' }} Véhicule</h2>
+      <button class="popup-close" (click)="closeVehicleForm()">✕</button>
+    </div>
+
+    <form [formGroup]="vehicleForm" class="popup-form" (ngSubmit)="saveVehicle()">
+      <div class="form-grid">
+        <!-- Série -->
+        <div class="form-group">
+          <label class="form-label">Série</label>
+          <input type="text" class="form-input" formControlName="serie">
+          <div class="error-message"
+            *ngIf="vehicleForm.get('serie')?.errors?.['pattern'] && (vehicleForm.get('serie')?.touched || submitted)">
+            La série doit être au format "999 TN 4444" ou "RS 456879"
+          </div>
+        </div>
+
+        <!-- Marque -->
+        <div class="form-group">
+          <label class="form-label">Marque</label>
+          <input type="text" class="form-input" formControlName="marque">
+          <div class="error-message"
+            *ngIf="vehicleForm.get('marque')?.errors?.['required'] && (vehicleForm.get('marque')?.touched || submitted)">
+            La marque est obligatoire
+          </div>
+        </div>
+
+        <!-- Km actuel -->
+        <div class="form-group">
+          <label class="form-label">Km actuel</label>
+          <input type="number" class="form-input" formControlName="kmActuel">
+          <div class="error-message"
+            *ngIf="vehicleForm.get('kmActuel')?.errors?.['min'] && (vehicleForm.get('kmActuel')?.touched || submitted)">
+            La valeur doit être positive
+          </div>
+        </div>
+
+        <!-- Prochain vidange km -->
+        <div class="form-group">
+          <label class="form-label">Prochain vidange (km)</label>
+          <input type="number" class="form-input" formControlName="prochainVidangeKm">
+          <div class="error-message"
+            *ngIf="vehicleForm.get('prochainVidangeKm')?.errors?.['min'] && (vehicleForm.get('prochainVidangeKm')?.touched || submitted)">
+            La valeur doit être positive
+          </div>
+        </div>
+
+        <!-- Prochaine chaîne km -->
+        <div class="form-group">
+          <label class="form-label">P chaîne de distribution (km)</label>
+          <input type="number" class="form-input" formControlName="prochaineChaineKm">
+          <div class="error-message"
+            *ngIf="vehicleForm.get('prochaineChaineKm')?.errors?.['min'] && (vehicleForm.get('prochaineChaineKm')?.touched || submitted)">
+            La valeur doit être positive
+          </div>
+        </div>
+
+        <!-- Date visite technique -->
+        <div class="form-group">
+          <label class="form-label">Date visite technique</label>
+          <input type="date" class="form-input" formControlName="dateVisiteTechnique">
+          <div class="error-message"
+            *ngIf="vehicleForm.get('dateVisiteTechnique')?.errors?.['required'] && (vehicleForm.get('dateVisiteTechnique')?.touched || submitted)">
+            La date de visite technique est obligatoire
+          </div>
+        </div>
+
+        <!-- Date assurance -->
+        <div class="form-group">
+          <label class="form-label">Date assurance</label>
+          <input type="date" class="form-input" formControlName="dateAssurance">
+          <div class="error-message"
+            *ngIf="vehicleForm.get('dateAssurance')?.errors?.['required'] && (vehicleForm.get('dateAssurance')?.touched || submitted)">
+            La date d'assurance est obligatoire
+          </div>
+        </div>
+
+        <!-- Date taxe -->
+        <div class="form-group">
+          <label class="form-label">Date taxe</label>
+          <input type="date" class="form-input" formControlName="dateTaxe">
+          <div class="error-message"
+            *ngIf="vehicleForm.get('dateTaxe')?.errors?.['required'] && (vehicleForm.get('dateTaxe')?.touched || submitted)">
+            La date de taxe est obligatoire
+          </div>
+        </div>
+
+        <!-- Date changement batterie -->
+        <div class="form-group">
+          <label class="form-label">Date changement batterie</label>
+          <input type="date" class="form-input" formControlName="dateChangementBatterie">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Consommation (L/100 km)</label>
+          <input type="number" step="0.1" class="form-input" formControlName="consommation100km">
+          <div class="error-message"
+            *ngIf="vehicleForm.get('consommation100km')?.errors?.['min'] && (vehicleForm.get('consommation100km')?.touched || submitted)">
+            La valeur doit être positive & > 4
+          </div>
+        </div>
+      </div>
+
+      <div class="popup-actions">
+        <button type="button" class="btn-back" (click)="showVehicleForm=false">Annuler</button>
+        <button type="submit" class="btn-primary">{{ isEditMode ? 'Modifier' : 'Ajouter' }}</button>
+      </div>
+    </form>
+
+  </div>
+</div>
+
+<!-- Popup Formulaire Carte Gazoil -->
+<div class="popup-overlay" *ngIf="showCarteForm" >
+  <div class="popup-container" (click)="$event.stopPropagation()">
+    <div class="popup-header">
+      <h2>{{ isEditModeCard ? 'Modifier' : 'Nouvelle' }} Carte Gazoil</h2>
+      <button class="popup-close" (click)="closeCarteForm()">✕</button>
+    </div>
+
+    <form [formGroup]="carteForm" class="popup-form" (ngSubmit)="saveCarte()">
+      <div class="form-grid">
+
+        <!-- Numéro de Carte -->
+        <div class="form-group">
+          <label class="form-label">Numéro de Carte</label>
+          <input type="text" class="form-input" formControlName="numero" placeholder="1234" [readonly]="isEditModeCard">
+          <div class="error-message"
+            *ngIf="carteForm.get('numero')?.errors?.['required'] && (carteForm.get('numero')?.touched || submittedCard)">
+            Le numéro de carte est obligatoire
+          </div>
+        </div>
+
+
+        <!-- Fournisseur -->
+        <div class="form-group">
+          <label class="form-label">Fournisseur</label>
+          <select class="form-input" formControlName="fournisseur">
+            <option value="">Sélectionner</option>
+            <option *ngFor="let f of fournisseursCarburant" [value]="f">{{ f }}</option>
+          </select>
+          <div class="error-message"
+            *ngIf="carteForm.get('fournisseur')?.errors?.['required'] && (carteForm.get('fournisseur')?.touched || submittedCard)">
+            Veuillez sélectionner un fournisseur
+          </div>
+        </div>
+
+        <!-- Plafond Mensuel -->
+        <div class="form-group">
+          <label class="form-label">Solde (DT)</label>
+          <input type="number" class="form-input" formControlName="solde">
+          <div class="error-message"
+            *ngIf="carteForm.get('solde')?.errors?.['min'] && (carteForm.get('solde')?.touched || submittedCard)">
+            Solde doit être positif
+          </div>
+        </div>
+
+        <!-- Date d'Émission -->
+        <div class="form-group">
+          <label class="form-label">Date d'Émission</label>
+          <input type="date" class="form-input" formControlName="dateEmission">
+          <div class="error-message"
+            *ngIf="carteForm.get('dateEmission')?.errors?.['required'] && (carteForm.get('dateEmission')?.touched || submittedCard)">
+            La date d'émission est obligatoire
+          </div>
+        </div>
+
+      </div>
+
+      <div class="popup-actions">
+        <button type="button" class="btn-back" (click)="closeCarteForm()">Annuler</button>
+        <button type="submit" class="btn-primary">
+          <span class="icon">💾</span>
+          {{ isEditModeCard ? 'Modifier' : 'Créer' }}
+        </button>
+      </div>
+    </form>
+
+
+  </div>
+</div>
+
+<!-- Popup Formulaire Réparation -->
+<div class="popup-overlay" *ngIf="showReparationForm"  >
+  <div class="popup-container" (click)="$event.stopPropagation()">
+    <div class="popup-header">
+      <h2>{{ isEditModeReparation ? 'Modifier Réparation' : 'Nouvelle Réparation' }}</h2>
+      <button class="popup-close" (click)="closeReparationForm()">✕</button>
+    </div>
+
+    <form [formGroup]="reparationForm" (ngSubmit)="saveReparation()" class="popup-form">
+      <div class="form-grid">
+
+        <!-- Véhicule -->
+        <div class="form-group">
+          <label class="form-label">Véhicule</label>
+          <select class="form-input" formControlName="vehiculeId">
+            <option value="">Sélectionner un véhicule</option>
+            <option *ngFor="let vehicle of vehicles" [value]="vehicle.id">
+              {{ vehicle.serie }}
+            </option>
+          </select>
+          <div class="error-message"
+            *ngIf="reparationForm.get('vehiculeId')?.errors?.['required'] && (reparationForm.get('vehiculeId')?.touched || submittedReparation)">
+            Veuillez sélectionner un véhicule
+          </div>
+        </div>
+
+        <!-- Type de réparation -->
+        <div class="form-group">
+          <label class="form-label">Type de Réparation</label>
+          <select class="form-input" formControlName="type">
+            <option value="">Sélectionner</option>
+            <option *ngFor="let type of typesReparation" [value]="type">{{ type }}</option>
+          </select>
+          <div class="error-message"
+            *ngIf="reparationForm.get('type')?.errors?.['required'] && (reparationForm.get('type')?.touched || submittedReparation)">
+            Le type est obligatoire
+          </div>
+        </div>
+
+        <!-- Prix -->
+        <div class="form-group">
+          <label class="form-label">Prix (DT)</label>
+          <input type="number" class="form-input" formControlName="prix" min="0" placeholder="120" />
+          <div class="error-message" *ngIf="reparationForm.get('prix')?.touched || submittedReparation">
+            <span *ngIf="reparationForm.get('prix')?.errors?.['required']">Le prix est obligatoire</span>
+            <span *ngIf="reparationForm.get('prix')?.errors?.['min']">Le prix doit être ≥ 0</span>
+          </div>
+        </div>
+
+        <!-- Date -->
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input type="date" class="form-input" formControlName="date" />
+          <div class="error-message"
+            *ngIf="reparationForm.get('date')?.errors?.['required'] && (reparationForm.get('date')?.touched || submittedReparation)">
+            La date est obligatoire
+          </div>
+        </div>
+        <div class="form-group full-width">
+          <label class="form-label">URL Facture</label>
+          <input type="url" class="form-input" formControlName="url" placeholder="https://exemple.com/facture.pdf" />
+
+        </div>
+        <!-- Description -->
+        <div class="form-group full-width">
+          <label class="form-label">Description</label>
+          <textarea class="form-input" formControlName="description" rows="3"
+            placeholder="Description détaillée..."></textarea>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="popup-actions">
+        <button type="button" class="btn-outline" (click)="closeReparationForm()">Annuler</button>
+        <button type="submit" class="btn-primary">
+          {{ isEditModeReparation ? '✏️ Modifier' : '💾 Créer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Popup Formulaire Carte Télépéage -->
+<div class="popup-overlay" *ngIf="showTelepeageForm"  >
+  <div class="popup-container" (click)="$event.stopPropagation()">
+    <div class="popup-header">
+      <h2>{{ isEditModeTelepeage ? 'Modifier' : 'Nouvelle' }} Carte Télépéage</h2>
+      <button class="popup-close" (click)="closeTelepeageForm()">✕</button>
+    </div>
+
+    <form [formGroup]="telepeageForm" class="popup-form" (ngSubmit)="saveTelepeage()">
+      <div class="form-grid">
+
+        <!-- Numéro de Carte -->
+        <div class="form-group">
+          <label class="form-label">Numéro de Carte</label>
+          <input type="text" class="form-input" formControlName="numero" placeholder="1234"
+            [readonly]="isEditModeTelepeage">
+          <div class="error-message"
+            *ngIf="telepeageForm.get('numero')?.errors?.['required'] && (telepeageForm.get('numero')?.touched || submittedTelepeage)">
+            Le numéro de carte est obligatoire
+          </div>
+        </div>
+
+        <!-- Fournisseur -->
+        <div class="form-group">
+          <label class="form-label">Fournisseur</label>
+          <select class="form-input" formControlName="fournisseur">
+            <option value="">Sélectionner</option>
+            <option *ngFor="let f of fournisseursTelepeage" [value]="f">{{ f }}</option>
+          </select>
+          <div class="error-message"
+            *ngIf="telepeageForm.get('fournisseur')?.errors?.['required'] && (telepeageForm.get('fournisseur')?.touched || submittedTelepeage)">
+            Veuillez sélectionner un fournisseur
+          </div>
+        </div>
+
+        <!-- Solde -->
+        <div class="form-group">
+          <label class="form-label">Solde (DT)</label>
+          <input type="number" class="form-input" formControlName="solde" min="0">
+          <div class="error-message"
+            *ngIf="telepeageForm.get('solde')?.errors?.['min'] && (telepeageForm.get('solde')?.touched || submittedTelepeage)">
+            Le solde doit être positif
+          </div>
+        </div>
+
+        <!-- Date d'Émission -->
+        <div class="form-group">
+          <label class="form-label">Date d'Émission</label>
+          <input type="date" class="form-input" formControlName="dateEmission">
+          <div class="error-message"
+            *ngIf="telepeageForm.get('dateEmission')?.errors?.['required'] && (telepeageForm.get('dateEmission')?.touched || submittedTelepeage)">
+            La date d'émission est obligatoire
+          </div>
+        </div>
+
+      </div>
+
+      <div class="popup-actions">
+        <button type="button" class="btn-back" (click)="closeTelepeageForm()">Annuler</button>
+        <button type="submit" class="btn-primary">
+          <span class="icon">💾</span>
+          {{ isEditModeTelepeage ? 'Modifier' : 'Créer' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Popup Formulaire Transaction -->
+<div class="popup-overlay" *ngIf="showTransactionForm"  >
+  <div class="popup-container" (click)="$event.stopPropagation()">
+    <div class="popup-header">
+      <h2>{{ isEditModeTransaction ? 'Modifier Transaction' : 'Nouvelle Transaction' }}</h2>
+      <button class="popup-close" (click)="closeTransactionForm()">✕</button>
+    </div>
+
+    <form [formGroup]="transactionForm" (ngSubmit)="saveTransaction()" class="popup-form">
+      <div class="form-grid">
+
+        <!-- Véhicule -->
+        <div class="form-group">
+          <label class="form-label">Véhicule</label>
+          <select class="form-input" formControlName="vehiculeId">
+            <option value="">Sélectionner un véhicule</option>
+            <option *ngFor="let vehicle of vehicles" [value]="vehicle.id">
+              {{ vehicle.marque }} - {{ vehicle.serie }}
+            </option>
+          </select>
+          <div class="error-message" *ngIf="transactionForm.get('vehiculeId')?.errors?.['required'] 
+                  && (transactionForm.get('vehiculeId')?.touched || submittedTransaction)">
+            Veuillez sélectionner un véhicule
+          </div>
+        </div>
+
+        <!-- Carte -->
+        <div class="form-group">
+          <label class="form-label">Carte</label>
+          <select class="form-input" formControlName="carteId">
+            <option value="">Sélectionner une carte</option>
+            <option *ngFor="let c of cartes" [value]="c.id">{{ c.fournisseur }} - {{ c.numero }}</option>
+          </select>
+          <div class="error-message" *ngIf="transactionForm.get('carteId')?.errors?.['required'] 
+                  && (transactionForm.get('carteId')?.touched || submittedTransaction)">
+            Veuillez sélectionner une carte
+          </div>
+        </div>
+
+        <!-- Carte Télépéage -->
+        <div class="form-group">
+          <label class="form-label">Carte Télépéage</label>
+          <select class="form-input" formControlName="carteTelepeageId">
+            <option value="">Sélectionner une carte télépéage</option>
+            <option *ngFor="let c of telepeages" [value]="c.id">
+              {{ c.fournisseur }} - {{ c.numero }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Montant Télépéage -->
+        <div class="form-group">
+          <label class="form-label">Montant Télépéage (DT)</label>
+          <input type="number" class="form-input" formControlName="montantTelepeage" min="0" step="0.01" />
+          <div class="error-message" *ngIf="transactionForm.get('carteTelepeageId')?.value 
+      && transactionForm.get('montantTelepeage')?.value > getCarteTelepeageSolde(transactionForm.get('carteTelepeageId')?.value)
+      && (transactionForm.get('montantTelepeage')?.touched || submittedTransaction)">
+            Le montant dépasse le solde de la carte télépéage ({{
+            getCarteTelepeageSolde(transactionForm.get('carteTelepeageId')?.value) }} DT)
+          </div>
+        </div>
+
+        <!-- Type de carburant -->
+        <div class="form-group">
+          <label class="form-label">Type Carburant</label>
+          <select class="form-input" formControlName="typeCarburant">
+            <option value="">Sélectionner</option>
+            <option *ngFor="let type of typesCarburant" [value]="type">{{ type }}</option>
+          </select>
+          <div class="error-message" *ngIf="transactionForm.get('typeCarburant')?.errors?.['required'] 
+                  && (transactionForm.get('typeCarburant')?.touched || submittedTransaction)">
+            Veuillez sélectionner un type de carburant
+          </div>
+        </div>
+
+        <!-- montant total -->
+        <div class="form-group">
+          <label class="form-label">Montant (DT)</label>
+          <input type="number" class="form-input" formControlName="montantTotal" />
+          <!-- Erreur montant obligatoire -->
+          <div class="error-message" *ngIf="transactionForm.get('montantTotal')?.errors?.['required'] 
+      && (transactionForm.get('montantTotal')?.touched || submittedTransaction)">
+            Veuillez saisir le montant
+          </div>
+          <!-- Erreur montant > solde carte -->
+          <div class="error-message" *ngIf="transactionForm.get('carteId')?.value 
+              && transactionForm.get('montantTotal')?.value > getCarteSolde(transactionForm.get('carteId')?.value)
+              && (transactionForm.get('montantTotal')?.touched || submittedTransaction)">
+            Le montant total ({{ transactionForm.get('montantTotal')?.value }} DT) dépasse le solde de la carte ({{
+            getCarteSolde(transactionForm.get('carteId')?.value) }} DT)
+          </div>
+        </div>
+
+        <!-- Quantité -->
+        <div class="form-group">
+          <label class="form-label">Quantité (Litres)</label>
+          <input type="number" class="form-input" formControlName="quantite" readonly />
+        </div>
+
+        <!-- Prix par litre -->
+        <div class="form-group">
+          <label class="form-label">Prix par Litre (DT)</label>
+          <input type="number" class="form-input" formControlName="prixLitre" readonly />
+        </div>
+
+
+
+        <!-- Kilométrage -->
+        <div class="form-group">
+          <label class="form-label">Kilométrage</label>
+          <input type="number" class="form-input" formControlName="kilometrage" min="0" />
+          <div class="error-message" *ngIf="transactionForm.get('kilometrage')?.errors?.['required'] 
+                  && (transactionForm.get('kilometrage')?.touched || submittedTransaction)">
+            Veuillez saisir le kilométrage
+          </div>
+          <div class="error-message" *ngIf="transactionForm.get('vehiculeId')?.value 
+              && transactionForm.get('kilometrage')?.value < getVehiculeKmActuel(transactionForm.get('vehiculeId')?.value) 
+              && (transactionForm.get('kilometrage')?.touched || submittedTransaction)">
+            Le kilométrage ne peut pas être inférieur au kilométrage actuel ({{
+            getVehiculeKmActuel(transactionForm.get('vehiculeId')?.value) }} km)
+          </div>
+        </div>
+
+        <!-- Conducteur -->
+        <div class="form-group">
+          <label class="form-label">Conducteur</label>
+          <input type="text" class="form-input" formControlName="conducteur" placeholder="Nom du conducteur" />
+          <div class="error-message" *ngIf="transactionForm.get('conducteur')?.errors?.['required'] 
+                  && (transactionForm.get('conducteur')?.touched || submittedTransaction)">
+            Veuillez saisir le nom du conducteur
+          </div>
+        </div>
+
+        <!-- Station -->
+        <div class="form-group">
+          <label class="form-label">Station</label>
+          <input type="text" class="form-input" formControlName="station" placeholder="Station Agil Centre Ville" />
+          <div class="error-message" *ngIf="transactionForm.get('station')?.errors?.['required'] 
+                  && (transactionForm.get('station')?.touched || submittedTransaction)">
+            Veuillez saisir le nom de la station
+          </div>
+        </div>
+        <!-- Date -->
+        <div class="form-group">
+          <label class="form-label">Date</label>
+          <input type="date" class="form-input" formControlName="date" />
+          <div class="error-message" *ngIf="transactionForm.get('date')?.errors?.['required'] 
+                  && (transactionForm.get('date')?.touched || submittedTransaction)">
+            Veuillez sélectionner une date
+          </div>
+        </div>
+
+        <!-- Consommation -->
+        <div class="form-group">
+          <label class="form-label">Consommation (L/100)</label>
+          <input type="number" class="form-input" formControlName="consommation" readonly />
+        </div>
+
+      </div>
+
+      <div class="popup-actions">
+        <button type="button" class="btn-outline" (click)="closeTransactionForm()">Annuler</button>
+        <button type="submit" class="btn-primary">
+          {{ isEditModeTransaction ? '💾 Modifier' : '💾 Créer' }}
+        </button>
+      </div>
+    </form>
+
+  </div>
+</div>
+<!-- carburant-prix -->
+<div class="popup-overlay" *ngIf="showPrixForm"  >
+  <div class="popup-container" (click)="$event.stopPropagation()">
+    <div class="popup-header">
+      <h2>Mise à jour des prix carburant</h2>
+      <button class="popup-close" (click)="closePrixForm()">✕</button>
+    </div>
+
+    <form [formGroup]="prixForm" class="popup-form" (ngSubmit)="onSave()">
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label class="form-label">Essence</label>
+          <input type="number" class="form-input" formControlName="essence" step="0.01" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Gasoil</label>
+          <input type="number" class="form-input" formControlName="gasoil" step="0.01" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Gasoil 50</label>
+          <input type="number" class="form-input" formControlName="gasoil50" step="0.01" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">GPL</label>
+          <input type="number" class="form-input" formControlName="gpl" step="0.01" />
+        </div>
+
+      </div>
+
+      <div class="popup-actions">
+        <button type="button" class="btn-back" (click)="closePrixForm()">Annuler</button>
+        <button type="submit" class="btn-primary">
+          <span class="icon">💾</span>
+          Enregistrer
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- carburant-prix -->
+<div class="popup-overlay" *ngIf="showPrixForm"  >
+  <div class="popup-container" (click)="$event.stopPropagation()">
+    <div class="popup-header">
+      <h2>Mise à jour des prix carburant</h2>
+      <button class="popup-close" (click)="closePrixForm()">✕</button>
+    </div>
+
+    <form [formGroup]="prixForm" class="popup-form" (ngSubmit)="onSave()">
+      <div class="form-grid">
+
+        <div class="form-group">
+          <label class="form-label">Essence</label>
+          <input type="number" class="form-input" formControlName="essence" step="0.01" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Gasoil</label>
+          <input type="number" class="form-input" formControlName="gasoil" step="0.01" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Gasoil 50</label>
+          <input type="number" class="form-input" formControlName="gasoil50" step="0.01" />
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">GPL</label>
+          <input type="number" class="form-input" formControlName="gpl" step="0.01" />
+        </div>
+
+      </div>
+
+      <div class="popup-actions">
+        <button type="button" class="btn-back" (click)="closePrixForm()">Annuler</button>
+        <button type="submit" class="btn-primary">
+          <span class="icon">💾</span>
+          Enregistrer
+        </button>
+      </div>
+    </form>
+  </div>
+</div>

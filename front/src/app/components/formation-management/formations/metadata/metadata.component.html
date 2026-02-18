@@ -1,0 +1,204 @@
+<div class="content-section general-info-section">
+  <div class="objective-header">
+    <h2 class="objective-title">📋 Informations générales</h2>
+  </div>
+
+  <div class="objective-detail">
+    <!-- Image Upload Section -->
+    <div class="field image-upload-field">
+      <label>Image de la formation</label>
+      <div class="image-upload-container">
+        <div class="image-preview-wrapper" *ngIf="hasImage()">
+          <img [src]="getImageUrl()" alt="Aperçu de l'image" class="image-preview" />
+          <button type="button" class="remove-image-btn" (click)="removeImage()" title="Supprimer l'image">
+            <span>×</span>
+          </button>
+        </div>
+        <div class="image-upload-area" *ngIf="!hasImage()">
+          <input 
+            type="file" 
+            id="formation-image" 
+            accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" 
+            (change)="onImageSelected($event)" 
+            class="file-input"
+            #imageInput
+          />
+          <label for="formation-image" class="upload-label">
+            <span class="upload-icon">📷</span>
+            <span class="upload-text">Cliquez pour sélectionner une image</span>
+            <span class="upload-hint">JPG, PNG, GIF ou WebP (max 5 Mo)</span>
+          </label>
+        </div>
+        <button 
+          type="button" 
+          class="change-image-btn" 
+          *ngIf="hasImage()" 
+          (click)="imageInput.click()"
+        >
+          📷 Changer l'image
+        </button>
+        <input 
+          type="file" 
+          #imageInput
+          accept="image/jpeg,image/png,image/jpg,image/gif,image/webp" 
+          (change)="onImageSelected($event)" 
+          style="display: none;"
+        />
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Nom formation <span style="color: red;">*</span></label>
+      <input 
+        class="input" 
+        [class.error]="hasError('theme')"
+        type="text" 
+        [(ngModel)]="form.theme" 
+        (ngModelChange)="onFormChange()" 
+        (blur)="markFieldAsTouched('theme')"
+        name="theme" 
+        placeholder="Ex: Java Avancé" 
+      />
+      <span class="error-message" *ngIf="hasError('theme')">{{ getError('theme') }}</span>
+    </div>
+
+    <div class="field">
+      <label>Description formation</label>
+      <textarea 
+        class="textarea" 
+        [class.error]="hasError('descriptionTheme')"
+        rows="3" 
+        [(ngModel)]="form.descriptionTheme" 
+        (ngModelChange)="onFormChange()" 
+        (blur)="markFieldAsTouched('descriptionTheme')"
+        name="descriptionTheme" 
+        placeholder="Décrivez la formation..."
+      ></textarea>
+      <span class="error-message" *ngIf="hasError('descriptionTheme')">{{ getError('descriptionTheme') }}</span>
+    </div>
+
+    <div class="field">
+      <label>Objectif global</label>
+      <textarea class="textarea" rows="2" [(ngModel)]="form.objectifGlobal" (ngModelChange)="onFormChange()" name="objectifGlobal" placeholder="Quel est l'objectif principal de cette formation?"></textarea>
+    </div>
+
+    <div class="grid mini">
+      <!-- Removed 'Nombre d'heures' field as per user request -->
+      <div class="field">
+        <label>Prix (€)</label>
+        <input 
+          class="input" 
+          [class.error]="hasError('prix')"
+          type="number" 
+          min="0" 
+          [(ngModel)]="form.prix" 
+          (ngModelChange)="onFormChange()" 
+          (blur)="markFieldAsTouched('prix')"
+          name="prix" 
+        />
+        <span class="error-message" *ngIf="hasError('prix')">{{ getError('prix') }}</span>
+      </div>
+      <div class="field">
+        <label>Participants max</label>
+        <input 
+          class="input" 
+          [class.error]="hasError('nombreMax')"
+          type="number" 
+          min="0" 
+          [(ngModel)]="form.nombreMax" 
+          (ngModelChange)="onFormChange()" 
+          (blur)="markFieldAsTouched('nombreMax')"
+          name="nombreMax" 
+        />
+        <span class="error-message" *ngIf="hasError('nombreMax')">{{ getError('nombreMax') }}</span>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Population cible</label>
+      <input 
+        class="input" 
+        [class.error]="hasError('populationCible')"
+        type="text" 
+        [(ngModel)]="form.populationCible" 
+        (ngModelChange)="onFormChange()" 
+        (blur)="markFieldAsTouched('populationCible')"
+        name="populationCible" 
+        placeholder="Ex: Développeurs juniors" 
+      />
+      <span class="error-message" *ngIf="hasError('populationCible')">{{ getError('populationCible') }}</span>
+    </div>
+
+    <div class="grid mini">
+      <div class="field">
+        <label>Type de formation <span style="color: red;">*</span></label>
+        <select 
+          class="input" 
+          [class.error]="hasError('typeFormation')"
+          [(ngModel)]="form.typeFormation" 
+          (ngModelChange)="onFormChange()" 
+          (blur)="markFieldAsTouched('typeFormation')"
+          name="typeFormation"
+        >
+          <option *ngFor="let t of types" [value]="t">{{ t }}</option>
+        </select>
+        <span class="error-message" *ngIf="hasError('typeFormation')">{{ getError('typeFormation') }}</span>
+      </div>
+      <div class="field">
+        <label>Niveau <span style="color: red;">*</span></label>
+        <select 
+          class="input" 
+          [class.error]="hasError('niveau')"
+          [(ngModel)]="form.niveau" 
+          (ngModelChange)="onFormChange()" 
+          (blur)="markFieldAsTouched('niveau')"
+          name="niveau"
+        >
+          <option *ngFor="let n of niveaux" [value]="n">{{ n }}</option>
+        </select>
+        <span class="error-message" *ngIf="hasError('niveau')">{{ getError('niveau') }}</span>
+      </div>
+    </div>
+
+    <!-- Classification hierarchy -->
+    <div class="grid mini">
+      <div class="field">
+        <label>Domaine</label>
+        <select class="input" [(ngModel)]="form.idDomaine" (ngModelChange)="onDomaineChange()" name="domaine">
+          <option [ngValue]="undefined">— Sélectionner —</option>
+          <option *ngFor="let d of domaines" [ngValue]="d.idDomaine">{{ d.nom }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Type</label>
+        <select class="input" [(ngModel)]="form.idType" (ngModelChange)="onTypeChange()" name="type" [disabled]="!form.idDomaine">
+          <option [ngValue]="undefined">— Sélectionner —</option>
+          <option *ngFor="let t of typesDyn" [ngValue]="t.idType">{{ t.nom }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="grid mini">
+      <div class="field">
+        <label>Catégorie</label>
+        <select class="input" [(ngModel)]="form.idCategorie" (ngModelChange)="onCategorieChange()" name="categorie" [disabled]="!form.idType">
+          <option [ngValue]="undefined">— Sélectionner —</option>
+          <option *ngFor="let c of categories" [ngValue]="c.idCategorie">{{ c.nom }}</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Sous-catégorie</label>
+        <select class="input" [(ngModel)]="form.idSousCategorie" (ngModelChange)="onFormChange()" name="sousCategorie" [disabled]="!form.idCategorie">
+          <option [ngValue]="undefined">— Sélectionner —</option>
+          <option *ngFor="let s of sousCategories" [ngValue]="s.idSousCategorie">{{ s.nom }}</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button type="button" class="btn primary" (click)="onSaveGeneralInfo()" [disabled]="saving || !form.theme">
+        {{ saving ? '⏳ Enregistrement...' : '💾 Enregistrer les informations générales' }}
+      </button>
+    </div>
+  </div>
+</div>

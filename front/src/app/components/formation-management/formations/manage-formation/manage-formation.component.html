@@ -1,0 +1,788 @@
+<div class="fullscreen-overlay">
+  <!-- Loading Spinner Overlay -->
+  <div class="loading-overlay" *ngIf="isLoading">
+    <div class="spinner-container">
+      <div class="spinner"></div>
+      <p class="loading-text">{{ loadingMessage }}</p>
+    </div>
+  </div>
+
+  <div class="sheet">
+    <div class="sheet-header">
+      <div class="title">
+        <span>➕ Nouvelle Formation (v2)</span>
+        <span class="header-loading-indicator" *ngIf="isLoadingFormation || isLoadingObjectives || isLoadingContent || isLoadingPlans || isLoadingFormateurs">
+          <span class="pulse-dot"></span>
+          Chargement...
+        </span>
+      </div>
+      <div class="header-actions">
+        <button class="btn primary" type="button" (click)="saveCompleteFormation()" [disabled]="!generalInfoSaved || saving || isLoading" title="Enregistrer la formation complète">
+          💾 {{ saving ? 'Enregistrement...' : 'Enregistrer' }}
+        </button>
+        <button class="btn" type="button" (click)="refreshFormation()" [disabled]="!form.idFormation || saving || isLoading" title="Recharger toutes les données">
+          🔄 Actualiser
+        </button>
+        <button class="btn" type="button" (click)="onQuit()">Quitter</button>
+      </div>
+    </div>
+
+    <div class="sheet-body">
+      <div class="layout">
+        <!-- LEFT SIDEBAR WITH OBJECTIVES -->
+        <aside class="left-nav">
+          <!-- GENERAL INFORMATION SECTION -->
+          <div class="sidebar-section info-section" [class.active]="showGeneralInfo" (click)="showAddGlobalForm = false; showAddSpecificForm = false; showLinkForm = false; showContentBuilder = false; showContentDetailAssigner = false; showPlanGenerator = false; showContentDetailCreator = false; showGeneralInfo = true">
+            <h3 class="section-subtitle">📋 Informations générales</h3>
+          </div>
+
+          <!-- OBJECTIFS GLOBAUX -->
+          <div class="sidebar-section" [class.disabled-section]="!generalInfoSaved">
+            <div class="sidebar-title-wrapper">
+              <h3 class="sidebar-title">🎯 Objectifs globaux</h3>
+              <button class="btn-title-action" type="button" (click)="openSearchGlobalObjectives()" [disabled]="!generalInfoSaved" title="Rechercher et attribuer des objectifs">🔍</button>
+              <button class="btn-title-action" type="button" (click)="openAddGlobalForm()" [disabled]="!generalInfoSaved" title="Ajouter un objectif global">➕</button>
+            </div>
+            <div class="sidebar-list">
+              <div class="sidebar-item-wrapper" *ngFor="let o of objectifsGlobauxExemples; let i = index">
+                <label class="sidebar-item" [class.active]="selectedGlobal?.id === o.id" (click)="onSelectGlobal(o)">
+                  <!-- <input type="checkbox" [(ngModel)]="o.selected" [name]="'obj-global-'+i" (ngModelChange)="onToggleGlobalSelected(o, $event)" (click)="$event.stopPropagation()" [disabled]="!generalInfoSaved" /> -->
+                  <span>{{ o.label }}</span>
+                </label>
+                <button class="btn-edit" type="button" (click)="editGlobalObjective(o)" title="Modifier">✏️</button>
+                <button class="btn-remove" type="button" (click)="removeGlobalObjective(o.id)" title="Supprimer">✕</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- OBJECTIFS SPÉCIFIQUES -->
+          <div class="sidebar-section" [class.disabled-section]="!generalInfoSaved">
+            <div class="sidebar-title-wrapper">
+              <h3 class="sidebar-title">🧩 Objectifs spécifiques</h3>
+              <button class="btn-title-action" type="button" (click)="selectedGlobal ? openSearchSpecificObjectives(selectedGlobal.id) : showSelectGlobalWarning()" [disabled]="!generalInfoSaved" title="Rechercher et copier des objectifs spécifiques">🔍</button>
+              <button class="btn-title-action" type="button" (click)="openAddSpecificForm()" [disabled]="!generalInfoSaved" title="Ajouter un objectif spécifique">➕</button>
+            </div>
+            <div class="sidebar-list">
+              <div class="sidebar-item-wrapper" *ngFor="let o of objectifsSpecifiquesExemples; let i = index">
+                <label class="sidebar-item" [class.active]="selectedSpecific?.id === o.id" (click)="onSelectSpecific(o)">
+                  <!-- <input type="checkbox" [(ngModel)]="o.selected" [name]="'obj-spec-'+i" (ngModelChange)="onToggleSpecificSelected(o, $event)" (click)="$event.stopPropagation()" [disabled]="!generalInfoSaved" /> -->
+                  <span>{{ o.label }}</span>
+                </label>
+                <button class="btn-edit" type="button" (click)="editSpecificObjective(o)" title="Modifier">✏️</button>
+                <button class="btn-remove" type="button" (click)="removeSpecificObjective(o.id)" title="Supprimer">✕</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- CONTENU DE FORMATION -->
+          <div class="sidebar-section" [class.disabled-section]="!generalInfoSaved">
+            <div class="sidebar-title-wrapper">
+              <h3 class="sidebar-title">📑 Contenu</h3>
+              <button class="btn-title-action" type="button" (click)="onClickSearchContenusJour()" [disabled]="!generalInfoSaved" title="Rechercher et copier des contenus">🔍</button>
+              <button class="btn-title-action" type="button" (click)="openContentBuilder()" [disabled]="!generalInfoSaved" title="Organiser le contenu">➕</button>
+            </div>
+
+            <!-- Simple checklist of content items -->
+            <div class="sidebar-list" style="margin-top:10px;">
+              <div class="sidebar-subtitle">Sélection rapide</div>
+              <div class="sidebar-day" *ngFor="let day of contentDays">
+                <div class="sidebar-subtitle">Jour {{ day }}</div>
+                <div class="sidebar-item-wrapper" *ngFor="let item of orderedContentByDay(day)">
+                  <label class="sidebar-item" (click)="openContentDetailAssigner(item)">
+                    <!-- <input type="checkbox" [(ngModel)]="contentSelections[item.id]" [name]="'content-'+item.id" (ngModelChange)="onToggleContentSelected(item.id, $event)" (click)="$event.stopPropagation()" [disabled]="!generalInfoSaved" /> -->
+                    <span>{{ item.title }}</span>
+                  </label>
+                  <button class="btn-edit" type="button" (click)="editContentItem(item)" title="Modifier">✏️</button>
+                  <button class="btn-remove" type="button" (click)="deleteContentItem(item.id)" title="Supprimer">✕</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- GÉNÉRER PLAN DE FORMATION -->
+          <div class="sidebar-section" [class.disabled-section]="!generalInfoSaved">
+            <div class="sidebar-title-wrapper">
+              <h3 class="sidebar-title">📄 Plans de Formation</h3>
+              <button class="btn-title-action" type="button" (click)="showGeneralInfo = false; showAddGlobalForm = false; showAddSpecificForm = false; showLinkForm = false; showContentBuilder = false; showContentDetailAssigner = false; showPlanGenerator = true; editingPlanId = null" [disabled]="!generalInfoSaved" title="Générer un nouveau plan de formation">➕</button>
+            </div>
+            <div class="sidebar-list">
+              <div class="sidebar-item-wrapper" *ngFor="let plan of plansFormation; let i = index">
+                <div class="sidebar-item plan-item-detailed">
+                  <div class="plan-header">
+                    <span class="plan-title">{{ plan.titre }}</span>
+                    <span class="plan-status" *ngIf="plan._backendData?.statusFormation" 
+                          [class.status-en-cours]="plan._backendData?.statusFormation === 'EN_COURS'"
+                          [class.status-terminee]="plan._backendData?.statusFormation === 'TERMINEE'"
+                          [class.status-planifiee]="plan._backendData?.statusFormation === 'PLANIFIEE'"
+                          [class.status-annulee]="plan._backendData?.statusFormation === 'ANNULEE'">
+                      {{ plan._backendData?.statusFormation }}
+                    </span>
+                  </div>
+                  <div class="plan-details" *ngIf="plan.description || plan._backendData?.formateur || plan.dateDebut || plan.dateFin">
+                    <p class="plan-description" *ngIf="plan.description">{{ plan.description }}</p>
+                    <div class="plan-meta">
+                      <span class="plan-formateur" *ngIf="plan._backendData?.formateur">
+                        👤 {{ plan._backendData.formateur.nom }} {{ plan._backendData.formateur.prenom }}
+                      </span>
+                      <span class="plan-dates" *ngIf="plan.dateDebut && plan.dateFin">
+                        📅 {{ plan.dateDebut | date:'dd/MM/yyyy' }} → {{ plan.dateFin | date:'dd/MM/yyyy' }}
+                      </span>
+                      <span class="plan-dates" *ngIf="plan.dateDebut && !plan.dateFin">
+                        📅 Début: {{ plan.dateDebut | date:'dd/MM/yyyy' }}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <button class="btn-edit" type="button" (click)="editPlanItem(plan)" title="Modifier">✏️</button>
+                <button class="btn-remove" type="button" (click)="deletePlanItem(plan.id)" title="Supprimer">✕</button>
+              </div>
+              <div class="sidebar-empty" *ngIf="!plansFormation || plansFormation.length === 0">
+                <p>Aucun plan créé</p>
+                <p class="sidebar-hint">Cliquez sur ➕ pour en ajouter un</p>
+              </div>
+            </div>
+          </div>
+
+          
+        </aside>
+
+        <!-- MIDDLE TREE PANE -->
+        <section class="tree-pane" [class.disabled-section]="!generalInfoSaved">
+          <div class="tree-header">🗂️ Arborescence — Total: {{ totalHoursOverall() }}h</div>
+          <div class="tree-body">
+            <!-- Globals -->
+            <div class="tree-node" *ngFor="let g of objectifsGlobauxExemples">
+                  <div class="tree-row global" [class.active]="selectedGlobal?.id === g.id"
+                    (click)="onTreeSelectGlobal(g)">
+                <button type="button" class="expander" (click)="$event.stopPropagation(); toggleGlobalExpand(g.id)">
+                  {{ isGlobalExpanded(g.id) ? '▾' : '▸' }}
+                </button>
+                <span class="tree-title">{{ g.label }}</span>
+                <span class="tree-meta">{{ totalHoursForGlobal(g.id) }}h</span>
+              </div>
+              <div class="tree-children" *ngIf="isGlobalExpanded(g.id)">
+                <div class="tree-subheader">Objectifs spécifiques</div>
+                <!-- Specifics under Global -->
+                <div class="tree-node" *ngFor="let s of specificsForGlobal(g.id)">
+                     <div class="tree-row specific" [class.active]="selectedSpecific?.id === s.id"
+                       (click)="onTreeSelectSpecific(s)">
+                    <button type="button" class="expander" (click)="$event.stopPropagation(); toggleSpecificExpand(s.id)">
+                      {{ isSpecificExpanded(s.id) ? '▾' : '▸' }}
+                    </button>
+                    <span class="tree-title">{{ s.label }}</span>
+                    <span class="tree-count" *ngIf="contentsForSpecific(s.id).length">{{ contentsForSpecific(s.id).length }}</span>
+                    <span class="tree-meta">{{ totalHoursForSpecific(s.id) }}h</span>
+                  </div>
+                  <div class="tree-children" *ngIf="isSpecificExpanded(s.id)">
+                    <div class="tree-subheader">Contenu</div>
+                    <!-- Contents under Specific -->
+                    <div class="tree-row content" *ngFor="let c of contentsForSpecific(s.id)"
+                         (click)="$event.stopPropagation(); openContentDetailAssigner(c)">
+                      <span class="bullet">•</span>
+                      <span class="tree-title">{{ c.title }}</span>
+                      <span class="tree-meta" *ngIf="getContentItemHoursFromDetails(c).theorique || getContentItemHoursFromDetails(c).pratique">{{ getContentItemHoursFromDetails(c).theorique || 0 }}h / {{ getContentItemHoursFromDetails(c).pratique || 0 }}h</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- RIGHT CONTENT - FORM & MANAGEMENT -->
+        <section class="right-content">
+          <!-- CONTENT BUILDER (CONTENU SUBCOMPONENT) -->
+          <!-- CONTENU SUBCOMPONENT -->
+          <app-formation-contenu
+            *ngIf="showContentBuilder && !selectedGlobal && !selectedSpecific && !showGeneralInfo && !showAddGlobalForm && !showAddSpecificForm && !showLinkForm && !showContentDetailCreator && !showPlanGenerator && !showEditContentForm"
+            [formationId]="form.idFormation"
+            [contentItems]="contentItems"
+            [objectifsSpecifiques]="objectifsSpecifiquesExemples"
+            [formateurs]="formateurs"
+            [generalInfoSaved]="generalInfoSaved"
+            (contentItemsChange)="onContentItemsChange($event)"
+            (close)="showContentBuilder = false"
+          ></app-formation-contenu>
+
+          <!-- EDIT CONTENT ITEM FORM -->
+          <div class="content-section" *ngIf="showEditContentForm && selectedContentForEdit && !selectedGlobal && !selectedSpecific && !showContentDetailCreator && !showPlanGenerator && !showContentBuilder">
+            <div class="objective-header">
+              <h2 class="objective-title">✏️ Modifier le contenu</h2>
+              <button class="btn-close" type="button" (click)="showEditContentForm = false; selectedContentForEdit = null">✕</button>
+            </div>
+
+            <div class="objective-detail">
+              <div class="field">
+                <label>Titre <span style="color: red;">*</span></label>
+                <input 
+                  class="input" 
+                  [class.error]="contentValidationErrors['title']"
+                  type="text" 
+                  [(ngModel)]="selectedContentForEdit.title" 
+                  placeholder="Ex: Atelier pratique" 
+                />
+                <span class="error-message" *ngIf="contentValidationErrors['title']">
+                  {{ contentValidationErrors['title'] }}
+                </span>
+              </div>
+
+              <div class="field">
+                <label>Description</label>
+                <textarea class="textarea" rows="2" [(ngModel)]="selectedContentForEdit.description" placeholder="Décrivez l'activité..."></textarea>
+              </div>
+
+              <div class="field">
+                <label>Détails</label>
+                <textarea class="textarea" rows="2" [(ngModel)]="selectedContentForEdit.detail" placeholder="Infos supplémentaires, livrables..."></textarea>
+              </div>
+
+              <div class="grid mini">
+                <div class="field">
+                  <label>Niveau</label>
+                  <select class="input" [(ngModel)]="selectedContentForEdit.level">
+                    <option value="">— Optionnel —</option>
+                    <option *ngFor="let niveau of niveaux" [value]="niveau">{{ niveau }}</option>
+                  </select>
+                </div>
+                <div class="field">
+                  <label>Staff</label>
+                  <select class="input" [(ngModel)]="selectedContentForEdit.staff">
+                    <option value="">— Optionnel —</option>
+                    <option *ngFor="let formateur of formateurs" [value]="formateur.prenom + ' ' + formateur.nom">{{ formateur.prenom }} {{ formateur.nom }}</option>
+                  </select>
+                </div>
+              </div>
+
+              <div class="grid mini">
+                <div class="field">
+                  <label>Jour <span style="color: red;">*</span></label>
+                  <input 
+                    class="input" 
+                    [class.error]="contentValidationErrors['day']"
+                    type="number" 
+                    min="1" 
+                    [(ngModel)]="selectedContentForEdit.day" 
+                  />
+                  <span class="error-message" *ngIf="contentValidationErrors['day']">
+                    {{ contentValidationErrors['day'] }}
+                  </span>
+                </div>
+                <div class="field">
+                  <label>Objectif spécifique <span style="color: red;">*</span></label>
+                  <select 
+                    class="input" 
+                    [class.error]="contentValidationErrors['specificId']"
+                    [(ngModel)]="selectedContentForEdit.specificId" 
+                    required
+                  >
+                    <option [ngValue]="undefined">— Sélectionner —</option>
+                    <option *ngFor="let s of objectifsSpecifiquesExemples" [ngValue]="s.id">{{ s.label }}</option>
+                  </select>
+                  <span class="error-message" *ngIf="contentValidationErrors['specificId']">
+                    {{ contentValidationErrors['specificId'] }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="grid mini">
+                <div class="field">
+                  <label>Heures pratique</label>
+                  <input 
+                    class="input" 
+                    [class.error]="contentValidationErrors['hoursPractical']"
+                    type="number" 
+                    min="0" 
+                    step="0.5" 
+                    [(ngModel)]="selectedContentForEdit.hoursPractical" 
+                  />
+                  <span class="error-message" *ngIf="contentValidationErrors['hoursPractical']">
+                    {{ contentValidationErrors['hoursPractical'] }}
+                  </span>
+                </div>
+                <div class="field">
+                  <label>Heures théorie</label>
+                  <input 
+                    class="input" 
+                    [class.error]="contentValidationErrors['hoursTheoretical']"
+                    type="number" 
+                    min="0" 
+                    step="0.5" 
+                    [(ngModel)]="selectedContentForEdit.hoursTheoretical" 
+                  />
+                  <span class="error-message" *ngIf="contentValidationErrors['hoursTheoretical']">
+                    {{ contentValidationErrors['hoursTheoretical'] }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="actions">
+                <button type="button" class="btn-save" (click)="updateSelectedContentItem()">💾 Enregistrer</button>
+                <button type="button" class="btn-cancel" (click)="showEditContentForm = false; selectedContentForEdit = null">Annuler</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- GENERAL INFORMATION FORM -->
+          <app-formation-metadata
+            *ngIf="showGeneralInfo && !selectedGlobal && !selectedSpecific && !showAddGlobalForm && !showAddSpecificForm && !showLinkForm && !showPlanGenerator && !showContentDetailCreator"
+            [form]="form"
+            [domaines]="domaines"
+            [typesDyn]="typesDyn"
+            [categories]="categories"
+            [sousCategories]="sousCategories"
+            [saving]="saving"
+            (formChange)="onFormChange($event)"
+            (saveGeneralInfo)="onSaveGeneralInfo()"
+            (domaineChange)="handleDomaineChange()"
+            (typeChange)="handleTypeChange()"
+            (categorieChange)="handleCategorieChange()"
+            (imageFileChange)="onImageFileChange($event)"
+          ></app-formation-metadata>
+
+          <!-- ADD GLOBAL OBJECTIVE FORM -->
+          <div class="content-section" *ngIf="showAddGlobalForm && !selectedGlobal && !selectedSpecific && !showGeneralInfo && !showContentDetailCreator && !showPlanGenerator">
+            <div class="objective-header">
+              <h2 class="objective-title">{{ isEditingGlobal ? '✏️ Modifier un objectif global' : '🎯 Créer un objectif global' }}</h2>
+              <button class="btn-close" type="button" (click)="showAddGlobalForm = false">✕</button>
+            </div>
+
+            <div class="form-container">
+              <div class="field">
+                <label>Nom de l'objectif global <span class="required">*</span></label>
+                <textarea 
+                  class="input" 
+                  [class.error]="objectiveValidationErrors['global']"
+                  rows="3" 
+                  [(ngModel)]="newGlobalObjectiveLabel" 
+                  name="newGlobalLabel" 
+                  placeholder="Ex: Maîtriser les fondamentaux de la gestion de projet"
+                ></textarea>
+                <span class="error-message" *ngIf="objectiveValidationErrors['global']">
+                  {{ objectiveValidationErrors['global'] }}
+                </span>
+              </div>
+
+              <div class="actions" style="margin-top: 20px;">
+                <button type="button" class="btn primary" (click)="saveGlobalObjective()" [disabled]="!newGlobalObjectiveLabel.trim() || isLoadingObjectives">
+                  <span *ngIf="!isLoadingObjectives">{{ isEditingGlobal ? '✓ Enregistrer' : '✓ Créer' }}</span>
+                  <span *ngIf="isLoadingObjectives" class="btn-spinner">⏳ Traitement...</span>
+                </button>
+                <button type="button" class="btn" (click)="cancelAddGlobalObjective()" [disabled]="isLoadingObjectives">
+                  Annuler
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- ADD SPECIFIC OBJECTIVE FORM -->
+          <div class="content-section" *ngIf="showAddSpecificForm && !selectedGlobal && !selectedSpecific && !showGeneralInfo && !showContentDetailCreator && !showPlanGenerator">
+            <div class="objective-header">
+              <h2 class="objective-title">{{ isEditingSpecific ? '✏️ Modifier un objectif spécifique' : '🧩 Créer un objectif spécifique' }}</h2>
+              <button class="btn-close" type="button" (click)="showAddSpecificForm = false">✕</button>
+            </div>
+
+            <div class="form-container">
+              <div class="field">
+                <label>Titre de l'objectif spécifique <span class="required">*</span></label>
+                <textarea 
+                  class="input" 
+                  [class.error]="objectiveValidationErrors['specific']"
+                  rows="3" 
+                  [(ngModel)]="newSpecificObjectiveLabel" 
+                  name="newSpecificLabel" 
+                  placeholder="Ex: Comprendre le cycle de vie d'un projet"
+                ></textarea>
+                <span class="error-message" *ngIf="objectiveValidationErrors['specific']">
+                  {{ objectiveValidationErrors['specific'] }}
+                </span>
+              </div>
+
+              <div class="field">
+                <label>Lier à un objectif global (optionnel)</label>
+                <select class="input" [(ngModel)]="newSpecificGlobalId" name="newSpecificGlobal">
+                  <option [ngValue]="undefined">-- Aucun --</option>
+                  <option *ngFor="let g of objectifsGlobauxExemples" [ngValue]="g.id">{{ g.label }}</option>
+                </select>
+              </div>
+
+              <div class="actions" style="margin-top: 20px;">
+                <button type="button" class="btn primary" (click)="saveSpecificObjective()" [disabled]="!newSpecificObjectiveLabel.trim()">
+                  {{ isEditingSpecific ? '✓ Enregistrer' : '✓ Créer' }}
+                </button>
+                <button type="button" class="btn" (click)="cancelAddSpecificObjective()">
+                  Annuler
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEARCH GLOBAL OBJECTIVES FORM -->
+          <div class="content-section" *ngIf="showSearchGlobalObjectives && !selectedGlobal && !selectedSpecific && !showGeneralInfo && !showContentDetailCreator && !showPlanGenerator">
+            <div class="objective-header">
+              <h2 class="objective-title">🔍 Rechercher des objectifs globaux</h2>
+              <button class="btn-close" type="button" (click)="closeSearchGlobalObjectives()">✕</button>
+            </div>
+
+            <div class="form-container">
+              <div class="field">
+                <label>Rechercher des objectifs</label>
+                <div style="display: flex; gap: 8px;">
+                  <input 
+                    type="text" 
+                    class="input" 
+                    [(ngModel)]="searchGlobalObjectivesQuery" 
+                    name="searchGlobalQuery"
+                    placeholder="Ex: Gestion, Projet, Management..."
+                    (keyup.enter)="searchGlobalObjectives()"
+                  />
+                  <button type="button" class="btn primary" (click)="searchGlobalObjectives()" [disabled]="isSearchingGlobalObjectives">
+                    {{ isSearchingGlobalObjectives ? '⏳ Recherche...' : '🔍 Rechercher' }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- SEARCH RESULTS -->
+              <div *ngIf="globalObjectivesSearchResults.length > 0" style="margin-top: 20px;">
+                <h4 style="margin-bottom: 12px;">Résultats ({{ globalObjectivesSearchResults.length }})</h4>
+                <div class="search-results-list" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; padding: 8px;">
+                  <div class="result-item" *ngFor="let result of globalObjectivesSearchResults" style="padding: 8px; border-bottom: 1px solid #eee;">
+                    <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
+                      <input 
+                        type="checkbox" 
+                        [checked]="selectedGlobalObjectivesForLink[result.id] === true"
+                        (change)="toggleGlobalObjectiveSelection(result.id)"
+                        [name]="'objective_' + result.id"
+                        style="margin-right: 10px; cursor: pointer;"
+                      />
+                      <span>{{ result.label }}</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- NO RESULTS -->
+              <div *ngIf="searchGlobalObjectivesQuery && globalObjectivesSearchResults.length === 0 && !isSearchingGlobalObjectives" style="margin-top: 12px; padding: 12px; background-color: #f5f5f5; border-radius: 4px; color: #666;">
+                Aucun objectif ne correspond à votre recherche.
+              </div>
+
+              <div class="actions" style="margin-top: 20px;">
+                <button type="button" class="btn primary" (click)="assignSelectedGlobalObjectives()" 
+                  [disabled]="getSelectedGlobalObjectivesCount() === 0">
+                  ✓ Attribuer {{ getSelectedGlobalObjectivesCount() > 0 ? '(' + getSelectedGlobalObjectivesCount() + ')' : '' }}
+                </button>
+                <button type="button" class="btn" (click)="closeSearchGlobalObjectives()">
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEARCH SPECIFIC OBJECTIVES FORM -->
+          <div class="content-section" *ngIf="showSearchSpecificObjectives && !selectedSpecific && !showGeneralInfo && !showContentDetailCreator && !showPlanGenerator">
+            <div class="objective-header">
+              <h2 class="objective-title">🔍 Rechercher des objectifs spécifiques</h2>
+              <button class="btn-close" type="button" (click)="closeSearchSpecificObjectives()">✕</button>
+            </div>
+
+            <div class="form-container">
+              <div class="field">
+                <label>Rechercher des objectifs spécifiques</label>
+                <div style="display: flex; gap: 8px;">
+                  <input 
+                    type="text" 
+                    class="input" 
+                    [(ngModel)]="searchSpecificObjectivesQuery" 
+                    name="searchSpecificQuery"
+                    placeholder="Ex: Communication, Leadership, Technique..."
+                    (keyup.enter)="searchSpecificObjectives()"
+                  />
+                  <button type="button" class="btn primary" (click)="searchSpecificObjectives()" [disabled]="isSearchingSpecificObjectives">
+                    {{ isSearchingSpecificObjectives ? '⏳ Recherche...' : '🔍 Rechercher' }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- SEARCH RESULTS -->
+              <div *ngIf="specificObjectivesSearchResults.length > 0" style="margin-top: 20px;">
+                <h4 style="margin-bottom: 12px;">Résultats ({{ specificObjectivesSearchResults.length }})</h4>
+                <div class="search-results-list" style="max-height: 300px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; padding: 8px;">
+                  <div class="result-item" *ngFor="let result of specificObjectivesSearchResults" style="padding: 8px; border-bottom: 1px solid #eee;">
+                    <label style="display: flex; align-items: center; cursor: pointer; margin: 0;">
+                      <input 
+                        type="checkbox" 
+                        [checked]="selectedSpecificObjectivesForLink[result.id] === true"
+                        (change)="toggleSpecificObjectiveSelection(result.id)"
+                        [name]="'objectif_spec_' + result.id"
+                        style="margin-right: 10px; cursor: pointer;"
+                      />
+                      <span>{{ result.label }}</span>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- NO RESULTS -->
+              <div *ngIf="searchSpecificObjectivesQuery && specificObjectivesSearchResults.length === 0 && !isSearchingSpecificObjectives" style="margin-top: 12px; padding: 12px; background-color: #f5f5f5; border-radius: 4px; color: #666;">
+                Aucun objectif spécifique ne correspond à votre recherche.
+              </div>
+
+              <div class="actions" style="margin-top: 20px;">
+                <button type="button" class="btn primary" (click)="assignSelectedSpecificObjectives()" 
+                  [disabled]="getSelectedSpecificObjectivesCount() === 0">
+                  ✓ Copier et attribuer {{ getSelectedSpecificObjectivesCount() > 0 ? '(' + getSelectedSpecificObjectivesCount() + ')' : '' }}
+                </button>
+                <button type="button" class="btn" (click)="closeSearchSpecificObjectives()">
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SEARCH CONTENUS JOUR FORM -->
+          <div class="content-section" *ngIf="showSearchContenusJour && !showGeneralInfo && !showContentDetailCreator && !showPlanGenerator">
+            <div class="objective-header">
+              <h2 class="objective-title">🔍 Rechercher des contenus de jour</h2>
+              <button class="btn-close" type="button" (click)="closeSearchContenusJour()">✕</button>
+            </div>
+
+            <div class="form-container">
+              <div class="field">
+                <label>Rechercher des contenus</label>
+                <div style="display: flex; gap: 8px;">
+                  <input 
+                    type="text" 
+                    class="input" 
+                    [(ngModel)]="searchContenusJourQuery" 
+                    name="searchContenusJourQuery"
+                    placeholder="Ex: Introduction, Configuration, Pratique..."
+                    (keyup.enter)="searchContenusJour()"
+                  />
+                  <button type="button" class="btn primary" (click)="searchContenusJour()" [disabled]="isSearchingContenusJour">
+                    {{ isSearchingContenusJour ? '⏳ Recherche...' : '🔍 Rechercher' }}
+                  </button>
+                </div>
+              </div>
+
+              <!-- SEARCH RESULTS -->
+              <div *ngIf="contenusJourSearchResults.length > 0" style="margin-top: 20px;">
+                <h4 style="margin-bottom: 12px;">Résultats ({{ contenusJourSearchResults.length }})</h4>
+                <div class="search-results-list" style="max-height: 400px; overflow-y: auto; border: 1px solid #ddd; border-radius: 4px; padding: 8px;">
+                  <div class="result-item" *ngFor="let result of contenusJourSearchResults" style="padding: 12px; border-bottom: 1px solid #eee; margin-bottom: 8px;">
+                    <label style="display: flex; align-items: flex-start; cursor: pointer; margin: 0;">
+                      <input 
+                        type="checkbox" 
+                        [checked]="selectedContenusJourForLink[result.id] === true"
+                        (change)="toggleContenuJourSelection(result.id)"
+                        [name]="'contenu_jour_' + result.id"
+                        style="margin-right: 10px; margin-top: 4px; cursor: pointer; flex-shrink: 0;"
+                      />
+                      <div style="flex: 1;">
+                        <div style="font-weight: 500; margin-bottom: 4px;">{{ result.label }}</div>
+                        <div style="font-size: 0.875rem; color: #666; margin-bottom: 2px;" *ngIf="result.objectifSpecifiqueTitre">
+                          📌 Objectif: {{ result.objectifSpecifiqueTitre }}
+                        </div>
+                        <div style="font-size: 0.85rem; color: #888; display: flex; gap: 12px;">
+                          <span *ngIf="result.nbHeuresTheoriques">⏱ Théorie: {{ result.nbHeuresTheoriques }}h</span>
+                          <span *ngIf="result.nbHeuresPratiques">🔧 Pratique: {{ result.nbHeuresPratiques }}h</span>
+                        </div>
+                        <div style="font-size: 0.85rem; color: #888; margin-top: 4px;" *ngIf="result.moyenPedagogique">
+                          📖 {{ result.moyenPedagogique }}
+                        </div>
+                      </div>
+                    </label>
+                  </div>
+                </div>
+              </div>
+
+              <!-- NO RESULTS -->
+              <div *ngIf="searchContenusJourQuery && contenusJourSearchResults.length === 0 && !isSearchingContenusJour" style="margin-top: 12px; padding: 12px; background-color: #f5f5f5; border-radius: 4px; color: #666;">
+                Aucun contenu ne correspond à votre recherche.
+              </div>
+
+              <!-- NIVEAU SELECTION -->
+              <div *ngIf="contenusJourSearchResults.length > 0 && getSelectedContenusJourCount() > 0" style="margin-top: 20px; padding: 16px; background-color: #f0f8ff; border-left: 4px solid #2196F3; border-radius: 4px;">
+                <h4 style="margin-top: 0; margin-bottom: 12px;">📚 Sélectionner le niveau d'attribution</h4>
+                <p style="font-size: 0.9rem; color: #666; margin-bottom: 12px;">Spécifiez le niveau de formation (Débutant, Intermédiaire ou Avancé) pour les contenus sélectionnés:</p>
+                <div style="display: flex; gap: 8px;">
+                  <button 
+                    type="button" 
+                    *ngFor="let niveau of availableNiveaux"
+                    (click)="selectedNiveauForAssignment = niveau.id"
+                    [style.background-color]="selectedNiveauForAssignment === niveau.id ? '#2196F3' : '#fff'"
+                    [style.color]="selectedNiveauForAssignment === niveau.id ? '#fff' : '#333'"
+                    [style.border]="selectedNiveauForAssignment === niveau.id ? '2px solid #2196F3' : '2px solid #ddd'"
+                    style="padding: 10px 16px; border-radius: 4px; cursor: pointer; font-weight: 500; transition: all 0.3s ease;"
+                  >
+                    {{ niveau.icon }} {{ niveau.label }}
+                  </button>
+                </div>
+                <p *ngIf="!selectedNiveauForAssignment" style="font-size: 0.85rem; color: #f44336; margin-top: 8px; margin-bottom: 0;">⚠️ Veuillez sélectionner un niveau avant d'attribuer les contenus</p>
+              </div>
+
+              <div class="actions" style="margin-top: 20px;">
+                <button type="button" class="btn primary" (click)="assignSelectedContenusJour()" 
+                  [disabled]="getSelectedContenusJourCount() === 0 || !selectedNiveauForAssignment">
+                  ✓ Copier et attribuer {{ getSelectedContenusJourCount() > 0 ? '(' + getSelectedContenusJourCount() + ')' : '' }}
+                </button>
+                <button type="button" class="btn" (click)="closeSearchContenusJour()">
+                  Fermer
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- SELECTED OBJECTIVE DETAILS -->
+          <div class="content-section" *ngIf="selectedGlobal && !showGeneralInfo && !showAddGlobalForm && !showAddSpecificForm && !showLinkForm && !showSearchGlobalObjectives && !showContentDetailCreator && !showPlanGenerator">
+            <div class="objective-header">
+              <h2 class="objective-title">🎯 {{ selectedGlobal.label }}</h2>
+              <button class="btn-close" type="button" (click)="selectedGlobal = null">✕</button>
+            </div>
+            <div class="objective-details">
+              <div class="detail-group">
+                <label>Objectif global</label>
+                <textarea class="textarea" rows="4" [(ngModel)]="selectedGlobal.label" name="globalLabel" placeholder="Modifier le label..."></textarea>
+              </div>
+              <div class="detail-group">
+                <label>Lié à</label>
+                <div class="linked-items">
+                  <span class="linked-item" *ngFor="let s of objectifsSpecifiquesExemples | filter: {globalId: selectedGlobal.id}">{{ s.label }}</span>
+                  <span class="no-items" *ngIf="!(objectifsSpecifiquesExemples | filter: {globalId: selectedGlobal.id}).length">Aucun objectif spécifique lié</span>
+                </div>
+              </div>
+              <div class="detail-group">
+                <label>Associer des objectifs spécifiques</label>
+                <div class="sidebar-list">
+                  <label class="sidebar-item" *ngFor="let s of objectifsSpecifiquesExemples">
+                    <input type="checkbox" [checked]="s.globalId === selectedGlobal.id" (change)="onToggleSpecificLink(s, $event.target.checked)" />
+                    <span>{{ s.label }}</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="content-section" *ngIf="selectedSpecific && !selectedGlobal && !showGeneralInfo && !showAddGlobalForm && !showAddSpecificForm && !showLinkForm && !showContentDetailCreator && !showPlanGenerator">
+            <div class="objective-header">
+              <h2 class="objective-title">🧩 {{ selectedSpecific.label }}</h2>
+              <button class="btn-close" type="button" (click)="selectedSpecific = null">✕</button>
+            </div>
+            <div class="objective-details">
+              <div class="detail-group">
+                <label>Objectif spécifique</label>
+                <textarea class="textarea" rows="4" [(ngModel)]="selectedSpecific.label" name="specLabel" placeholder="Modifier le label..."></textarea>
+              </div>
+              <div class="detail-group">
+                <label>Lié à un objectif global</label>
+                <select class="input" [(ngModel)]="selectedSpecific.globalId" name="linkedGlobal">
+                  <option [ngValue]="undefined">— Aucun lien —</option>
+                  <option *ngFor="let g of objectifsGlobauxExemples" [ngValue]="g.id">{{ g.label }}</option>
+                </select>
+                <div class="linked-info" *ngIf="selectedSpecific.globalId">
+                  Lié à: <strong>{{ (objectifsGlobauxExemples | filter: {id: selectedSpecific.globalId})[0]?.label }}</strong>
+                </div>
+              </div>
+              <div class="actions" style="margin-top: 20px;">
+                <button type="button" class="btn primary" (click)="updateSelectedSpecificObjective()" [disabled]="!selectedSpecific.label.trim()">
+                  ✓ Enregistrer les modifications
+                </button>
+                <button type="button" class="btn" (click)="selectedSpecific = null">
+                  Annuler
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- DEFAULT CONTENT -->
+          <div class="content-section" *ngIf="!selectedGlobal && !selectedSpecific && !showGeneralInfo && !showAddGlobalForm && !showAddSpecificForm && !showLinkForm && !showContentBuilder && !showContentDetailAssigner && !showContentDetailCreator && !showPlanGenerator && !showEditContentForm">
+            <div style="text-align: center; padding: 40px 20px; color: #94a3b8;">
+              <p style="font-size: 14px;">Sélectionnez un élément de la barre latérale pour commencer</p>
+            </div>
+          </div>
+
+          <!-- CONTENT DETAIL ASSIGNER -->
+          <div class="content-section" *ngIf="showContentDetailAssigner && selectedContentItem && !showContentDetailCreator && !showPlanGenerator">
+            <div class="objective-header">
+              <h2 class="objective-title">📎 Assigner supports pédagogiques: {{ selectedContentItem.title }}</h2>
+              <button class="btn-close" type="button" (click)="closeContentDetailAssigner()">✕</button>
+            </div>
+
+            <div class="content-detail-assigner">
+              <div class="search-box">
+                <input class="input" type="text" [(ngModel)]="contentSearchQuery" (ngModelChange)="onContentSearchChange($event)" placeholder="🔍 Rechercher dans la bibliothèque..." />
+                <button class="btn primary" type="button" (click)="openContentDetailCreator()" style="margin-left: 12px;">
+                  ➕ Créer nouveau contenu
+                </button>
+              </div>
+
+              <div class="content-library">
+                <div class="library-item" *ngFor="let cd of getFilteredContentDetails()" 
+                     [class.assigned]="isContentDetailAssigned(cd)">
+                  <div class="library-item-header">
+                    <span class="library-title">{{ cd.title }}</span>
+                    <div class="assignment-controls" *ngIf="isContentDetailAssigned(cd)">
+                      <select class="niveau-selector" 
+                              [value]="getAssignedNiveau(cd.id)" 
+                              (change)="changeContentNiveau(cd, $event)"
+                              (click)="$event.stopPropagation()">
+                        <option value="1">🌱 Débutant</option>
+                        <option value="2">📈 Intermédiaire</option>
+                        <option value="3">🚀 Avancé</option>
+                      </select>
+                      <button class="btn-remove" 
+                              type="button"
+                              (click)="removeContentDetailFromItem(cd.id); $event.stopPropagation()"
+                              title="Retirer">✕</button>
+                    </div>
+                    <button class="btn-assign" 
+                            *ngIf="!isContentDetailAssigned(cd)"
+                            type="button"
+                            (click)="assignContentDetailToItem(cd)">+ Assigner</button>
+                  </div>
+                  <div class="library-meta">
+                    <span class="meta-item" *ngIf="cd.dureeTheorique">{{ cd.dureeTheorique }}h théorie</span>
+                    <span class="meta-item" *ngIf="cd.dureePratique">{{ cd.dureePratique }}h pratique</span>
+                    <span class="meta-item" *ngIf="cd.levels?.length">📚 {{ cd.levels.length }} niveau(x)</span>
+                  </div>
+                  <div class="library-levels" *ngIf="getFormationLevels(cd).length > 0">
+                    <strong>Niveaux:</strong>
+                    <span class="level-badge" *ngFor="let level of getFormationLevels(cd)" 
+                          style="background: #ffffff; color: #475569; border: 1px solid #e2e8f0; padding: 3px 8px; border-radius: 6px; font-size: 10px; font-weight: 500;">
+                      {{ formatLevelWithIcon(level) }}
+                    </span>
+                  </div>
+                  <div class="library-keys" *ngIf="cd.contenusCles?.length">
+                    <strong>Clés:</strong> {{ cd.contenusCles.slice(0, 3).join(', ') }}<span *ngIf="cd.contenusCles.length > 3">...</span>
+                  </div>
+                </div>
+                <div class="empty" *ngIf="!getFilteredContentDetails().length">Aucun support pédagogique trouvé</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- CONTENT DETAIL CREATOR -->
+            <app-contenu-detaille 
+              *ngIf="showContentDetailCreator && !showPlanGenerator"
+              (onClose)="closeContentDetailCreator()"
+              (onSaved)="onContentDetailSaved()"
+            ></app-contenu-detaille>
+
+          <!-- PLAN GENERATOR (FORMATEUR SUBCOMPONENT) -->
+          <app-formation-formateur
+            *ngIf="showPlanGenerator && !selectedGlobal && !selectedSpecific && !showContentDetailCreator"
+            [planGeneratorForm]="planGeneratorForm"
+            [editingPlanId]="editingPlanId"
+            [formateurs]="formateurs"
+            [form]="form"
+            [objectifsGlobauxExemples]="objectifsGlobauxExemples"
+            [objectifsSpecifiquesExemples]="objectifsSpecifiquesExemples"
+            [contentItems]="contentItems"
+            [saving]="saving"
+            (close)="showPlanGenerator = false; showContentDetailCreator = false; editingPlanId = null"
+            (generatePdf)="generatePlanPdf()"
+            (savePlan)="savePlanFromGenerator()"
+          ></app-formation-formateur>
+        </section>
+      </div>
+    </div>
+  </div>
+</div>

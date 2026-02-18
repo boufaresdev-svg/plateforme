@@ -1,0 +1,82 @@
+<div class="popup-overlay" *ngIf="show" (click)="closeForm()">
+  <div class="popup-container" (click)="$event.stopPropagation()">
+    <div class="popup-header">
+      <h2>{{ isEditMode ? 'Modifier' : 'Nouveau' }} Projet</h2>
+      <button class="popup-close" (click)="closeForm()">✕</button>
+    </div>
+
+    <form [formGroup]="projetForm" (ngSubmit)="submitForm()" class="popup-form">
+
+      <!-- Nom et Type -->
+      <div class="form-group">
+        <label>Nom *</label>
+        <input type="text" formControlName="nom" [class.is-invalid]="submitted && f['nom'].errors">
+      </div>
+
+      <div class="form-group">
+        <label>Type *</label>
+        <select formControlName="type" [class.is-invalid]="submitted && f['type'].errors">
+          <option value="">Sélectionner</option>
+          <option *ngFor="let type of typesProjet" [value]="type">{{ type }}</option>
+        </select>
+      </div>
+
+      <!-- Priorité, Statut, Chef de projet, Client -->
+      <div class="form-group">
+        <label>Priorité *</label>
+        <select formControlName="priorite" [class.is-invalid]="submitted && f['priorite'].errors">
+          <option value="">Sélectionner</option>
+          <option *ngFor="let priorite of prioritesProjets" [value]="priorite">{{ priorite }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Statut *</label>
+        <select formControlName="statut" [class.is-invalid]="submitted && f['statut'].errors">
+          <option value="">Sélectionner</option>
+          <option *ngFor="let statut of statutsProjets" [value]="statut">{{ statut }}</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label>Chef de projet *</label>
+        <input type="text" formControlName="chefProjet" [class.is-invalid]="submitted && f['chefProjet'].errors">
+      </div>
+
+      <div class="form-group">
+        <label>Client *</label>
+        <select formControlName="client" [class.is-invalid]="submitted && f['client'].errors">
+          <option value="">Sélectionner</option>
+          <option *ngFor="let client of clients" [value]="client.id">{{ client.nom }}</option>
+        </select>
+      </div>
+
+      <!-- Description et Planning -->
+      <div class="form-group">
+        <label>Description *</label>
+        <textarea formControlName="description" [class.is-invalid]="submitted && f['description'].errors"></textarea>
+      </div>
+
+      <div class="form-group">
+        <label>Date début *</label>
+        <input type="date" formControlName="dateDebut" [class.is-invalid]="submitted && f['dateDebut'].errors">
+      </div>
+
+      <div class="form-group">
+        <label>Date fin prévue *</label>
+        <input type="date" formControlName="dateFinPrevue" [class.is-invalid]="submitted && f['dateFinPrevue'].errors">
+      </div>
+
+      <div class="form-group">
+        <label>Budget (DT) *</label>
+        <input type="number" formControlName="budget" min="0" [class.is-invalid]="submitted && f['budget'].errors">
+      </div>
+
+      <div class="popup-actions">
+        <button type="button" class="btn-outline" (click)="closeForm()">Annuler</button>
+        <button type="submit" class="btn-primary">{{ isEditMode ? 'Modifier' : 'Créer' }}</button>
+      </div>
+
+    </form>
+  </div>
+</div>

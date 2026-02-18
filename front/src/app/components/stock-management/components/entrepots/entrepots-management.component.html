@@ -1,0 +1,253 @@
+<div class="categories-management">
+  <div class="section-header">
+    <h2>Gestion des Entrepôts</h2>
+    <button class="btn-primary" (click)="openAddModal()" [disabled]="loading">
+      <span class="icon">+</span>
+      Nouvel Entrepôt
+    </button>
+  </div>
+
+  <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+  <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+  <div class="loading-indicator" *ngIf="loading"><span>Chargement...</span></div>
+
+  <div class="search-filters">
+    <div class="search-box">
+      <input type="text" placeholder="Rechercher..." [(ngModel)]="searchTerm" (input)="applyFilters()" class="search-input">
+    </div>
+    <select class="filter-select" [(ngModel)]="filterVille" (ngModelChange)="applyFilters()">
+      <option value="">Toutes les villes</option>
+      <option *ngFor="let ville of villes" [value]="ville">{{ ville }}</option>
+    </select>
+    <select class="filter-select" [(ngModel)]="filterStatut" (ngModelChange)="applyFilters()">
+      <option value="">Tous les statuts</option>
+      <option *ngFor="let statut of statutOptions" [value]="statut">{{ formatStatut(statut) }}</option>
+    </select>
+    <select class="filter-select" [(ngModel)]="filterActif" (ngModelChange)="applyFilters()">
+      <option [ngValue]="null">Tous</option>
+      <option [ngValue]="true">Actifs</option>
+      <option [ngValue]="false">Inactifs</option>
+    </select>
+    <button class="btn-secondary" (click)="clearFilters()" [disabled]="loading">Réinitialiser</button>
+  </div>
+
+  <div class="categories-table-container" *ngIf="!loading">
+    <table class="categories-table">
+      <thead>
+        <tr>
+          <th>Nom</th>
+          <th>Ville</th>
+          <th>Responsable</th>
+          <th>Contact</th>
+          <th>Capacité</th>
+          <th>Nombre de Produits</th>
+          <th>Statut</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let entrepot of filteredEntrepots" class="category-row">
+          <td class="category-cell">
+            <div class="category-name">{{ entrepot.nom }}</div>
+            <small style="color: #6b7280;">{{ entrepot.adresse }}</small>
+          </td>
+          <td>{{ entrepot.ville }}</td>
+          <td>{{ entrepot.responsable || '-' }}</td>
+          <td class="description-cell">
+            <div class="description-text" style="font-size: 0.875rem;">
+              <div *ngIf="entrepot.telephone">📞 {{ entrepot.telephone }}</div>
+              <div *ngIf="entrepot.email">✉️ {{ entrepot.email }}</div>
+            </div>
+          </td>
+          <td>
+            <div *ngIf="entrepot.capaciteMaximale" style="min-width: 150px;">
+              <div style="display: flex; justify-content: space-between; font-size: 0.75rem; margin-bottom: 4px;">
+                <span>{{ entrepot.capaciteUtilisee || 0 }} / {{ entrepot.capaciteMaximale }}</span>
+                <span style="font-weight: bold;" [style.color]="getCapacityPercentage(entrepot) >= 90 ? '#e74c3c' : getCapacityPercentage(entrepot) >= 70 ? '#f39c12' : '#2ecc71'">
+                  {{ getCapacityPercentage(entrepot).toFixed(0) }}%
+                </span>
+              </div>
+              <div style="width: 100%; height: 8px; background-color: #ecf0f1; border-radius: 4px; overflow: hidden;">
+                <div style="height: 100%; transition: width 0.3s, background-color 0.3s;"
+                     [style.width.%]="getCapacityPercentage(entrepot)"
+                     [style.background-color]="getCapacityPercentage(entrepot) >= 90 ? '#e74c3c' : getCapacityPercentage(entrepot) >= 70 ? '#f39c12' : '#2ecc71'">
+                </div>
+              </div>
+            </div>
+            <span *ngIf="!entrepot.capaciteMaximale">-</span>
+          </td>
+          <td class="count-cell">
+            <div class="count-text">{{ entrepot.nombreProduits || 0 }}</div>
+          </td>
+          <td class="status-cell">
+            <span class="status-badge" [class.active]="entrepot.estActif" [class.inactive]="!entrepot.estActif">
+              {{ entrepot.estActif ? 'Actif' : 'Inactif' }}
+            </span>
+          </td>
+          <td class="actions-cell">
+            <div class="action-buttons">
+              <button class="btn-icon" (click)="openEditModal(entrepot)" [disabled]="loading">Modifier</button>
+              <button class="btn-icon danger" (click)="deleteEntrepot(entrepot)" [disabled]="loading">Supprimer</button>
+            </div>
+          </td>
+        </tr>
+        <tr *ngIf="filteredEntrepots.length === 0">
+          <td colspan="8" class="no-data">Aucun entrepôt trouvé</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Pagination Controls -->
+    <div class="pagination-container" *ngIf="totalPages > 0">
+      <div class="pagination-info">
+        Affichage de {{ currentPage * pageSize + 1 }} à {{ Math.min((currentPage + 1) * pageSize, totalElements) }} sur {{ totalElements }} entrepôts
+      </div>
+      <div class="pagination-controls">
+        <div class="page-size-selector">
+          <label>Lignes par page:</label>
+          <select [(ngModel)]="pageSize" (change)="onPageSizeChange()" class="page-size-select">
+            <option *ngFor="let size of pageSizeOptions" [value]="size">{{ size }}</option>
+          </select>
+        </div>
+        <div class="page-buttons">
+          <button class="btn-page" 
+                  (click)="onPageChange(0)" 
+                  [disabled]="currentPage === 0">
+            Première
+          </button>
+          <button class="btn-page" 
+                  (click)="onPageChange(currentPage - 1)" 
+                  [disabled]="currentPage === 0">
+            Précédent
+          </button>
+          <span class="page-indicator">
+            Page {{ currentPage + 1 }} / {{ totalPages }}
+          </span>
+          <button class="btn-page" 
+                  (click)="onPageChange(currentPage + 1)" 
+                  [disabled]="currentPage >= totalPages - 1">
+            Suivant
+          </button>
+          <button class="btn-page" 
+                  (click)="onPageChange(totalPages - 1)" 
+                  [disabled]="currentPage >= totalPages - 1">
+            Dernière
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" *ngIf="showModal" (click)="closeModal()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3 class="modal-title">{{ isEditMode ? 'Modifier l\'entrepôt' : 'Nouvel Entrepôt' }}</h3>
+      <button class="btn-close" (click)="closeModal()">&times;</button>
+    </div>
+
+    <div class="modal-body">
+      <div class="alert alert-error" *ngIf="errorMessage">{{ errorMessage }}</div>
+      <div class="alert alert-success" *ngIf="successMessage">{{ successMessage }}</div>
+
+      <form #entrepotForm="ngForm" (ngSubmit)="submitForm()">
+        <!-- Identification -->
+        <div class="form-row">
+          <div class="form-group">
+            <label>Nom <span class="required">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="formData.nom" name="nom" required 
+                   placeholder="Nom de l'entrepôt" />
+          </div>
+          <div class="form-group">
+            <label>Statut</label>
+            <select class="form-control" [(ngModel)]="formData.statut" name="statut">
+              <option *ngFor="let statut of statutOptions" [value]="statut">{{ formatStatut(statut) }}</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Localisation -->
+        <div style="border-top: 1px solid #e5e7eb; margin: 20px 0; padding-top: 20px;">
+          <h4 style="font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 12px;">Localisation</h4>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Ville <span class="required">*</span></label>
+              <input type="text" class="form-control" [(ngModel)]="formData.ville" name="ville" required 
+                     placeholder="Ville" />
+            </div>
+            <div class="form-group">
+              <label>Code Postal</label>
+              <input type="text" class="form-control" [(ngModel)]="formData.codePostal" name="codePostal" 
+                     placeholder="Code postal" />
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Adresse <span class="required">*</span></label>
+            <input type="text" class="form-control" [(ngModel)]="formData.adresse" name="adresse" required 
+                   placeholder="Adresse complète" />
+          </div>
+        </div>
+
+        <!-- Contact -->
+        <div style="border-top: 1px solid #e5e7eb; margin: 20px 0; padding-top: 20px;">
+          <h4 style="font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 12px;">Responsable & Contact</h4>
+          
+          <div class="form-group">
+            <label>Responsable</label>
+            <input type="text" class="form-control" [(ngModel)]="formData.responsable" name="responsable" 
+                   placeholder="Nom du responsable" />
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Téléphone</label>
+              <input type="tel" class="form-control" [(ngModel)]="formData.telephone" name="telephone" 
+                     placeholder="Numéro de téléphone" />
+            </div>
+            <div class="form-group">
+              <label>Email</label>
+              <input type="email" class="form-control" [(ngModel)]="formData.email" name="email" 
+                     placeholder="Email de contact" />
+            </div>
+          </div>
+        </div>
+
+        <!-- Capacité -->
+        <div style="border-top: 1px solid #e5e7eb; margin: 20px 0; padding-top: 20px;">
+          <h4 style="font-size: 0.875rem; font-weight: 600; color: #374151; margin-bottom: 12px;">Capacité</h4>
+          
+          <div class="form-row">
+            <div class="form-group">
+              <label>Superficie (m²)</label>
+              <input type="number" class="form-control" [(ngModel)]="formData.superficie" name="superficie" 
+                     min="0" step="0.01" placeholder="0.00" />
+            </div>
+            <div class="form-group">
+              <label>Capacité Maximale</label>
+              <input type="number" class="form-control" [(ngModel)]="formData.capaciteMaximale" name="capaciteMaximale" 
+                     min="0" step="0.01" placeholder="0.00" />
+            </div>
+          </div>
+        </div>
+
+        <!-- État -->
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input type="checkbox" [(ngModel)]="formData.estActif" name="estActif" />
+            Entrepôt actif
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button type="button" class="btn-secondary" (click)="closeModal()" [disabled]="loading">Annuler</button>
+          <button type="submit" class="btn-primary" [disabled]="!entrepotForm.valid || loading">
+            {{ loading ? 'Traitement...' : (isEditMode ? 'Modifier' : 'Créer') }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

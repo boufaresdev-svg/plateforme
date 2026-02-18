@@ -1,0 +1,1285 @@
+<div class="client-management">
+  <!-- Header moderne -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="header-title">
+        <h1>👤 Gestion Clients</h1>
+        <p class="subtitle">Gérez votre relation client et suivez vos opportunités commerciales</p>
+      </div>
+      <div class="header-actions">
+        <button class="nav-pill" [class.active]="currentView === 'dashboard'" (click)="setView('dashboard')">
+          <span class="icon">📊</span>
+          Dashboard
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'clients'" (click)="setView('clients')">
+          <span class="icon">👤</span>
+          Clients
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'projets'" (click)="setView('projets')">
+          <span class="icon">📊</span>
+          Projets
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'factures'" (click)="setView('factures')">
+          <span class="icon">🧾</span>
+          Factures
+        </button>
+        <button class="btn-primary" (click)="showAddClientForm()" *ngIf="currentView === 'clients'">
+          <span class="icon">➕</span>
+          Nouveau Client
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard-view" *ngIf="currentView === 'dashboard'">
+    <div class="stats-container">
+      <div class="stat-card primary">
+        <div class="stat-icon">👤</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.totalClients }}</div>
+          <div class="stat-label">Total Clients</div>
+        </div>
+      </div>
+
+      <div class="stat-card success">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.clientsActifs }}</div>
+          <div class="stat-label">Clients Actifs</div>
+        </div>
+      </div>
+
+      <div class="stat-card warning">
+        <div class="stat-icon">🎯</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.prospects }}</div>
+          <div class="stat-label">Prospects</div>
+        </div>
+      </div>
+
+      <div class="stat-card info">
+        <div class="stat-icon">💰</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.chiffreAffairesTotal | number }}</div>
+          <div class="stat-label">CA Total (DT)</div>
+        </div>
+      </div>
+
+      <div class="stat-card danger" *ngIf="stats.facturenEnAttente > 0">
+        <div class="stat-icon">⏳</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.facturenEnAttente }}</div>
+          <div class="stat-label">Factures en Attente</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Clients récents -->
+    <div class="recent-section">
+      <div class="section-header">
+        <h2>Clients Récents</h2>
+        <button class="btn-outline" (click)="setView('clients')">
+          Voir tout
+          <span class="icon">→</span>
+        </button>
+      </div>
+
+      <div class="clients-grid">
+        <div *ngFor="let client of clients.slice(0, 6)" class="client-card modern" (click)="viewClientDetails(client)">
+          <div class="card-header">
+            <div class="client-info">
+              <h3>{{ getClientDisplayName(client) }}</h3>
+              <span class="client-type" [class]="getTypeClass(client.type)">
+                {{ client.type }}
+              </span>
+            </div>
+            <div class="priority-indicator">
+              <span class="priority-dot"  ></span>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <div class="client-secteur">{{ client.secteur }}</div>
+            <div class="client-contact">{{ client.email }}</div>
+            <div class="client-ca">CA: {{ client.chiffreAffaires | number }} DT</div>
+            <div class="client-interaction">
+              Dernière interaction: {{ client.derniereInteraction | date:'dd/MM/yyyy' }}
+            </div>
+            <div class="client-status">
+              <span class="status-badge" [class]="getStatusClass(client.statut)">
+                {{ client.statut }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Interactions récentes -->
+    <div class="recent-section">
+      <div class="section-header">
+        <h2>Interactions Récentes</h2>
+        <button class="btn-outline" (click)="setView('clients')">
+          Voir tout
+          <span class="icon">→</span>
+        </button>
+      </div>
+
+      <div class="interactions-list">
+        <div *ngFor="let interaction of getRecentInteractions()" class="interaction-item">
+          <div class="interaction-icon">{{ getInteractionIcon(interaction.type) }}</div>
+          <div class="interaction-content">
+            <div class="interaction-title">{{ interaction.sujet }}</div>
+            <div class="interaction-client">{{ getClientName(interaction.clientId) }}</div>
+            <div class="interaction-date">{{ interaction.date | date:'dd/MM/yyyy' }}</div>
+          </div>
+          <div class="interaction-responsable">{{ interaction.responsable }}</div>
+        </div>
+
+        <div *ngIf="getRecentInteractions().length === 0" class="empty-state">
+          <div class="empty-icon">💬</div>
+          <p>Aucune interaction récente</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste des clients -->
+  <div class="clients-view" *ngIf="currentView === 'clients'">
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Rechercher un client..." [(ngModel)]="searchTerm" class="search-input">
+        </div>
+        <div class="table-actions">
+          <button class="btn-outline">
+            <span class="icon">📊</span>
+            Exporter
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Client</div>
+          <div class="table-cell">Type</div>
+          <div class="table-cell">Secteur</div>
+          <div class="table-cell">Statut</div>
+          <div class="table-cell">CA (DT)</div>
+          <div class="table-cell">Dernière Interaction</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let client of filteredClients" class="table-row clickable" (click)="viewClientDetails(client)">
+          <div class="table-cell client-info">
+            <div class="client-avatar">{{ getClientInitials(client) }}</div>
+            <div class="client-details">
+              <div class="client-name">{{ getClientDisplayName(client) }}</div>
+              <div class="client-email">{{ client.email }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="type-badge" [class]="getTypeClass(client.type)">
+              {{ client.type }}
+            </span>
+          </div>
+
+          <div class="table-cell">{{ client.secteur }}</div>
+
+          <div class="table-cell">
+            <span class="status-badge" [class]="getStatusClass(client.statut)">
+              {{ client.statut }}
+            </span>
+          </div>
+
+          <div class="table-cell">
+            <span class="ca-amount">{{ client.chiffreAffaires | number }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="interaction-date">{{ client.derniereInteraction | date:'dd/MM/yyyy' }}</span>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editClient(client)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn" (click)="addInteraction(client)" title="Interaction">
+                💬
+              </button>
+              <button class="action-btn danger" (click)="deleteClient(client.id)" title="Supprimer">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Détails client -->
+  <div class="details-view" *ngIf="currentView === 'details' && selectedClient">
+    <div class="details-header">
+      <button class="btn-back" (click)="goBack()">
+        <span class="icon">←</span>
+        Retour
+      </button>
+      <div class="client-title">
+        <h1>{{ getClientDisplayName(selectedClient) }}</h1>
+        <span class="client-type-large">{{ selectedClient.type }} - {{ selectedClient.secteur }}</span>
+      </div>
+      <button class="btn-primary" (click)="editClient(selectedClient)">
+        <span class="icon">✏️</span>
+        Modifier
+      </button>
+    </div>
+
+    <div class="details-grid">
+      <!-- Informations générales -->
+      <div class="info-card">
+        <h3>Informations Générales</h3>
+        <div class="info-list">
+          <div class="info-item">
+            <span class="info-label">Nom</span>
+            <span class="info-value">{{ getClientDisplayName(selectedClient) }}</span>
+          </div>
+          <div class="info-item" *ngIf="selectedClient.raisonSociale">
+            <span class="info-label">Raison sociale</span>
+            <span class="info-value">{{ selectedClient.raisonSociale }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Email</span>
+            <span class="info-value">{{ selectedClient.email }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Téléphone</span>
+            <span class="info-value">{{ selectedClient.telephone }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Adresse</span>
+            <span class="info-value">{{ selectedClient.adresse }}, {{ selectedClient.ville }}</span>
+          </div>
+          <div class="info-item">
+            <span class="info-label">Chiffre d'affaires</span>
+            <span class="info-value highlight">{{ selectedClient.chiffreAffaires | number }} DT</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statut et priorité -->
+      <div class="status-card">
+        <h3>Statut et Priorité</h3>
+        <div class="status-list">
+          <div class="status-item">
+            <div class="status-icon" [class]="getStatusClass(selectedClient.statut)">
+              👤
+            </div>
+            <div class="status-content">
+              <span class="status-title">Statut client</span>
+              <span class="status-value">{{ selectedClient.statut }}</span>
+            </div>
+          </div> 
+
+          <div class="status-item">
+            <div class="status-icon">📅</div>
+            <div class="status-content">
+              <span class="status-title">Dernière interaction</span>
+              <span class="status-value">{{ selectedClient.derniereInteraction | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Projets -->
+      <div class="projets-card">
+        <div class="card-header-with-action">
+          <h3>Projets</h3>
+          <button class="btn-primary" (click)="showAddProjetForm()">
+            <span class="icon">➕</span>
+            Ajouter
+          </button>
+        </div>
+
+        <div class="projets-list">
+          <div *ngFor="let projet of getClientProjets(selectedClient.id)" class="projet-item">
+            <div class="projet-icon">📊</div>
+            <div class="projet-content">
+              <div class="projet-title">{{ projet.nom }}</div>
+              <div class="projet-description">{{ projet.description }}</div>
+              <div class="projet-montant">{{ projet.montant | number }} DT</div>
+              <div class="projet-status" [class]="getProjetStatusClass(projet.statut)">
+                {{ projet.statut }}
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="getClientProjets(selectedClient.id).length === 0" class="empty-state">
+            <div class="empty-icon">📊</div>
+            <p>Aucun projet enregistré</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Interactions -->
+      <div class="interactions-card">
+        <div class="card-header-with-action">
+          <h3>Historique des Interactions</h3>
+          <button class="btn-primary" (click)="showAddInteractionForm()">
+            <span class="icon">➕</span>
+            Ajouter
+          </button>
+        </div>
+
+        <div class="interactions-list">
+          <div *ngFor="let interaction of getClientInteractions(selectedClient.id)" class="interaction-item">
+            <div class="interaction-icon">{{ getInteractionIcon(interaction.type) }}</div>
+            <div class="interaction-content">
+              <div class="interaction-title">{{ interaction.sujet }}</div>
+              <div class="interaction-description">{{ interaction.description }}</div>
+              <div class="interaction-meta">
+                <span class="interaction-date">{{ interaction.date | date:'dd/MM/yyyy' }}</span>
+                <span class="interaction-responsable">{{ interaction.responsable }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="getClientInteractions(selectedClient.id).length === 0" class="empty-state">
+            <div class="empty-icon">💬</div>
+            <p>Aucune interaction enregistrée</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+
+  <!-- Popup formulaire client -->
+  <div class="popup-overlay" *ngIf="showClientForm" (click)="closeClientForm()">
+  <div class="popup-container" (click)="$event.stopPropagation()">
+    <div class="popup-header">
+      <h2>{{ isEditMode ? 'Modifier' : 'Nouveau' }} Client</h2>
+      <button class="popup-close" (click)="closeClientForm()">✕</button>
+    </div>
+
+    <form [formGroup]="clientForm" class="popup-form" (ngSubmit)="saveClient()">
+      <!-- Onglets -->
+      <div class="form-tabs">
+        <button type="button" class="tab-btn" [class.active]="activeTab === 'general'"
+          (click)="setActiveTab('general')">Informations Générales</button>
+        <button type="button" class="tab-btn" [class.active]="activeTab === 'projets'"
+          (click)="setActiveTab('projets')">Projets</button>
+        <button type="button" class="tab-btn" [class.active]="activeTab === 'factures'"
+          (click)="setActiveTab('factures')">Factures</button>
+      </div>
+
+      <!-- Onglet Général -->
+      <div class="tab-content" *ngIf="activeTab === 'general'">
+        <div class="form-section">
+          <h3>Identification</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Nom *</label>
+              <input type="text" class="form-input" formControlName="nom" placeholder="Nom client">
+              <div class="error-message"
+                *ngIf="clientForm.get('nom')?.invalid && (clientForm.get('nom')?.touched || submitted)">
+                Nom obligatoire (min 2 caractères)
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Type *</label>
+              <select class="form-input" formControlName="type">
+                <option *ngFor="let type of typesClient" [value]="type">{{ type }}</option>
+              </select>
+              <div class="error-message"
+                *ngIf="clientForm.get('type')?.invalid && (clientForm.get('type')?.touched || submitted)">
+                Type obligatoire
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Secteur *</label>
+              <select class="form-input" formControlName="secteur">
+                <option *ngFor="let secteur of secteursClient" [value]="secteur">{{ secteur }}</option>
+              </select>
+              <div class="error-message"
+                *ngIf="clientForm.get('secteur')?.invalid && (clientForm.get('secteur')?.touched || submitted)">
+                Secteur obligatoire
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Identifiant Fiscal</label>
+              <input type="text" class="form-input" formControlName="identifiantFiscal" placeholder="Numéro fiscal">
+              <div class="error-message"
+                *ngIf="clientForm.get('identifiantFiscal')?.invalid && (clientForm.get('identifiantFiscal')?.touched || submitted)">
+    Doit commencer par au moins 6 chiffres, suivi d'au moins 3 lettres, puis terminer par 3 chiffres
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Contact</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Contact</label>
+              <input type="text" class="form-input" formControlName="contact" placeholder="Nom contact principal">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Téléphone</label>
+              <input type="text" class="form-input" formControlName="telephone" placeholder="+216 71 000 000">
+              <div class="error-message"
+                *ngIf="clientForm.get('telephone')?.invalid && (clientForm.get('telephone')?.touched || submitted)">
+                Numéro invalide (8 à 15 chiffres)
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Email</label>
+              <input type="email" class="form-input" formControlName="email" placeholder="contact@client.com">
+              <div class="error-message"
+                *ngIf="clientForm.get('email')?.invalid && (clientForm.get('email')?.touched || submitted)">
+                Email invalide
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Localisation</label>
+              <input type="text" class="form-input" formControlName="localisation" placeholder="Adresse complète">
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Informations Financières</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">RIB</label>
+              <input type="text" class="form-input" formControlName="rib" placeholder="RIB bancaire">
+              <div class="error-message"
+                *ngIf="clientForm.get('rib')?.invalid && (clientForm.get('rib')?.touched || submitted)">
+                RIB invalide (10 à 30 chiffres)
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Points Fidélité</label>
+              <input type="number" class="form-input" formControlName="pointsFidelite" min="0">
+              <div class="error-message"
+                *ngIf="clientForm.get('pointsFidelite')?.invalid && (clientForm.get('pointsFidelite')?.touched || submitted)">
+                Doit être ≥ 0
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Statut *</label>
+              <select class="form-input" formControlName="statut">
+                <option *ngFor="let statut of statutsClient" [value]="statut">{{ statut }}</option>
+              </select>
+              <div class="error-message"
+                *ngIf="clientForm.get('statut')?.invalid && (clientForm.get('statut')?.touched || submitted)">
+                Statut obligatoire
+              </div>
+            </div>
+
+             
+
+            <div class="form-group">
+              <label class="form-label">Chiffre d'affaires</label>
+              <input type="number" class="form-input" formControlName="chiffreAffaires" min="0">
+              <div class="error-message"
+                *ngIf="clientForm.get('chiffreAffaires')?.invalid && (clientForm.get('chiffreAffaires')?.touched || submitted)">
+                Doit être ≥ 0
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Onglet Projets -->
+      <div class="tab-content" *ngIf="activeTab === 'projets'">
+        <div class="projects-section">
+          <div class="section-header">
+            <h3>Liste des Projets</h3>
+            <button type="button" class="btn-primary" (click)="showAddProjetForm()">➕ Ajouter Projet</button>
+          </div>
+
+          <div class="projects-list">
+            <div *ngFor="let projet of clientFormData.projets || []" class="project-item">
+              <div class="project-info">
+                <div class="project-name">{{ projet.nom }}</div>
+                <div class="project-description">{{ projet.description }}</div>
+                <div class="project-meta">
+                  <span class="project-amount">{{ projet.montant | number }} DT</span>
+                  <span class="project-status" [class]="getProjetStatusClass(projet.statut)">
+                    {{ projet.statut }}
+                  </span>
+                </div>
+              </div>
+              <div class="project-actions">
+                <button type="button" class="action-btn" (click)="editProjet(projet)" title="Modifier">✏️</button>
+                <button type="button" class="action-btn danger" (click)="deleteProjet(projet.id)" title="Supprimer">🗑️</button>
+              </div>
+            </div>
+
+            <div *ngIf="!clientFormData.projets || clientFormData.projets.length === 0" class="empty-state">
+              <div class="empty-icon">📊</div>
+              <p>Aucun projet enregistré</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Onglet Factures -->
+      <div class="tab-content" *ngIf="activeTab === 'factures'">
+        <div class="invoices-section">
+          <div class="section-header">
+            <h3>Liste des Factures</h3>
+            <button type="button" class="btn-primary" (click)="showAddFactureForm()">➕ Ajouter Facture</button>
+          </div>
+
+          <div class="invoices-list">
+            <div *ngFor="let facture of clientFormData.factures || []" class="invoice-item">
+              <div class="invoice-info">
+                <div class="invoice-number">{{ facture.numero }}</div>
+                <div class="invoice-dates">
+                  <span>Émise le: {{ facture.dateEmission | date:'dd/MM/yyyy' }}</span>
+                  <span>Échéance: {{ facture.dateEcheance | date:'dd/MM/yyyy' }}</span>
+                </div>
+                <div class="invoice-meta">
+                  <span class="invoice-amount">{{ facture.montant | number }} DT</span>
+                  <span class="invoice-status" [class]="getFactureStatusClass(facture.statut)">
+                    {{ facture.statut }}
+                  </span>
+                </div>
+              </div>
+              <div class="invoice-actions">
+                <button type="button" class="action-btn" (click)="editFacture(facture)" title="Modifier">✏️</button>
+                <button type="button" class="action-btn" (click)="printFacture(facture)" title="Imprimer">🖨️</button>
+                <button type="button" class="action-btn danger" (click)="deleteFacture(facture.id)" title="Supprimer">🗑️</button>
+              </div>
+            </div>
+
+            <div *ngIf="!clientFormData.factures || clientFormData.factures.length === 0" class="empty-state">
+              <div class="empty-icon">🧾</div>
+              <p>Aucune facture enregistrée</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Actions -->
+      <div class="popup-actions">
+        <button type="button" class="btn-outline" (click)="closeClientForm()">Annuler</button>
+        <button type="submit" class="btn-primary">💾 {{ isEditMode ? 'Modifier' : 'Créer' }}</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+  <!--    
+  <div class="popup-overlay" *ngIf="showClientForm" (click)="closeClientForm()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>{{ isEditMode ? 'Modifier' : 'Nouveau' }} Client</h2>
+        <button class="popup-close" (click)="closeClientForm()">✕</button>
+      </div>
+      
+      <form (ngSubmit)="saveClient()" #clientForm="ngForm" class="popup-form">
+        <div class="form-tabs">
+          <button 
+            type="button"
+            class="tab-btn"
+            [class.active]="activeTab === 'general'"
+            (click)="setActiveTab('general')"
+          >
+            Informations Générales
+          </button>
+          <button 
+            type="button"
+            class="tab-btn"
+            [class.active]="activeTab === 'projets'"
+            (click)="setActiveTab('projets')"
+          >
+            Projets
+          </button>
+          <button 
+            type="button"
+            class="tab-btn"
+            [class.active]="activeTab === 'factures'"
+            (click)="setActiveTab('factures')"
+          >
+            Factures
+          </button>
+        </div>
+
+       
+        <div class="tab-content" *ngIf="activeTab === 'general'">
+          <div class="form-section">
+            <h3>Identification</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Nom *</label>
+                <input 
+                  type="text" 
+                  class="form-input"
+                  [(ngModel)]="clientFormData.nom"
+                  name="nom"
+                  required
+                  placeholder="Nom du client ou entreprise"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Type *</label>
+                <select 
+                  class="form-input"
+                  [(ngModel)]="clientFormData.type"
+                  name="type"
+                  required
+                >
+                  <option value="">Sélectionner</option>
+                  <option *ngFor="let type of typesClient" [value]="type">
+                    {{ type }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Secteur d'activité *</label>
+                <select 
+                  class="form-input"
+                  [(ngModel)]="clientFormData.secteur"
+                  name="secteur"
+                  required
+                >
+                  <option value="">Sélectionner</option>
+                  <option *ngFor="let secteur of secteursClient" [value]="secteur">
+                    {{ secteur }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Identifiant Fiscal</label>
+                <input 
+                  type="text" 
+                  class="form-input"
+                  [(ngModel)]="clientFormData.identifiantFiscal"
+                  name="identifiantFiscal"
+                  placeholder="Numéro fiscal"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Contact</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">Contact Principal *</label>
+                <input 
+                  type="text" 
+                  class="form-input"
+                  [(ngModel)]="clientFormData.contact"
+                  name="contact"
+                  required
+                  placeholder="Nom du contact principal"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Téléphone *</label>
+                <input 
+                  type="tel" 
+                  class="form-input"
+                  [(ngModel)]="clientFormData.telephone"
+                  name="telephone"
+                  required
+                  placeholder="+216 71 123 456"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Email *</label>
+                <input 
+                  type="email" 
+                  class="form-input"
+                  [(ngModel)]="clientFormData.email"
+                  name="email"
+                  required
+                  placeholder="contact@client.com"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Localisation *</label>
+                <input 
+                  type="text" 
+                  class="form-input"
+                  [(ngModel)]="clientFormData.localisation"
+                  name="localisation"
+                  required
+                  placeholder="Adresse complète"
+                />
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Informations Financières</h3>
+            <div class="form-grid">
+              <div class="form-group">
+                <label class="form-label">RIB</label>
+                <input 
+                  type="text" 
+                  class="form-input"
+                  [(ngModel)]="clientFormData.rib"
+                  name="rib"
+                  placeholder="Relevé d'identité bancaire"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Points Fidélité</label>
+                <input 
+                  type="number" 
+                  class="form-input"
+                  [(ngModel)]="clientFormData.pointsFidelite"
+                  name="pointsFidelite"
+                  min="0"
+                  placeholder="0"
+                />
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Statut *</label>
+                <select 
+                  class="form-input"
+                  [(ngModel)]="clientFormData.statut"
+                  name="statut"
+                  required
+                >
+                  <option value="">Sélectionner</option>
+                  <option *ngFor="let statut of statutsClient" [value]="statut">
+                    {{ statut }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label">Priorité *</label>
+                <select 
+                  class="form-input"
+                  [(ngModel)]="clientFormData.priorite"
+                  name="priorite"
+                  required
+                >
+                  <option value="">Sélectionner</option>
+                  <option *ngFor="let priorite of prioritesClient" [value]="priorite">
+                    {{ priorite }}
+                  </option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        
+        <div class="tab-content" *ngIf="activeTab === 'projets'">
+          <div class="projects-section">
+            <div class="section-header">
+              <h3>Liste des Projets</h3>
+              <button type="button" class="btn-primary" (click)="showAddProjetForm()">
+                <span class="icon">➕</span>
+                Ajouter Projet
+              </button>
+            </div>
+            
+            <div class="projects-list">
+              <div 
+                *ngFor="let projet of clientFormData.projets || []" 
+                class="project-item"
+              >
+                <div class="project-info">
+                  <div class="project-name">{{ projet.nom }}</div>
+                  <div class="project-description">{{ projet.description }}</div>
+                  <div class="project-meta">
+                    <span class="project-amount">{{ projet.montant | number }} DT</span>
+                    <span class="project-status" [class]="getProjetStatusClass(projet.statut)">
+                      {{ projet.statut }}
+                    </span>
+                  </div>
+                </div>
+                <div class="project-actions">
+                  <button type="button" class="action-btn" (click)="editProjet(projet)" title="Modifier">
+                    ✏️
+                  </button>
+                  <button type="button" class="action-btn danger" (click)="deleteProjet(projet.id)" title="Supprimer">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+              
+              <div *ngIf="!clientFormData.projets || clientFormData.projets.length === 0" class="empty-state">
+                <div class="empty-icon">📊</div>
+                <p>Aucun projet enregistré</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      
+        <div class="tab-content" *ngIf="activeTab === 'factures'">
+          <div class="invoices-section">
+            <div class="section-header">
+              <h3>Liste des Factures</h3>
+              <button type="button" class="btn-primary" (click)="showAddFactureForm()">
+                <span class="icon">➕</span>
+                Ajouter Facture
+              </button>
+            </div>
+            
+            <div class="invoices-list">
+              <div 
+                *ngFor="let facture of clientFormData.factures || []" 
+                class="invoice-item"
+              >
+                <div class="invoice-info">
+                  <div class="invoice-number">{{ facture.numero }}</div>
+                  <div class="invoice-dates">
+                    <span>Émise le: {{ facture.dateEmission | date:'dd/MM/yyyy' }}</span>
+                    <span>Échéance: {{ facture.dateEcheance | date:'dd/MM/yyyy' }}</span>
+                  </div>
+                  <div class="invoice-meta">
+                    <span class="invoice-amount">{{ facture.montant | number }} DT</span>
+                    <span class="invoice-status" [class]="getFactureStatusClass(facture.statut)">
+                      {{ facture.statut }}
+                    </span>
+                  </div>
+                </div>
+                <div class="invoice-actions">
+                  <button type="button" class="action-btn" (click)="editFacture(facture)" title="Modifier">
+                    ✏️
+                  </button>
+                  <button type="button" class="action-btn" (click)="printFacture(facture)" title="Imprimer">
+                    🖨️
+                  </button>
+                  <button type="button" class="action-btn danger" (click)="deleteFacture(facture.id)" title="Supprimer">
+                    🗑️
+                  </button>
+                </div>
+              </div>
+              
+              <div *ngIf="!clientFormData.factures || clientFormData.factures.length === 0" class="empty-state">
+                <div class="empty-icon">🧾</div>
+                <p>Aucune facture enregistrée</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeClientForm()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="clientForm.invalid">
+            <span class="icon">💾</span>
+            {{ isEditMode ? 'Modifier' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div> -->
+  <!-- Vue en développement pour les autres sections -->
+  <!-- Liste des projets -->
+  <div class="projets-view" *ngIf="currentView === 'projets'">
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Rechercher un projet..." [(ngModel)]="searchTermProjet" class="search-input">
+        </div>
+        <div class="filters-section">
+          <div class="filter-group">
+            <label class="filter-label">Client</label>
+            <select class="filter-select" [(ngModel)]="filterClientId" (change)="applyProjetFilters()">
+              <option value="">Tous les clients</option>
+              <option *ngFor="let client of clients" [value]="client.id">
+                {{ getClientDisplayName(client) }}
+              </option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Statut</label>
+            <select class="filter-select" [(ngModel)]="filterStatutProjet" (change)="applyProjetFilters()">
+              <option value="">Tous les statuts</option>
+              <option *ngFor="let statut of statutsProjet" [value]="statut">
+                {{ statut }}
+              </option>
+            </select>
+          </div>
+          <button class="btn-outline" (click)="clearProjetFilters()">
+            <span class="icon">🗑️</span>
+            Effacer
+          </button>
+        </div>
+        <div class="table-actions">
+          <button class="btn-outline">
+            <span class="icon">📊</span>
+            Exporter
+          </button>
+          <button class="btn-primary" (click)="showAddProjetGlobalForm()">
+            <span class="icon">➕</span>
+            Nouveau Projet
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Projet</div>
+          <div class="table-cell">Client</div>
+          <div class="table-cell">Montant (DT)</div>
+          <div class="table-cell">Dates</div>
+          <div class="table-cell">Statut</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let projet of filteredProjets" class="table-row clickable" (click)="viewProjetDetails(projet)">
+          <div class="table-cell projet-info">
+            <div class="projet-avatar">📊</div>
+            <div class="projet-details">
+              <div class="projet-name">{{ projet.nom }}</div>
+              <div class="projet-description">{{ projet.description }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="client-name">{{ getClientName(projet.clientId) }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="montant-value">{{ projet.montant | number }}</span>
+          </div>
+
+          <div class="table-cell">
+            <div class="dates-info">
+              <span class="date-debut">{{ projet.dateDebut | date:'dd/MM/yyyy' }}</span>
+              <span class="date-separator">→</span>
+              <span class="date-fin" *ngIf="projet.dateFin">{{ projet.dateFin | date:'dd/MM/yyyy' }}</span>
+              <span class="date-fin" *ngIf="!projet.dateFin">En cours</span>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="status-badge" [class]="getProjetStatusClass(projet.statut)">
+              {{ projet.statut }}
+            </span>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editProjetGlobal(projet)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn" (click)="viewProjetDetails(projet)" title="Détails">
+                👁️
+              </button>
+              <button class="action-btn danger" (click)="deleteProjetGlobal(projet.id)" title="Supprimer">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredProjets.length === 0" class="empty-state-table">
+          <div class="empty-icon">📊</div>
+          <p>Aucun projet trouvé</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste des factures -->
+  <div class="factures-view" *ngIf="currentView === 'factures'">
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Rechercher une facture..." [(ngModel)]="searchTermFacture"
+            class="search-input">
+        </div>
+        <div class="filters-section">
+          <div class="filter-group">
+            <label class="filter-label">Client</label>
+            <select class="filter-select" [(ngModel)]="filterClientIdFacture" (change)="applyFactureFilters()">
+              <option value="">Tous les clients</option>
+              <option *ngFor="let client of clients" [value]="client.id">
+                {{ getClientDisplayName(client) }}
+              </option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Statut</label>
+            <select class="filter-select" [(ngModel)]="filterStatutFacture" (change)="applyFactureFilters()">
+              <option value="">Tous les statuts</option>
+              <option *ngFor="let statut of statutsFacture" [value]="statut">
+                {{ statut }}
+              </option>
+            </select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Montant min (DT)</label>
+            <input type="number" class="filter-input" [(ngModel)]="filterMontantMin" (input)="applyFactureFilters()"
+              placeholder="0" min="0">
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Montant max (DT)</label>
+            <input type="number" class="filter-input" [(ngModel)]="filterMontantMax" (input)="applyFactureFilters()"
+              placeholder="10000" min="0">
+          </div>
+          <button class="btn-outline" (click)="clearFactureFilters()">
+            <span class="icon">🗑️</span>
+            Effacer
+          </button>
+        </div>
+        <div class="table-actions">
+          <button class="btn-outline">
+            <span class="icon">📊</span>
+            Exporter
+          </button>
+          <button class="btn-primary" (click)="showAddFactureGlobalForm()">
+            <span class="icon">➕</span>
+            Nouvelle Facture
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Facture</div>
+          <div class="table-cell">Client</div>
+          <div class="table-cell">Projet</div>
+          <div class="table-cell">Montant (DT)</div>
+          <div class="table-cell">Échéance</div>
+          <div class="table-cell">Statut</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let facture of filteredFactures" class="table-row clickable" (click)="viewFactureDetails(facture)">
+          <div class="table-cell facture-info">
+            <div class="facture-avatar">🧾</div>
+            <div class="facture-details">
+              <div class="facture-numero">{{ facture.numero }}</div>
+              <div class="facture-emission">{{ facture.dateEmission | date:'dd/MM/yyyy' }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="client-name">{{ getClientName(facture.clientId) }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="projet-name">{{ getProjetName(facture.projetId) }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="montant-value">{{ facture.montant | number }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="echeance-date" [class.overdue]="isFactureOverdue(facture)">
+              {{ facture.dateEcheance | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+
+          <div class="table-cell">
+            <span class="status-badge" [class]="getFactureStatusClass(facture.statut)">
+              {{ facture.statut }}
+            </span>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editFactureGlobal(facture)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn" (click)="printFacture(facture)" title="Imprimer">
+                🖨️
+              </button>
+              <button class="action-btn" (click)="markFacturePaid(facture)" title="Marquer payée"
+                *ngIf="facture.statut !== 'Payée'">
+                💰
+              </button>
+              <button class="action-btn danger" (click)="deleteFactureGlobal(facture.id)" title="Supprimer">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredFactures.length === 0" class="empty-state-table">
+          <div class="empty-icon">🧾</div>
+          <p>Aucune facture trouvée</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup formulaire facture -->
+  <div class="popup-overlay" *ngIf="showFactureForm" (click)="closeFactureForm()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>{{ isEditModeFacture ? 'Modifier' : 'Nouvelle' }} Facture</h2>
+        <button class="popup-close" (click)="closeFactureForm()">✕</button>
+      </div>
+
+      <form (ngSubmit)="saveFacture()" #factureForm="ngForm" class="popup-form">
+        <div class="form-section">
+          <h3>Informations de la Facture</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Numéro de facture *</label>
+              <input type="text" class="form-input" [(ngModel)]="factureFormData.numero" name="numero" required
+                placeholder="FACT-2024-001" [readonly]="isEditModeFacture" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Date d'émission *</label>
+              <input type="date" class="form-input" [(ngModel)]="factureFormData.dateEmission" name="dateEmission"
+                required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Date d'échéance *</label>
+              <input type="date" class="form-input" [(ngModel)]="factureFormData.dateEcheance" name="dateEcheance"
+                required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Montant (DT) *</label>
+              <input type="number" class="form-input" [(ngModel)]="factureFormData.montant" name="montant" required
+                min="0" step="0.01" placeholder="1000.00" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Statut *</label>
+              <select class="form-input" [(ngModel)]="factureFormData.statut" name="statut" required>
+                <option value="">Sélectionner</option>
+                <option *ngFor="let statut of statutsFacture" [value]="statut">
+                  {{ statut }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Projet associé</label>
+              <select class="form-input" [(ngModel)]="factureFormData.projetId" name="projetId">
+                <option value="">Aucun projet</option>
+                <option *ngFor="let projet of getClientProjets(selectedClient?.id || '')" [value]="projet.id">
+                  {{ projet.nom }} - {{ projet.montant | number }} DT
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>Détails de la Facture</h3>
+          <div class="form-group full-width">
+            <label class="form-label">Description</label>
+            <textarea class="form-input" [(ngModel)]="factureFormData.description" name="description" rows="4"
+              placeholder="Description des services ou produits facturés..."></textarea>
+          </div>
+        </div>
+
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeFactureForm()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="factureForm.invalid">
+            <span class="icon">💾</span>
+            {{ isEditModeFacture ? 'Modifier' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Popup formulaire interaction -->
+  <div class="popup-overlay" *ngIf="showInteractionForm" (click)="closeInteractionForm()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>Nouvelle Interaction</h2>
+        <button class="popup-close" (click)="closeInteractionForm()">✕</button>
+      </div>
+
+      <form (ngSubmit)="saveInteraction()" #interactionForm="ngForm" class="popup-form">
+        <div class="form-section">
+          <h3>Détails de l'Interaction</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Type d'interaction *</label>
+              <select class="form-input" [(ngModel)]="interactionFormData.type" name="type" required>
+                <option value="">Sélectionner</option>
+                <option *ngFor="let type of typesInteraction" [value]="type">
+                  {{ type }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Date *</label>
+              <input type="date" class="form-input" [(ngModel)]="interactionFormData.date" name="date" required />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Responsable *</label>
+              <input type="text" class="form-input" [(ngModel)]="interactionFormData.responsable" name="responsable"
+                required placeholder="Nom du responsable" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Suivi requis</label>
+              <select class="form-input" [(ngModel)]="interactionFormData.suiviRequis" name="suiviRequis">
+                <option [value]="false">Non</option>
+                <option [value]="true">Oui</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Sujet *</label>
+            <input type="text" class="form-input" [(ngModel)]="interactionFormData.sujet" name="sujet" required
+              placeholder="Objet de l'interaction" />
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Description</label>
+            <textarea class="form-input" [(ngModel)]="interactionFormData.description" name="description" rows="4"
+              placeholder="Détails de l'interaction..."></textarea>
+          </div>
+        </div>
+
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeInteractionForm()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary" [disabled]="interactionForm.invalid">
+            <span class="icon">💾</span>
+            Enregistrer
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

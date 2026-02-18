@@ -1,0 +1,1515 @@
+<div class="hr-management">
+  <!-- Header moderne -->
+  <div class="header-section">
+    <div class="header-content">
+      <div class="header-title">
+        <h1>👥 Gestion RH</h1>
+        <p class="subtitle">Gérez vos ressources humaines et la paie</p>
+      </div>
+      <div class="header-actions">
+        <button class="nav-pill" [class.active]="currentView === 'dashboard'" (click)="setView('dashboard')">
+          <span class="icon">📊</span>
+          Dashboard
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'employees'" (click)="setView('employees')">
+          <span class="icon">👥</span>
+          Employés
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'conges'" (click)="setView('conges')">
+          <span class="icon">🏖️</span>
+          Congés
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'fiches'" (click)="setView('fiches')">
+          <span class="icon">💰</span>
+          Fiches Paie
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'primes'" (click)="setView('primes')">
+          <span class="icon">🎁</span>
+          Primes
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'retenues'" (click)="setView('retenues')">
+          <span class="icon">📉</span>
+          Retenues
+        </button>
+        <button class="nav-pill" [class.active]="currentView === 'regles'" (click)="setView('regles')">
+          <span class="icon">⚖️</span>
+          Règles
+        </button>
+        <button class="btn-primary" (click)="showAddEmployeeForm()" *ngIf="currentView === 'employees'">
+          <span class="icon">➕</span>
+          Nouvel Employé
+        </button>
+        <button class="btn-primary" (click)="showAddCongeForm()" *ngIf="currentView === 'conges'">
+          <span class="icon">➕</span>
+          Nouveau Congé
+        </button>
+        <button class="btn-primary" (click)="showAddFicheForm()" *ngIf="currentView === 'fiches'">
+          <span class="icon">➕</span>
+          Nouvelle Fiche
+        </button>
+        <button class="btn-primary" (click)="showAddPrimeForm()" *ngIf="currentView === 'primes'">
+          <span class="icon">➕</span>
+          Nouvelle Prime
+        </button>
+        <button class="btn-primary" (click)="showAddRetenueForm()" *ngIf="currentView === 'retenues'">
+          <span class="icon">➕</span>
+          Nouvelle Retenue
+        </button>
+        <button class="btn-primary" (click)="showAddRegleForm()" *ngIf="currentView === 'regles'">
+          <span class="icon">➕</span>
+          Nouvelle Règle
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Dashboard -->
+  <div class="dashboard-view" *ngIf="currentView === 'dashboard'">
+    <div class="stats-container">
+      <div class="stat-card primary">
+        <div class="stat-icon">👥</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.totalEmployees }}</div>
+          <div class="stat-label">Total Employés</div>
+        </div>
+      </div>
+
+      <div class="stat-card success">
+        <div class="stat-icon">✅</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.employeesActifs }}</div>
+          <div class="stat-label">Employés Actifs</div>
+        </div>
+      </div>
+
+      <div class="stat-card warning">
+        <div class="stat-icon">🏖️</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.congesEnAttente }}</div>
+          <div class="stat-label">Congés en Attente</div>
+        </div>
+      </div>
+
+      <div class="stat-card info">
+        <div class="stat-icon">💰</div>
+        <div class="stat-content">
+          <div class="stat-number">{{ stats.masseSalariale | number }}</div>
+          <div class="stat-label">Masse Salariale (DT)</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Employés récents -->
+    <div class="recent-section">
+      <div class="section-header">
+        <h2>Employés Récents</h2>
+        <button class="btn-outline" (click)="setView('employees')">
+          Voir tout
+          <span class="icon">→</span>
+        </button>
+      </div>
+
+      <div class="employees-grid">
+        <div *ngFor="let employee of employees.slice(0, 6)" class="employee-card modern"
+          (click)="viewEmployeeDetails(employee)">
+          <div class="card-header">
+            <div class="employee-info">
+              <h3>{{ employee.prenom }} {{ employee.nom }}</h3>
+              <span class="employee-matricule">{{ employee.id }}</span>
+            </div>
+            <div class="status-indicator">
+              <span class="status-dot" [class]="getStatusClass(employee.statut)"></span>
+            </div>
+          </div>
+
+          <div class="card-content">
+            <div class="employee-poste">{{ employee.poste }}</div>
+            <div class="employee-departement">{{ employee.departement }}</div>
+            <div class="employee-salaire">{{ employee.salaire | number }} DT</div>
+            <div class="employee-conges">Congés: {{ employee.congesUtilises }}/{{ employee.soldeConges }}</div>
+            <div class="employee-status">
+              <span class="status-badge" [class]="getStatusClass(employee.statut)">
+                {{ employee.statut }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste des employés -->
+  <div class="employees-view" *ngIf="currentView === 'employees'">
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Rechercher un employé..." [(ngModel)]="searchTerm" class="search-input">
+        </div>
+        <div class="table-actions">
+          <button class="btn-outline">
+            <span class="icon">📊</span>
+            Exporter
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Employé</div>
+          <div class="table-cell">Poste</div>
+          <div class="table-cell">Département</div>
+          <div class="table-cell">Salaire</div>
+          <div class="table-cell">Statut</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let employee of filteredEmployees" class="table-row clickable"
+          (click)="viewEmployeeDetails(employee)">
+          <div class="table-cell employee-info">
+            <div class="employee-avatar">{{ getInitials(employee.nom, employee.prenom) }}</div>
+            <div class="employee-details">
+              <div class="employee-name">{{ employee.prenom }} {{ employee.nom }}</div>
+              <div class="employee-email">{{ employee.email }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">{{ employee.poste }}</div>
+          <div class="table-cell">{{ employee.departement }}</div>
+
+          <div class="table-cell">
+            <span class="salary-amount">{{ employee.salaire | number }} DT</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="status-badge" [class]="getStatusClass(employee.statut)">
+              {{ employee.statut }}
+            </span>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editEmployee(employee)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn danger" (click)="deleteEmployee(employee.id)" title="Supprimer">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredEmployees.length === 0" class="empty-state-table">
+          <div class="empty-icon">👥</div>
+          <p>Aucun employé trouvé</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste des congés -->
+  <div class="conges-view" *ngIf="currentView === 'conges'">
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Rechercher un congé..." [(ngModel)]="searchTermConge" class="search-input">
+        </div>
+        <div class="table-actions">
+          <button class="btn-primary" (click)="showAddCongeForm()">
+            <span class="icon">➕</span>
+            Nouveau Congé
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Employé</div>
+          <div class="table-cell">Type</div>
+          <div class="table-cell">Période</div>
+          <div class="table-cell">Jours</div>
+          <div class="table-cell">Motif</div>
+          <div class="table-cell">Statut</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let conge of filteredConges" class="table-row clickable" (click)="viewCongeDetails(conge)">
+          <div class="table-cell employee-info">
+            <div class="employee-avatar">{{ getEmployeeInitials(conge.employee.id) }}</div>
+            <div class="employee-details">
+              <div class="employee-name">{{ getEmployeeName(conge.employee.id) }}</div>
+              <div class="employee-email">{{ getEmployeeEmail(conge.employee.id) }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="type-badge" [class]="getTypeCongeClass(conge.type)">
+              {{ conge.type }}
+            </span>
+          </div>
+
+          <div class="table-cell">
+            <div class="periode-info">
+              <span class="date-debut">{{ conge.dateDebut | date:'dd/MM/yyyy' }}</span>
+              <span class="date-separator">→</span>
+              <span class="date-fin">{{ conge.dateFin | date:'dd/MM/yyyy' }}</span>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="jours-count">{{ conge.nombreJours }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="motif-text">{{ conge.motif }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="status-badge" [class]="getCongeStatusClass(conge.statut)">
+              {{ conge.statut }}
+            </span>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editConge(conge)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn success" (click)="approveConge(conge.id)" title="Approuver"
+                *ngIf="conge.statut === 'EN_ATTENTE'">
+                ✅
+              </button>
+              <button class="action-btn warning" (click)="rejectConge(conge.id)" title="Refuser"
+                *ngIf="conge.statut === 'EN_ATTENTE'">
+                ❌
+              </button>
+              <button class="action-btn danger" (click)="deleteConge(conge.id)" title="Supprimer">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredConges.length === 0" class="empty-state-table">
+          <div class="empty-icon">🏖️</div>
+          <p>Aucun congé trouvé</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste des fiches de paie -->
+  <div class="fiches-view" *ngIf="currentView === 'fiches'">
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Rechercher une fiche..." [(ngModel)]="searchTermFiche"
+            (input)="applyFicheFilters()" class="search-input">
+        </div>
+        <div class="table-actions">
+          <button class="btn-outline">
+            <span class="icon">📊</span>
+            Exporter
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Employé</div>
+          <div class="table-cell">Date Émission</div>
+          <div class="table-cell">Salaire Base</div>
+          <div class="table-cell">Net à Payer</div>
+          <div class="table-cell">Statut</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let fiche of filteredFiches" class="table-row clickable" (click)="viewFicheDetails(fiche)">
+          <div class="table-cell employee-info">
+            <div class="employee-avatar">{{ getEmployeeInitials(fiche.employee.id) }}</div>
+            <div class="employee-details">
+              <div class="employee-name">{{ getEmployeeName(fiche.employee.id) }}</div>
+              <div class="employee-email">{{ getEmployeeEmail(fiche.employee.id) }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="date-value">{{ fiche.dateEmission | date:'dd/MM/yyyy' }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="salary-amount">{{ fiche.salaireDeBase | number }} DT</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="net-amount">{{ fiche.netAPayer | number }} DT</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="status-badge" [class]="getFicheStatusClass(fiche.statut)">
+              {{ fiche.statut }}
+            </span>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editFiche(fiche)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn" (click)="printFiche(fiche)" title="Imprimer">
+                🖨️
+              </button>
+              <button class="action-btn" (click)="validateFiche(fiche)" title="Valider"
+                *ngIf="fiche.statut === 'BROUILLON'">
+                ✅
+              </button>
+              <button class="action-btn danger" (click)="deleteFiche(fiche.id)" title="Supprimer">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredFiches.length === 0" class="empty-state-table">
+          <div class="empty-icon">💰</div>
+          <p>Aucune fiche de paie trouvée</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste des primes -->
+  <div class="primes-view" *ngIf="currentView === 'primes'">
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Rechercher une prime..." [(ngModel)]="searchTermPrime"
+            (input)="applyPrimeFilters()" class="search-input">
+        </div>
+        <div class="table-actions">
+          <button class="btn-outline">
+            <span class="icon">📊</span>
+            Exporter
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Prime</div>
+          <div class="table-cell">Employé</div>
+          <div class="table-cell">Montant</div>
+          <div class="table-cell">Points</div>
+          <div class="table-cell">Date Création</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let prime of filteredPrimes" class="table-row clickable" (click)="viewPrimeDetails(prime)">
+          <div class="table-cell prime-info">
+            <div class="prime-avatar">🎁</div>
+            <div class="prime-details">
+              <div class="prime-libelle">{{ prime.libelle }}</div>
+              <div class="prime-description">{{ prime.description }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell employee-info">
+            <div class="employee-avatar">{{ getEmployeeInitials(prime.employee.id) }}</div>
+            <div class="employee-details">
+              <div class="employee-name">{{ getEmployeeName(prime.employee.id) }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="prime-amount">{{ prime.montant | number }} DT</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="points-value">{{ prime.nombrePoints }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="date-value">{{ prime.createdAt | date:'dd/MM/yyyy' }}</span>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editPrime(prime)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn danger" (click)="deletePrime(prime.id)" title="Supprimer">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredPrimes.length === 0" class="empty-state-table">
+          <div class="empty-icon">🎁</div>
+          <p>Aucune prime trouvée</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste des retenues -->
+  <div class="retenues-view" *ngIf="currentView === 'retenues'">
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Rechercher une retenue..." [(ngModel)]="searchTermRetenue"
+            (input)="applyRetenueFilters()" class="search-input">
+        </div>
+        <div class="table-actions">
+          <button class="btn-outline">
+            <span class="icon">📊</span>
+            Exporter
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Retenue</div>
+          <div class="table-cell">Employé</div>
+          <div class="table-cell">Montant</div>
+          <div class="table-cell">Points</div>
+          <div class="table-cell">Date Création</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let retenue of filteredRetenues" class="table-row clickable" (click)="viewRetenueDetails(retenue)">
+          <div class="table-cell retenue-info">
+            <div class="retenue-avatar">📉</div>
+            <div class="retenue-details">
+              <div class="retenue-libelle">{{ retenue.libelle }}</div>
+              <div class="retenue-description">{{ retenue.description }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell employee-info">
+            <div class="employee-avatar">{{ getEmployeeInitials(retenue.employee.id) }}</div>
+            <div class="employee-details">
+              <div class="employee-name">{{ getEmployeeName(retenue.employee.id) }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="retenue-amount">{{ retenue.montant | number }} DT</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="points-value">{{ retenue.nombrePoints }}</span>
+          </div>
+
+          <div class="table-cell">
+            <span class="date-value">{{ retenue.createdAt | date:'dd/MM/yyyy' }}</span>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editRetenue(retenue)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn danger" (click)="deleteRetenue(retenue.id)" title="Supprimer">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredRetenues.length === 0" class="empty-state-table">
+          <div class="empty-icon">📉</div>
+          <p>Aucune retenue trouvée</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Liste des règles -->
+  <div class="regles-view" *ngIf="currentView === 'regles'">
+    <div class="table-container">
+      <div class="table-header">
+        <div class="search-bar">
+          <span class="search-icon">🔍</span>
+          <input type="text" placeholder="Rechercher une règle..." [(ngModel)]="searchTermRegle"
+            (input)="applyRegleFilters()" class="search-input">
+        </div>
+        <div class="table-actions">
+          <button class="btn-outline">
+            <span class="icon">📊</span>
+            Exporter
+          </button>
+        </div>
+      </div>
+
+      <div class="modern-table">
+        <div class="table-row header">
+          <div class="table-cell">Règle</div>
+          <div class="table-cell">Type</div>
+          <div class="table-cell">Ancienneté</div>
+          <div class="table-cell">Montant</div>
+          <div class="table-cell">Statut</div>
+          <div class="table-cell">Actions</div>
+        </div>
+
+        <div *ngFor="let regle of filteredRegles" class="table-row clickable" (click)="viewRegleDetails(regle)">
+          <div class="table-cell regle-info">
+            <div class="regle-avatar">⚖️</div>
+            <div class="regle-details">
+              <div class="regle-libelle">{{ regle.libelle }}</div>
+              <div class="regle-description">{{ regle.description }}</div>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="type-badge" [class]="getRegleTypeClass(regle.typeRegle)">
+              {{ regle.typeRegle }}
+            </span>
+          </div>
+
+          <div class="table-cell">
+            <div class="anciennete-info">
+              <span class="anciennete-range">{{ regle.minAnciennete }} - {{ regle.maxAnciennete || '∞' }} ans</span>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <div class="montant-info">
+              <span class="montant-fixe" *ngIf="regle.montantFixe">{{ regle.montantFixe }} DT</span>
+              <span class="pourcentage-salaire" *ngIf="regle.pourcentageSalaire">{{ (regle.pourcentageSalaire * 100)
+                }}%</span>
+              <span class="no-montant" *ngIf="!regle.montantFixe && !regle.pourcentageSalaire">-</span>
+            </div>
+          </div>
+
+          <div class="table-cell">
+            <span class="status-badge" [class]="getRegleStatutClass(regle.statut)">
+              {{ regle.statut }}
+            </span>
+          </div>
+
+          <div class="table-cell actions" (click)="$event.stopPropagation()">
+            <div class="action-buttons">
+              <button class="action-btn" (click)="editRegle(regle)" title="Modifier">
+                ✏️
+              </button>
+              <button class="action-btn danger" (click)="deleteRegle(regle.id)" title="Supprimer">
+                🗑️
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div *ngIf="filteredRegles.length === 0" class="empty-state-table">
+          <div class="empty-icon">⚖️</div>
+          <p>Aucune règle trouvée</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vue en développement pour les autres sections -->
+  <div *ngIf="currentView !== 'dashboard' && currentView !== 'employees' && currentView !== 'conges'"
+    class="development-view">
+    <div class="development-card">
+      <div class="development-icon">🚧</div>
+      <h2>{{ getViewTitle() }}</h2>
+      <p>Cette section est en cours de développement</p>
+      <div class="development-features">
+        <h4>Fonctionnalités prévues:</h4>
+        <ul>
+          <li *ngFor="let feature of getViewFeatures()">{{ feature }}</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup détails employé -->
+  <div class="popup-overlay" *ngIf="showEmployeeDetails" (click)="closeEmployeeDetails()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>Détails Employé</h2>
+        <button class="popup-close" (click)="closeEmployeeDetails()">✕</button>
+      </div>
+
+      <div class="popup-content" *ngIf="selectedEmployee">
+        <div class="details-grid">
+          <div class="info-section">
+            <h3>Informations Générales</h3>
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-label">Nom complet</span>
+                <span class="info-value">{{ selectedEmployee.prenom }} {{ selectedEmployee.nom }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Email</span>
+                <span class="info-value">{{ selectedEmployee.email }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Téléphone</span>
+                <span class="info-value">{{ selectedEmployee.telephone }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Poste</span>
+                <span class="info-value">{{ selectedEmployee.poste }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Département</span>
+                <span class="info-value">{{ selectedEmployee.departement }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Date d'embauche</span>
+                <span class="info-value">{{ selectedEmployee.dateEmbauche | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Salaire</span>
+                <span class="info-value highlight">{{ selectedEmployee.salaire | number }} DT</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup formulaire employé -->
+  <div class="popup-overlay" *ngIf="showEmployeeForm" (click)="closeEmployeeForm()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>{{ isEditMode ? 'Modifier' : 'Nouvel' }} Employé</h2>
+        <button class="popup-close" (click)="closeEmployeeForm()">✕</button>
+      </div>
+
+      <form [formGroup]="employeeForm" (ngSubmit)="saveEmployee()" class="popup-form">
+
+        <!-- Informations Personnelles -->
+        <div class="form-section">
+          <h3>Informations Personnelles</h3>
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label class="form-label">Nom *</label>
+              <input type="text" class="form-input" formControlName="nom" placeholder="Nom de famille"
+                [class.is-invalid]="submitted && f['nom'].errors" />
+              <div *ngIf="submitted && f['nom'].errors" class="error-message">
+                Le nom est requis (min. 2 caractères)
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Prénom *</label>
+              <input type="text" class="form-input" formControlName="prenom" placeholder="Prénom"
+                [class.is-invalid]="submitted && f['prenom'].errors" />
+              <div *ngIf="submitted && f['prenom'].errors" class="error-message">
+                Le prénom est requis (min. 2 caractères)
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Email *</label>
+              <input type="email" class="form-input" formControlName="email" placeholder="email@exemple.com"
+                [class.is-invalid]="submitted && f['email'].errors" />
+              <div *ngIf="submitted && f['email'].errors" class="error-message">
+                Email valide requis
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Téléphone *</label>
+              <input type="tel" class="form-input" formControlName="telephone" placeholder="+216 20 123 456"
+                [class.is-invalid]="submitted && f['telephone'].errors" />
+              <div *ngIf="submitted && f['telephone'].errors" class="error-message">
+                Téléphone requis
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Adresse *</label>
+              <input type="text" class="form-input" formControlName="adresse" placeholder="Adresse"
+                [class.is-invalid]="submitted && f['adresse'].errors" />
+              <div *ngIf="submitted && f['adresse'].errors" class="error-message">
+                L'adresse est requise
+              </div>
+            </div>
+
+          
+
+          </div>
+        </div>
+
+        <!-- Pièce d'identité -->
+        <div class="form-section">
+          <h3>Pièce d'identité</h3>
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label class="form-label">Type de pièce *</label>
+              <select class="form-input" formControlName="typePieceIdentite"
+                [class.is-invalid]="submitted && f['typePieceIdentite'].errors">
+                <option value="">Sélectionner un type</option>
+                <option *ngFor="let type of typesPieceIdentite" [value]="type">
+                  {{ type === 'CIN' ? 'CIN' : 'Passport' }}
+                </option>
+              </select>
+              <div *ngIf="submitted && f['typePieceIdentite'].errors" class="error-message">
+                Veuillez sélectionner un type de pièce
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Numéro de pièce *</label>
+              <input type="text" class="form-input" formControlName="numeroPieceIdentite" placeholder="CIN ou Passport"
+                [class.is-invalid]="submitted && f['numeroPieceIdentite'].errors" />
+              <div *ngIf="submitted && f['numeroPieceIdentite'].errors" class="error-message">
+                {{ getNumeroPieceErrorMessage() }}
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Informations Professionnelles -->
+        <div class="form-section">
+          <h3>Informations Professionnelles</h3>
+          <div class="form-grid">
+
+            <div class="form-group">
+              <label class="form-label">Poste *</label>
+              <input type="text" class="form-input" formControlName="poste" placeholder="Développeur Senior"
+                [class.is-invalid]="submitted && f['poste'].errors" />
+              <div *ngIf="submitted && f['poste'].errors" class="error-message">
+                Le poste est requis
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Département *</label>
+              <input type="text" class="form-input" formControlName="departement" placeholder="IT"
+                [class.is-invalid]="submitted && f['departement'].errors" />
+              <div *ngIf="submitted && f['departement'].errors" class="error-message">
+                Le département est requis
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Date d'embauche *</label>
+              <input type="date" class="form-input" formControlName="dateEmbauche"
+                [class.is-invalid]="submitted && f['dateEmbauche'].errors" />
+              <div *ngIf="submitted && f['dateEmbauche'].errors" class="error-message">
+                La date d'embauche est requise
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Salaire (DT) *</label>
+              <input type="number" class="form-input" formControlName="salaire" placeholder="2500" min="0"
+                [class.is-invalid]="submitted && f['salaire'].errors" />
+              <div *ngIf="submitted && f['salaire'].errors" class="error-message">
+                Le salaire est requis (min. 0)
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Solde Congés *</label>
+              <input type="number" class="form-input" formControlName="soldeConges" min="0"
+                [class.is-invalid]="submitted && f['soldeConges'].errors" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Congés Utilisés *</label>
+              <input type="number" class="form-input" formControlName="congesUtilises" min="0"
+                [class.is-invalid]="submitted && f['congesUtilises'].errors" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Solde Points *</label>
+              <input type="number" class="form-input" formControlName="soldePoints" min="0"
+                [class.is-invalid]="submitted && f['soldePoints'].errors" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Points demandés par an *</label>
+              <input type="number" class="form-input" formControlName="pointsDemandesParAn" min="0"
+                [class.is-invalid]="submitted && f['pointsDemandesParAn'].errors" />
+            </div>
+
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeEmployeeForm()">Annuler</button>
+          <button type="submit" class="btn-primary">
+            <span class="icon">💾</span>
+            {{ isEditMode ? 'Modifier' : 'Créer' }}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  </div>
+
+  <!-- Popup formulaire congé -->
+  <div class="popup-overlay" *ngIf="showCongeForm" (click)="closeCongeForm()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>{{ isEditModeConge ? 'Modifier' : 'Nouveau' }} Congé</h2>
+        <button class="popup-close" (click)="closeCongeForm()">✕</button>
+      </div>
+
+      <form [formGroup]="congeForm" (ngSubmit)="saveConge()" class="popup-form">
+        <div class="form-section">
+          <h3>Informations du Congé</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Employé *</label>
+              <select class="form-input" formControlName="employeeId"
+                [class.is-invalid]="submittedConge && fc['employeeId'].errors">
+                <option value="">Sélectionner un employé</option>
+                <option *ngFor="let employee of employees" [value]="employee.id">
+                  {{ employee.prenom }} {{ employee.nom }} - {{ employee.poste }}
+                </option>
+              </select>
+              <div *ngIf="submittedConge && fc['employeeId'].errors" class="error-message">
+                Veuillez sélectionner un employé
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Type de congé *</label>
+              <select class="form-input" formControlName="type"
+                [class.is-invalid]="submittedConge && fc['type'].errors">
+                <option *ngFor="let type of typesConge" [value]="type">
+                  {{ type }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Date de début *</label>
+              <input type="date" class="form-input" formControlName="dateDebut"
+                [class.is-invalid]="submittedConge && fc['dateDebut'].errors" />
+              <div *ngIf="submittedConge && fc['dateDebut'].errors" class="error-message">
+                La date de début est requise
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Date de fin *</label>
+              <input type="date" class="form-input" formControlName="dateFin"
+                [class.is-invalid]="submittedConge && fc['dateFin'].errors" />
+              <div *ngIf="submittedConge && fc['dateFin'].errors" class="error-message">
+                La date de fin est requise
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nombre de jours</label>
+              <input type="number" class="form-input" formControlName="nombreJours" readonly />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Statut</label>
+              <select class="form-input" formControlName="statut">
+                <option *ngFor="let statut of statutsConge" [value]="statut">
+                  {{ statut }}
+                </option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Motif *</label>
+            <textarea class="form-input" formControlName="motif" rows="3" placeholder="Motif du congé..."
+              [class.is-invalid]="submittedConge && fc['motif'].errors"></textarea>
+            <div *ngIf="submittedConge && fc['motif'].errors" class="error-message">
+              Le motif est requis
+            </div>
+          </div>
+        </div>
+
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeCongeForm()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary">
+            <span class="icon">💾</span>
+            {{ isEditModeConge ? 'Modifier' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Popup détails congé -->
+  <div class="popup-overlay" *ngIf="showCongeDetails" (click)="closeCongeDetails()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>Détails du Congé</h2>
+        <button class="popup-close" (click)="closeCongeDetails()">✕</button>
+      </div>
+
+      <div class="popup-content" *ngIf="selectedConge">
+        <div class="details-grid">
+          <div class="info-section">
+            <h3>Informations du Congé</h3>
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-label">Employé</span>
+                <span class="info-value">{{ getEmployeeName(selectedConge.employee.id) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Type</span>
+                <span class="info-value">{{ selectedConge.type }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Période</span>
+                <span class="info-value">
+                  {{ selectedConge.dateDebut | date:'dd/MM/yyyy' }} → {{ selectedConge.dateFin | date:'dd/MM/yyyy' }}
+                </span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Nombre de jours</span>
+                <span class="info-value highlight">{{ selectedConge.nombreJours }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Statut</span>
+                <span class="info-value">{{ selectedConge.statut }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Motif</span>
+                <span class="info-value">{{ selectedConge.motif }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup formulaire fiche de paie -->
+  <div class="popup-overlay" *ngIf="showFicheForm" (click)="closeFicheForm()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>{{ isEditModeFiche ? 'Modifier' : 'Nouvelle' }} Fiche de Paie</h2>
+        <button class="popup-close" (click)="closeFicheForm()">✕</button>
+      </div>
+
+      <form [formGroup]="ficheForm" (ngSubmit)="saveFiche()" class="popup-form">
+        <div class="form-section">
+          <h3>Informations de la Fiche</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Employé *</label>
+              <select class="form-input" formControlName="employeeId"
+                [class.is-invalid]="submittedFiche && ff['employeeId'].errors">
+                <option value="">Sélectionner un employé</option>
+                <option *ngFor="let employee of employees" [value]="employee.id">
+                  {{ employee.prenom }} {{ employee.nom }} - {{ employee.poste }}
+                </option>
+              </select>
+              <div *ngIf="submittedFiche && ff['employeeId'].errors" class="error-message">
+                Veuillez sélectionner un employé
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Date d'émission *</label>
+              <input type="date" class="form-input" formControlName="dateEmission"
+                [class.is-invalid]="submittedFiche && ff['dateEmission'].errors" />
+              <div *ngIf="submittedFiche && ff['dateEmission'].errors" class="error-message">
+                La date d'émission est requise
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Salaire de base (DT) *</label>
+              <input type="number" class="form-input" formControlName="salaireDeBase" min="0"
+                [class.is-invalid]="submittedFiche && ff['salaireDeBase'].errors" />
+              <div *ngIf="submittedFiche && ff['salaireDeBase'].errors" class="error-message">
+                Le salaire de base est requis
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Net à payer (DT)</label>
+              <input type="number" class="form-input" formControlName="netAPayer" readonly />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Statut</label>
+              <select class="form-input" formControlName="statut">
+                <option *ngFor="let statut of statutsFiche" [value]="statut">
+                  {{ statut }}
+                </option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeFicheForm()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary">
+            <span class="icon">💾</span>
+            {{ isEditModeFiche ? 'Modifier' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Popup formulaire prime -->
+  <div class="popup-overlay" *ngIf="showPrimeForm" (click)="closePrimeForm()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>{{ isEditModePrime ? 'Modifier' : 'Nouvelle' }} Prime</h2>
+        <button class="popup-close" (click)="closePrimeForm()">✕</button>
+      </div>
+
+      <form [formGroup]="primeForm" (ngSubmit)="savePrime()" class="popup-form">
+        <div class="form-section">
+          <h3>Informations de la Prime</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Employé *</label>
+              <select class="form-input" formControlName="employeeId"
+                [class.is-invalid]="submittedPrime && fp['employeeId'].errors">
+                <option value="">Sélectionner un employé</option>
+                <option *ngFor="let employee of employees" [value]="employee.id">
+                  {{ employee.prenom }} {{ employee.nom }} - {{ employee.poste }}
+                </option>
+              </select>
+              <div *ngIf="submittedPrime && fp['employeeId'].errors" class="error-message">
+                Veuillez sélectionner un employé
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Libellé *</label>
+              <input type="text" class="form-input" formControlName="libelle" placeholder="Prime de performance"
+                [class.is-invalid]="submittedPrime && fp['libelle'].errors" />
+              <div *ngIf="submittedPrime && fp['libelle'].errors" class="error-message">
+                Le libellé est requis
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Montant (DT) *</label>
+              <input type="number" class="form-input" formControlName="montant" min="0" placeholder="500"
+                [class.is-invalid]="submittedPrime && fp['montant'].errors" />
+              <div *ngIf="submittedPrime && fp['montant'].errors" class="error-message">
+                Le montant est requis
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nombre de points *</label>
+              <input type="number" class="form-input" formControlName="nombrePoints" min="0" placeholder="10"
+                [class.is-invalid]="submittedPrime && fp['nombrePoints'].errors" />
+              <div *ngIf="submittedPrime && fp['nombrePoints'].errors" class="error-message">
+                Le nombre de points est requis
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Description</label>
+            <textarea class="form-input" formControlName="description" rows="3"
+              placeholder="Description de la prime..."></textarea>
+          </div>
+        </div>
+
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closePrimeForm()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary">
+            <span class="icon">💾</span>
+            {{ isEditModePrime ? 'Modifier' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Popup formulaire retenue -->
+  <div class="popup-overlay" *ngIf="showRetenueForm" (click)="closeRetenueForm()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>{{ isEditModeRetenue ? 'Modifier' : 'Nouvelle' }} Retenue</h2>
+        <button class="popup-close" (click)="closeRetenueForm()">✕</button>
+      </div>
+
+      <form [formGroup]="retenueForm" (ngSubmit)="saveRetenue()" class="popup-form">
+        <div class="form-section">
+          <h3>Informations de la Retenue</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Employé *</label>
+              <select class="form-input" formControlName="employeeId"
+                [class.is-invalid]="submittedRetenue && fr['employeeId'].errors">
+                <option value="">Sélectionner un employé</option>
+                <option *ngFor="let employee of employees" [value]="employee.id">
+                  {{ employee.prenom }} {{ employee.nom }} - {{ employee.poste }}
+                </option>
+              </select>
+              <div *ngIf="submittedRetenue && fr['employeeId'].errors" class="error-message">
+                Veuillez sélectionner un employé
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Libellé *</label>
+              <input type="text" class="form-input" formControlName="libelle" placeholder="Retenue absence"
+                [class.is-invalid]="submittedRetenue && fr['libelle'].errors" />
+              <div *ngIf="submittedRetenue && fr['libelle'].errors" class="error-message">
+                Le libellé est requis
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Montant (DT) *</label>
+              <input type="number" class="form-input" formControlName="montant" min="0" placeholder="100"
+                [class.is-invalid]="submittedRetenue && fr['montant'].errors" />
+              <div *ngIf="submittedRetenue && fr['montant'].errors" class="error-message">
+                Le montant est requis
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nombre de points *</label>
+              <input type="number" class="form-input" formControlName="nombrePoints" min="0" placeholder="5"
+                [class.is-invalid]="submittedRetenue && fr['nombrePoints'].errors" />
+              <div *ngIf="submittedRetenue && fr['nombrePoints'].errors" class="error-message">
+                Le nombre de points est requis
+              </div>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Description</label>
+            <textarea class="form-input" formControlName="description" rows="3"
+              placeholder="Description de la retenue..."></textarea>
+          </div>
+        </div>
+
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeRetenueForm()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary">
+            <span class="icon">💾</span>
+            {{ isEditModeRetenue ? 'Modifier' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Popup formulaire règle -->
+  <div class="popup-overlay" *ngIf="showRegleForm" (click)="closeRegleForm()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>{{ isEditModeRegle ? 'Modifier' : 'Nouvelle' }} Règle</h2>
+        <button class="popup-close" (click)="closeRegleForm()">✕</button>
+      </div>
+
+      <form [formGroup]="regleForm" (ngSubmit)="saveRegle()" class="popup-form">
+        <div class="form-section">
+          <h3>Informations de la Règle</h3>
+          <div class="form-grid">
+            <div class="form-group">
+              <label class="form-label">Libellé *</label>
+              <input type="text" class="form-input" formControlName="libelle" placeholder="Prime d'ancienneté"
+                [class.is-invalid]="submittedRegle && frg['libelle'].errors" />
+              <div *ngIf="submittedRegle && frg['libelle'].errors" class="error-message">
+                Le libellé est requis
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Type de règle *</label>
+              <select class="form-input" formControlName="typeRegle"
+                [class.is-invalid]="submittedRegle && frg['typeRegle'].errors">
+                <option *ngFor="let type of typesRegle" [value]="type">
+                  {{ type }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Statut *</label>
+              <select class="form-input" formControlName="statut"
+                [class.is-invalid]="submittedRegle && frg['statut'].errors">
+                <option *ngFor="let statut of statutsRegle" [value]="statut">
+                  {{ statut }}
+                </option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Ancienneté min (années) *</label>
+              <input type="number" class="form-input" formControlName="minAnciennete" min="0" placeholder="0"
+                [class.is-invalid]="submittedRegle && frg['minAnciennete'].errors" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Ancienneté max (années)</label>
+              <input type="number" class="form-input" formControlName="maxAnciennete" min="0" placeholder="99" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Montant fixe (DT)</label>
+              <input type="number" class="form-input" formControlName="montantFixe" min="0" placeholder="500" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Pourcentage du salaire</label>
+              <input type="number" class="form-input" formControlName="pourcentageSalaire" min="0" max="1" step="0.01"
+                placeholder="0.05" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Nombre de points</label>
+              <input type="number" class="form-input" formControlName="nombrePoints" placeholder="10" />
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Application automatique</label>
+              <select class="form-input" formControlName="automatique">
+                <option [value]="true">Oui</option>
+                <option [value]="false">Non</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Conditions d'application</label>
+            <textarea class="form-input" formControlName="conditions" rows="3"
+              placeholder="Conditions d'application de la règle..."></textarea>
+          </div>
+
+          <div class="form-group full-width">
+            <label class="form-label">Description</label>
+            <textarea class="form-input" formControlName="description" rows="3"
+              placeholder="Description de la règle..."></textarea>
+          </div>
+        </div>
+
+        <div class="popup-actions">
+          <button type="button" class="btn-outline" (click)="closeRegleForm()">
+            Annuler
+          </button>
+          <button type="submit" class="btn-primary">
+            <span class="icon">💾</span>
+            {{ isEditModeRegle ? 'Modifier' : 'Créer' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Popup détails fiche de paie -->
+  <div class="popup-overlay" *ngIf="showFicheDetails" (click)="closeFicheDetails()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>Détails Fiche de Paie</h2>
+        <button class="popup-close" (click)="closeFicheDetails()">✕</button>
+      </div>
+
+      <div class="popup-content" *ngIf="selectedFiche">
+        <div class="details-grid">
+          <div class="info-section">
+            <h3>Informations de la Fiche</h3>
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-label">Employé</span>
+                <span class="info-value">{{ getEmployeeName(selectedFiche.employee.id) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Date d'émission</span>
+                <span class="info-value">{{ selectedFiche.dateEmission | date:'dd/MM/yyyy' }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Salaire de base</span>
+                <span class="info-value">{{ selectedFiche.salaireDeBase | number }} DT</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Net à payer</span>
+                <span class="info-value highlight">{{ selectedFiche.netAPayer | number }} DT</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Statut</span>
+                <span class="info-value">{{ selectedFiche.statut }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup détails prime -->
+  <div class="popup-overlay" *ngIf="showPrimeDetails" (click)="closePrimeDetails()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>Détails Prime</h2>
+        <button class="popup-close" (click)="closePrimeDetails()">✕</button>
+      </div>
+
+      <div class="popup-content" *ngIf="selectedPrime">
+        <div class="details-grid">
+          <div class="info-section">
+            <h3>Informations de la Prime</h3>
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-label">Libellé</span>
+                <span class="info-value">{{ selectedPrime.libelle }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Employé</span>
+                <span class="info-value">{{ getEmployeeName(selectedPrime.employee.id) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Montant</span>
+                <span class="info-value highlight">{{ selectedPrime.montant | number }} DT</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Points</span>
+                <span class="info-value">{{ selectedPrime.nombrePoints }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Date de création</span>
+                <span class="info-value">{{ selectedPrime.createdAt | date:'dd/MM/yyyy' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="description-section" *ngIf="selectedPrime.description">
+            <h3>Description</h3>
+            <div class="description-content">
+              {{ selectedPrime.description }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup détails retenue -->
+  <div class="popup-overlay" *ngIf="showRetenueDetails" (click)="closeRetenueDetails()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>Détails Retenue</h2>
+        <button class="popup-close" (click)="closeRetenueDetails()">✕</button>
+      </div>
+
+      <div class="popup-content" *ngIf="selectedRetenue">
+        <div class="details-grid">
+          <div class="info-section">
+            <h3>Informations de la Retenue</h3>
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-label">Libellé</span>
+                <span class="info-value">{{ selectedRetenue.libelle }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Employé</span>
+                <span class="info-value">{{ getEmployeeName(selectedRetenue.employee.id) }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Montant</span>
+                <span class="info-value highlight">{{ selectedRetenue.montant | number }} DT</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Points</span>
+                <span class="info-value">{{ selectedRetenue.nombrePoints }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Date de création</span>
+                <span class="info-value">{{ selectedRetenue.createdAt | date:'dd/MM/yyyy' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="description-section" *ngIf="selectedRetenue.description">
+            <h3>Description</h3>
+            <div class="description-content">
+              {{ selectedRetenue.description }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Popup détails règle -->
+  <div class="popup-overlay" *ngIf="showRegleDetails" (click)="closeRegleDetails()">
+    <div class="popup-container" (click)="$event.stopPropagation()">
+      <div class="popup-header">
+        <h2>Détails Règle</h2>
+        <button class="popup-close" (click)="closeRegleDetails()">✕</button>
+      </div>
+
+      <div class="popup-content" *ngIf="selectedRegle">
+        <div class="details-grid">
+          <div class="info-section">
+            <h3>Informations de la Règle</h3>
+            <div class="info-list">
+              <div class="info-item">
+                <span class="info-label">Libellé</span>
+                <span class="info-value">{{ selectedRegle.libelle }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Type</span>
+                <span class="info-value">{{ selectedRegle.typeRegle }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Ancienneté</span>
+                <span class="info-value">{{ selectedRegle.minAnciennete }} - {{ selectedRegle.maxAnciennete || '∞' }}
+                  ans</span>
+              </div>
+              <div class="info-item" *ngIf="selectedRegle.montantFixe">
+                <span class="info-label">Montant fixe</span>
+                <span class="info-value highlight">{{ selectedRegle.montantFixe }} DT</span>
+              </div>
+              <div class="info-item" *ngIf="selectedRegle.pourcentageSalaire">
+                <span class="info-label">Pourcentage salaire</span>
+                <span class="info-value highlight">{{ (selectedRegle.pourcentageSalaire * 100) }}%</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Statut</span>
+                <span class="info-value">{{ selectedRegle.statut }}</span>
+              </div>
+              <div class="info-item">
+                <span class="info-label">Application automatique</span>
+                <span class="info-value">{{ selectedRegle.automatique ? 'Oui' : 'Non' }}</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="description-section">
+            <h3>Description</h3>
+            <div class="description-content">
+              {{ selectedRegle.description || 'Aucune description' }}
+            </div>
+          </div>
+
+          <div class="description-section">
+            <h3>Conditions d'Application</h3>
+            <div class="description-content">
+              {{ selectedRegle.conditions || 'Aucune condition spécifique' }}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,229 @@
+<!-- Alerts Management -->
+<div class="alerts-management">
+  <!-- Header Section -->
+  <div class="section-header">
+    <h2>🚨 Alertes Stock</h2>
+    <div class="header-actions">
+      <button class="btn-secondary" (click)="toggleArchived()">
+        <span class="icon">{{ showArchived ? '📋' : '📂' }}</span>
+        {{ showArchived ? 'Masquer archivées' : 'Voir archivées' }}
+      </button>
+      <button class="btn-primary" (click)="refresh()">
+        <span class="icon">�</span>
+        Actualiser
+      </button>
+    </div>
+  </div>
+
+  <!-- Search and Filters Section -->
+  <div class="search-filters">
+    <div class="search-box">
+      <input type="text" 
+             placeholder="Rechercher une alerte..." 
+             [(ngModel)]="searchTerm"
+             (input)="onSearchChange()"
+             class="search-input">
+      <span class="search-icon">🔍</span>
+    </div>
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="filter-group">
+      <select [(ngModel)]="selectedType" (change)="onFilterChange()" class="filter-select">
+        <option value="">Tous les types</option>
+        <option value="rupture">Rupture</option>
+        <option value="stock_faible">Stock faible</option>
+        <option value="expiration">Expiration</option>
+        <option value="seuil_critique">Seuil critique</option>
+        <option value="mouvement_suspect">Mouvement suspect</option>
+        <option value="success">Succès</option>
+        <option value="warning">Avertissement</option>
+        <option value="info">Information</option>
+      </select>
+      <select [(ngModel)]="selectedPriority" (change)="onFilterChange()" class="filter-select">
+        <option value="">Toutes priorités</option>
+        <option value="critical">Critique</option>
+        <option value="high">Élevée</option>
+        <option value="medium">Moyenne</option>
+        <option value="low">Faible</option>
+      </select>
+      <select [(ngModel)]="selectedStatus" (change)="onFilterChange()" class="filter-select">
+        <option value="">Tous statuts</option>
+        <option value="active">Active</option>
+        <option value="acknowledged">Accusée</option>
+        <option value="resolved">Résolue</option>
+        <option value="dismissed">Rejetée</option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Stats Cards -->
+  <div class="stats-cards" *ngIf="stats">
+    <div class="stat-card">
+      <div class="stat-icon active">🚨</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.active }}</div>
+        <div class="stat-label">Actives</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon critical">🔴</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.critical }}</div>
+        <div class="stat-label">Critiques</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon recent">⏰</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.recent }}</div>
+        <div class="stat-label">Récentes</div>
+      </div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon resolved">✅</div>
+      <div class="stat-info">
+        <div class="stat-value">{{ stats.resolved }}</div>
+        <div class="stat-label">Résolues</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Alerts Table -->
+  <div class="table-container" *ngIf="!isLoading">
+    <table class="alerts-table">
+      <thead>
+        <tr>
+          <th>Date/Heure</th>
+          <th>Type</th>
+          <th>Article</th>
+          <th>Entrepôt</th>
+          <th>Quantité</th>
+          <th>Utilisateur</th>
+          <th>Motif</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Empty State -->
+        <tr *ngIf="filteredAlertes.length === 0">
+          <td colspan="8" class="empty-row">
+            <div class="empty-state">
+              <div class="empty-icon">📭</div>
+              <h3>Aucune alerte</h3>
+              <p *ngIf="!showArchived">Toutes vos alertes sont résolues!</p>
+              <p *ngIf="showArchived">Aucune alerte archivée trouvée.</p>
+            </div>
+          </td>
+        </tr>
+
+        <!-- Alert Rows -->
+        <tr *ngFor="let alerte of filteredAlertes; trackBy: trackByAlertId" 
+            class="alert-row" 
+            [ngClass]="getAlertClass(alerte)"
+            (click)="onAlertClick(alerte)">
+          
+          <td class="date-cell">
+            <div class="date-time">
+              <div class="date">{{ alerte.dateCreation | date:'dd/MM/yyyy' }}</div>
+              <div class="time">{{ alerte.dateCreation | date:'HH:mm' }}</div>
+            </div>
+          </td>
+          
+          <td class="type-cell">
+            <span class="type-badge" [ngClass]="'type-' + alerte.type.replace('_', '-')">
+              {{ getAlertIcon(alerte.type) }} {{ getTypeLabel(alerte.type) }}
+            </span>
+          </td>
+          
+          <td class="article-cell">
+            <div class="article-info" *ngIf="alerte.articleNom; else noArticle">
+              <div class="article-name">{{ alerte.articleNom }}</div>
+              <div class="article-code">{{ alerte.articleId }}</div>
+            </div>
+            <ng-template #noArticle>
+              <span class="no-data">-</span>
+            </ng-template>
+          </td>
+          
+          <td class="entrepot-cell">
+            <div class="entrepot-info" *ngIf="alerte.entrepotNom; else noEntrepot">
+              <div class="entrepot-name">{{ alerte.entrepotNom }}</div>
+            </div>
+            <ng-template #noEntrepot>
+              <span class="no-data">-</span>  
+            </ng-template>
+          </td>
+          
+          <td class="quantity-cell">
+            <div class="quantity" *ngIf="alerte.quantiteActuelle !== undefined; else noQuantity"
+                 [class.critical]="alerte.quantiteActuelle <= (alerte.seuilCritique || 0)"
+                 [class.low]="alerte.quantiteActuelle <= (alerte.seuilMinimum || 0)">
+              {{ alerte.quantiteActuelle }}
+              <span class="threshold" *ngIf="alerte.seuilMinimum"> / {{ alerte.seuilMinimum }}</span>
+            </div>
+            <ng-template #noQuantity>
+              <span class="no-data">-</span>
+            </ng-template>
+          </td>
+          
+          <td class="user-cell">
+            <div class="user-info">
+              <div class="user-name">{{ alerte.utilisateurNom || 'Système' }}</div>
+            </div>
+          </td>
+          
+          <td class="reason-cell">
+            <div class="reason" [title]="alerte.description">
+              {{ alerte.message }}
+            </div>
+          </td>
+          
+          <td class="actions-cell">
+            <div class="action-buttons">
+              <button class="btn-icon" 
+                      *ngIf="!alerte.isRead"
+                      (click)="markAsRead(alerte.id); $event.stopPropagation()" 
+                      title="Marquer comme lu">
+                <span>�️</span>
+              </button>
+              
+              <button class="btn-icon" 
+                      *ngIf="alerte.status === AlertStatus.ACTIVE"
+                      (click)="acknowledgeAlert(alerte.id); $event.stopPropagation()" 
+                      title="Accuser réception">
+                <span>✓</span>
+              </button>
+              
+              <button class="btn-icon" 
+                      *ngIf="alerte.status !== AlertStatus.RESOLVED"
+                      (click)="resolveAlert(alerte.id); $event.stopPropagation()" 
+                      title="Résoudre">
+                <span>✅</span>
+              </button>
+              
+              <button class="btn-icon" 
+                      (click)="dismissAlert(alerte.id); $event.stopPropagation()" 
+                      title="Rejeter">
+                <span>❌</span>
+              </button>
+            </div>
+            
+            <!-- Status and Priority Indicators -->
+            <div class="status-indicators">
+              <span class="status-badge" [class]="'status-' + alerte.status">
+                {{ getStatusLabel(alerte.status) }}
+              </span>
+              <span class="priority-badge" [class]="'priority-' + alerte.priority">
+                {{ getPriorityLabel(alerte.priority) }}
+              </span>
+              <div class="unread-dot" *ngIf="!alerte.isRead"></div>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

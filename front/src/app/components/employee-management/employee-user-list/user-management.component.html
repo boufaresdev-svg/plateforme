@@ -1,0 +1,349 @@
+<div class="user-management-container">
+  <!-- Header Section -->
+  <div class="header-section">
+    <div class="title-section">
+      <h2>👥 User Management</h2>
+      <p class="subtitle">Manage system users, roles, and permissions</p>
+    </div>
+    <button class="btn-primary" (click)="openAddForm()">
+      <span class="icon">➕</span>
+      Add New User
+    </button>
+  </div>
+
+  <!-- Success/Error Messages -->
+  <div class="alert alert-success" *ngIf="successMessage">
+    ✅ {{ successMessage }}
+  </div>
+  <div class="alert alert-error" *ngIf="error">
+    ❌ {{ error }}
+  </div>
+
+  <!-- Filters Section -->
+  <div class="filters-section">
+    <div class="search-box">
+      <span class="search-icon">🔍</span>
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (ngModelChange)="onSearchChange()"
+        placeholder="Search by username, email, name, or department..."
+        class="search-input"
+      />
+    </div>
+    
+    <div class="filter-group">
+      <label>Status:</label>
+      <select 
+        [(ngModel)]="filterStatus" 
+        (ngModelChange)="onStatusFilterChange()"
+        class="filter-select"
+      >
+        <option value="ALL">All Statuses</option>
+        <option *ngFor="let status of userStatuses" [value]="status">
+          {{ status }}
+        </option>
+      </select>
+    </div>
+  </div>
+
+  <!-- Users Table -->
+  <div class="table-container">
+    <div class="loading-overlay" *ngIf="loading">
+      <div class="spinner">⏳ Loading...</div>
+    </div>
+
+    <table class="users-table" *ngIf="!loading && filteredUsers.length > 0">
+      <thead>
+        <tr>
+          <th>Nom d'utilisateur</th>
+          <th>Email</th>
+          <th>Nom complet</th>
+          <th>Département</th>
+          <th>Poste</th>
+          <th>Statut</th>
+          <th>Rôles</th>
+          <th>Dernière connexion</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let user of filteredUsers">
+          <td>
+            <strong>{{ user.nomUtilisateur }}</strong>
+          </td>
+          <td>{{ user.email }}</td>
+          <td>{{ user.prenom }} {{ user.nom }}</td>
+          <td>{{ user.departement || 'N/A' }}</td>
+          <td>{{ user.poste || 'N/A' }}</td>
+          <td>
+            <span [class]="'status-badge ' + getStatusClass(user.statut)">
+              {{ getStatusIcon(user.statut) }} {{ user.statut }}
+            </span>
+          </td>
+          <td>
+            <span class="roles-text" [title]="getRoleNames(user)">
+              {{ getRoleNames(user) }}
+            </span>
+          </td>
+          <td>{{ formatDate(user.derniereConnexion) }}</td>
+          <td>
+            <div class="action-buttons">
+              <button 
+                class="btn-action btn-edit" 
+                (click)="openEditForm(user)"
+                title="Edit user"
+              >
+                ✏️
+              </button>
+              <button 
+                class="btn-action btn-roles" 
+                (click)="openRoleManagement(user)"
+                title="Manage roles"
+              >
+                🔐
+              </button>
+              <button 
+                class="btn-action btn-delete" 
+                (click)="deleteUser(user)"
+                title="Delete user"
+              >
+                🗑️
+              </button>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="no-data" *ngIf="!loading && filteredUsers.length === 0">
+      <div class="no-data-icon">📭</div>
+      <p>No users found</p>
+      <button class="btn-primary" (click)="openAddForm()">Add First User</button>
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  <div class="pagination" *ngIf="totalPages > 1">
+    <button 
+      class="btn-page" 
+      [disabled]="currentPage === 0"
+      (click)="previousPage()"
+    >
+      ← Previous
+    </button>
+    
+    <div class="page-info">
+      Page {{ currentPage + 1 }} of {{ totalPages }} 
+      ({{ totalElements }} total users)
+    </div>
+    
+    <button 
+      class="btn-page" 
+      [disabled]="currentPage >= totalPages - 1"
+      (click)="nextPage()"
+    >
+      Next →
+    </button>
+  </div>
+</div>
+
+<!-- Add/Edit User Modal -->
+<div class="modal-overlay" *ngIf="showAddForm || showEditForm" (click)="closeForm()">
+  <div class="modal-content" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>{{ showAddForm ? '➕ Add New User' : '✏️ Edit User' }}</h3>
+      <button class="btn-close" (click)="closeForm()">✖</button>
+    </div>
+
+    <form [formGroup]="userForm" (ngSubmit)="onSubmit()">
+      <div class="form-grid">
+        <div class="form-group">
+          <label for="nomUtilisateur">Nom d'utilisateur *</label>
+          <input 
+            id="nomUtilisateur"
+            type="text" 
+            formControlName="nomUtilisateur"
+            [class.invalid]="isFieldInvalid('nomUtilisateur')"
+            placeholder="Entrer nom d'utilisateur"
+          />
+          <span class="error-message" *ngIf="isFieldInvalid('nomUtilisateur')">
+            {{ getFieldError('nomUtilisateur') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="email">Email *</label>
+          <input 
+            id="email"
+            type="email" 
+            formControlName="email"
+            [class.invalid]="isFieldInvalid('email')"
+            placeholder="Enter email"
+          />
+          <span class="error-message" *ngIf="isFieldInvalid('email')">
+            {{ getFieldError('email') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="motDePasse">Mot de passe {{ showAddForm ? '*' : '(laisser vide pour garder actuel)' }}</label>
+          <input 
+            id="motDePasse"
+            type="password" 
+            formControlName="motDePasse"
+            [class.invalid]="isFieldInvalid('motDePasse')"
+            placeholder="Entrer mot de passe"
+          />
+          <span class="error-message" *ngIf="isFieldInvalid('motDePasse')">
+            {{ getFieldError('motDePasse') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="statut">Statut *</label>
+          <select 
+            id="statut"
+            formControlName="statut"
+            [class.invalid]="isFieldInvalid('statut')"
+          >
+            <option *ngFor="let status of userStatuses" [value]="status">
+              {{ status }}
+            </option>
+          </select>
+          <span class="error-message" *ngIf="isFieldInvalid('statut')">
+            {{ getFieldError('statut') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="prenom">Prénom *</label>
+          <input 
+            id="prenom"
+            type="text" 
+            formControlName="prenom"
+            [class.invalid]="isFieldInvalid('prenom')"
+            placeholder="Entrer prénom"
+          />
+          <span class="error-message" *ngIf="isFieldInvalid('prenom')">
+            {{ getFieldError('prenom') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="nom">Nom *</label>
+          <input 
+            id="nom"
+            type="text" 
+            formControlName="nom"
+            [class.invalid]="isFieldInvalid('nom')"
+            placeholder="Entrer nom"
+          />
+          <span class="error-message" *ngIf="isFieldInvalid('nom')">
+            {{ getFieldError('nom') }}
+          </span>
+        </div>
+
+        <div class="form-group">
+          <label for="numeroTelephone">Numéro de téléphone</label>
+          <input 
+            id="numeroTelephone"
+            type="tel" 
+            formControlName="numeroTelephone"
+            placeholder="Entrer numéro de téléphone"
+          />
+        </div>
+
+        <div class="form-group">
+          <label for="departement">Département</label>
+          <input 
+            id="departement"
+            type="text" 
+            formControlName="departement"
+            placeholder="Entrer département"
+          />
+        </div>
+
+        <div class="form-group full-width">
+          <label for="poste">Poste</label>
+          <input 
+            id="poste"
+            type="text" 
+            formControlName="poste"
+            placeholder="Entrer poste"
+          />
+        </div>
+
+        <!-- Role Selection Section -->
+        <div class="form-group full-width">
+          <label>Roles</label>
+          <div class="roles-selection">
+            <div 
+              class="role-checkbox-item" 
+              *ngFor="let role of roles"
+              (click)="toggleRoleSelection(role.id!)"
+            >
+              <input 
+                type="checkbox" 
+                [checked]="isRoleSelected(role.id!)"
+                readonly
+              />
+              <div class="role-checkbox-label">
+                <strong>{{ role.nom }}</strong>
+                <span class="role-description">{{ role.description || 'No description' }}</span>
+              </div>
+            </div>
+            <div class="no-roles" *ngIf="roles.length === 0">
+              <em>No roles available. Please create roles first.</em>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn-secondary" (click)="closeForm()">
+          Cancel
+        </button>
+        <button type="submit" class="btn-primary" [disabled]="userForm.invalid || loading">
+          {{ showAddForm ? 'Create User' : 'Update User' }}
+        </button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Role Management Modal -->
+<div class="modal-overlay" *ngIf="showRoleManagement" (click)="closeRoleManagement()">
+  <div class="modal-content role-modal" (click)="$event.stopPropagation()">
+    <div class="modal-header">
+      <h3>🔐 Manage Roles for {{ selectedUserForRoles?.nomUtilisateur }}</h3>
+      <button class="btn-close" (click)="closeRoleManagement()">✖</button>
+    </div>
+
+    <div class="roles-list">
+      <div 
+        class="role-item" 
+        *ngFor="let role of roles"
+        (click)="toggleRole(role.id!)"
+      >
+        <div class="role-checkbox">
+          <input 
+            type="checkbox" 
+            [checked]="hasRole(selectedUserForRoles!, role.id!)"
+            readonly
+          />
+        </div>
+        <div class="role-info">
+          <h4>{{ role.nom }}</h4>
+          <p>{{ role.description || 'No description' }}</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer">
+      <button class="btn-primary" (click)="closeRoleManagement()">
+        Done
+      </button>
+    </div>
+  </div>
+</div>

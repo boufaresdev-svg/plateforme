@@ -1,0 +1,795 @@
+{
+	"info": {
+		"_postman_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+		"name": "g_Fournisseur API Collection",
+		"description": "Complete API collection for Fournisseur, DettesFournisseur and TranchePaiement management",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "12345678"
+	},
+	"item": [
+		{
+			"name": "Fournisseur APIs",
+			"item": [
+				{
+					"name": "Create Fournisseur",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nom\": \"Fournisseur ABC\",\n  \"infoContact\": \"contact@fournisseur-abc.com\",\n  \"adresse\": \"123 Rue de la Paix, Tunis\",\n  \"telephone\": \"+216 71 123 456\",\n  \"matriculeFiscale\": \"123456789\",\n  \"totalAchat\": 25000.00\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/fournisseur",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"fournisseur"
+							]
+						},
+						"description": "Crée un nouveau fournisseur dans le système"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Fournisseurs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/fournisseur",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"fournisseur"
+							]
+						},
+						"description": "Récupère la liste de tous les fournisseurs avec leurs statistiques de dettes"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Fournisseur by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/fournisseur/{{fournisseur_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"fournisseur",
+								"{{fournisseur_id}}"
+							]
+						},
+						"description": "Récupère un fournisseur spécifique par son ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Fournisseur",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nom\": \"Fournisseur ABC Updated\",\n  \"infoContact\": \"nouveau-contact@fournisseur-abc.com\",\n  \"adresse\": \"456 Avenue Habib Bourguiba, Tunis\",\n  \"telephone\": \"+216 71 987 654\",\n  \"matriculeFiscale\": \"123456789\",\n  \"totalAchat\": 35000.00\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/fournisseur/{{fournisseur_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"fournisseur",
+								"{{fournisseur_id}}"
+							]
+						},
+						"description": "Met à jour les informations d'un fournisseur existant"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Fournisseurs",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"nom\": \"ABC\",\n  \"adresse\": \"Tunis\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/fournisseur/search",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"fournisseur",
+								"search"
+							]
+						},
+						"description": "Recherche des fournisseurs selon des critères spécifiques"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Fournisseur",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/fournisseur/{{fournisseur_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"fournisseur",
+								"{{fournisseur_id}}"
+							]
+						},
+						"description": "Supprime un fournisseur du système (seulement si aucune dette n'est associée)"
+					},
+					"response": []
+				}
+			],
+			"description": "Ensemble des APIs pour la gestion des fournisseurs"
+		},
+		{
+			"name": "Dettes Fournisseur APIs",
+			"item": [
+				{
+					"name": "Create Dette Fournisseur",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"numeroFacture\": \"FACT-2025-001\",\n  \"titre\": \"Achat matériel informatique\",\n  \"description\": \"Achat d'ordinateurs et équipements IT pour le bureau\",\n  \"montantTotal\": 1500.50,\n  \"estPaye\": false,\n  \"type\": \"FOURNISSEUR\",\n  \"datePaiementPrevue\": \"2025-12-31\",\n  \"datePaiementReelle\": null,\n  \"fournisseurId\": \"{{fournisseur_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/dettes-fournisseur",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"dettes-fournisseur"
+							]
+						},
+						"description": "Crée une nouvelle dette pour un fournisseur"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Dettes Fournisseurs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/dettes-fournisseur",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"dettes-fournisseur"
+							]
+						},
+						"description": "Récupère toutes les dettes fournisseurs avec les informations calculées (solde restant, statut de retard)"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Dette Fournisseur by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/dettes-fournisseur/{{dette_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"dettes-fournisseur",
+								"{{dette_id}}"
+							]
+						},
+						"description": "Récupère une dette fournisseur spécifique par son ID"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Dettes by Fournisseur ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/dettes-fournisseur/fournisseur/{{fournisseur_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"dettes-fournisseur",
+								"fournisseur",
+								"{{fournisseur_id}}"
+							]
+						},
+						"description": "Récupère toutes les dettes d'un fournisseur spécifique"
+					},
+					"response": []
+				},
+				{
+					"name": "Update Dette Fournisseur",
+					"request": {
+						"method": "PUT",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"numeroFacture\": \"FACT-2025-001-UPD\",\n  \"titre\": \"Achat matériel informatique - Modifié\",\n  \"description\": \"Achat d'ordinateurs et équipements IT pour le bureau - Mise à jour\",\n  \"montantTotal\": 1200.00,\n  \"estPaye\": true,\n  \"type\": \"FOURNISSEUR\",\n  \"datePaiementPrevue\": \"2025-12-31\",\n  \"datePaiementReelle\": \"2025-10-21\",\n  \"fournisseurId\": \"{{fournisseur_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/dettes-fournisseur/{{dette_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"dettes-fournisseur",
+								"{{dette_id}}"
+							]
+						},
+						"description": "Met à jour les informations d'une dette fournisseur"
+					},
+					"response": []
+				},
+				{
+					"name": "Search Dettes Fournisseurs",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"estPaye\": false,\n  \"fournisseurNom\": \"ABC\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/dettes-fournisseur/search",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"dettes-fournisseur",
+								"search"
+							]
+						},
+						"description": "Recherche des dettes fournisseurs selon des critères (statut de paiement, fournisseur, etc.)"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Dette Fournisseur",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/dettes-fournisseur/{{dette_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"dettes-fournisseur",
+								"{{dette_id}}"
+							]
+						},
+						"description": "Supprime une dette fournisseur du système"
+					},
+					"response": []
+				}
+			],
+			"description": "Ensemble des APIs pour la gestion des dettes fournisseurs"
+		},
+		{
+			"name": "Tranche Paiement APIs",
+			"item": [
+				{
+					"name": "Create Tranche Paiement",
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"montant\": 500.00,\n  \"dateEcheance\": \"2025-11-15\",\n  \"estPaye\": false,\n  \"dettesFournisseurId\": \"{{dette_id}}\"\n}"
+						},
+						"url": {
+							"raw": "{{base_url}}/api/tranches-paiement",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"tranches-paiement"
+							]
+						},
+						"description": "Crée une nouvelle tranche de paiement pour une dette"
+					},
+					"response": []
+				},
+				{
+					"name": "Pay Tranche Paiement",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/tranches-paiement/{{tranche_id}}/payer",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"tranches-paiement",
+								"{{tranche_id}}",
+								"payer"
+							]
+						},
+						"description": "Marque une tranche de paiement comme payée"
+					},
+					"response": []
+				},
+				{
+					"name": "Get All Tranches Paiement",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/tranches-paiement",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"tranches-paiement"
+							]
+						},
+						"description": "Récupère toutes les tranches de paiement"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tranches by Dette ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/tranches-paiement/dette/{{dette_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"tranches-paiement",
+								"dette",
+								"{{dette_id}}"
+							]
+						},
+						"description": "Récupère toutes les tranches de paiement pour une dette spécifique"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tranches by Fournisseur ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/tranches-paiement/fournisseur/{{fournisseur_id}}",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"tranches-paiement",
+								"fournisseur",
+								"{{fournisseur_id}}"
+							]
+						},
+						"description": "Récupère toutes les tranches de paiement pour un fournisseur spécifique"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tranches En Retard",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/tranches-paiement/en-retard",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"tranches-paiement",
+								"en-retard"
+							]
+						},
+						"description": "Récupère toutes les tranches de paiement en retard"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tranches Non Payées",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/tranches-paiement/non-payees",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"tranches-paiement",
+								"non-payees"
+							]
+						},
+						"description": "Récupère toutes les tranches de paiement non payées"
+					},
+					"response": []
+				},
+				{
+					"name": "Get Tranches with Filters",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{base_url}}/api/tranches-paiement?dettesFournisseurId={{dette_id}}&estPaye=false&enRetard=true",
+							"host": [
+								"{{base_url}}"
+							],
+							"path": [
+								"api",
+								"tranches-paiement"
+							],
+							"query": [
+								{
+									"key": "dettesFournisseurId",
+									"value": "{{dette_id}}"
+								},
+								{
+									"key": "estPaye",
+									"value": "false"
+								},
+								{
+									"key": "enRetard",
+									"value": "true"
+								}
+							]
+						},
+						"description": "Récupère les tranches de paiement avec des filtres spécifiques"
+					},
+					"response": []
+				}
+			],
+			"description": "Ensemble des APIs pour la gestion des tranches de paiement"
+		},
+		{
+			"name": "Test Scenarios",
+			"item": [
+				{
+					"name": "Complete Workflow Test",
+					"item": [
+						{
+							"name": "1. Create Test Fournisseur",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"nom\": \"Test Fournisseur Workflow\",\n  \"infoContact\": \"test@workflow.com\",\n  \"adresse\": \"Test Address, Tunis\",\n  \"telephone\": \"+216 70 000 001\",\n  \"matriculeFiscale\": \"TEST001\",\n  \"totalAchat\": 0.00\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/fournisseur",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"fournisseur"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "2. Create Multiple Dettes",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"numeroFacture\": \"FACT-TEST-001\",\n  \"titre\": \"Test Dette avec Tranches\",\n  \"description\": \"Dette de test pour workflow avec tranches de paiement\",\n  \"montantTotal\": 5000.00,\n  \"estPaye\": false,\n  \"type\": \"FOURNISSEUR\",\n  \"datePaiementPrevue\": \"2025-11-30\",\n  \"fournisseurId\": \"{{fournisseur_id}}\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/dettes-fournisseur",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"dettes-fournisseur"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "3. Get Fournisseur with Aggregated Data",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/fournisseur/{{fournisseur_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"fournisseur",
+										"{{fournisseur_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "4. Create Tranches de Paiement",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"montant\": 2000.00,\n  \"dateEcheance\": \"2025-11-15\",\n  \"estPaye\": false,\n  \"dettesFournisseurId\": \"{{dette_id}}\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/tranches-paiement",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"tranches-paiement"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "5. Create Second Tranche",
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"montant\": 3000.00,\n  \"dateEcheance\": \"2025-12-31\",\n  \"estPaye\": false,\n  \"dettesFournisseurId\": \"{{dette_id}}\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/tranches-paiement",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"tranches-paiement"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "6. Get Tranches for Dette",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/tranches-paiement/dette/{{dette_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"tranches-paiement",
+										"dette",
+										"{{dette_id}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "7. Pay First Tranche",
+							"request": {
+								"method": "PUT",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/tranches-paiement/{{tranche_id}}/payer",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"tranches-paiement",
+										"{{tranche_id}}",
+										"payer"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "8. Get Non-Paid Tranches",
+							"request": {
+								"method": "GET",
+								"header": [],
+								"url": {
+									"raw": "{{base_url}}/api/tranches-paiement/non-payees",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"tranches-paiement",
+										"non-payees"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "9. Record Payment on Dette",
+							"request": {
+								"method": "PUT",
+								"header": [
+									{
+										"key": "Content-Type",
+										"value": "application/json"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n  \"numeroFacture\": \"FACT-TEST-001-PAID\",\n  \"titre\": \"Test Dette avec Tranches - Payée\",\n  \"description\": \"Dette de test pour workflow avec tranches de paiement - Finalisée\",\n  \"montantTotal\": 5000.00,\n  \"estPaye\": true,\n  \"type\": \"FOURNISSEUR\",\n  \"datePaiementPrevue\": \"2025-11-30\",\n  \"datePaiementReelle\": \"2025-10-22\",\n  \"fournisseurId\": \"{{fournisseur_id}}\"\n}"
+								},
+								"url": {
+									"raw": "{{base_url}}/api/dettes-fournisseur/{{dette_id}}",
+									"host": [
+										"{{base_url}}"
+									],
+									"path": [
+										"api",
+										"dettes-fournisseur",
+										"{{dette_id}}"
+									]
+								}
+							},
+							"response": []
+						}
+					],
+					"description": "Scénario de test complet pour valider le workflow fournisseur-dettes"
+				}
+			],
+			"description": "Scénarios de test pour valider les fonctionnalités"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "base_url",
+			"value": "http://localhost:8080",
+			"type": "string",
+			"description": "Base URL for the application"
+		},
+		{
+			"key": "fournisseur_id",
+			"value": "",
+			"type": "string",
+			"description": "ID of the created fournisseur (to be set after creation)"
+		},
+		{
+			"key": "dette_id",
+			"value": "",
+			"type": "string",
+			"description": "ID of the created dette (to be set after creation)"
+		},
+		{
+			"key": "tranche_id",
+			"value": "",
+			"type": "string",
+			"description": "ID of the created tranche de paiement (to be set after creation)"
+		}
+	]
+}

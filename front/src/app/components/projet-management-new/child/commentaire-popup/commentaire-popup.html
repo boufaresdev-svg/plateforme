@@ -1,0 +1,39 @@
+<div class="popup-overlay" *ngIf="show" (click)="closePopup()">
+  <div class="popup-container" (click)="$event.stopPropagation()">
+    <div class="popup-header">
+      <h2>Ajouter un Commentaire</h2>
+      <button class="popup-close" (click)="closePopup()">✕</button>
+    </div>
+
+    <form [formGroup]="commentaireForm" (ngSubmit)="save()" class="popup-form">
+      <div class="form-section">
+        <h3>Nouveau Commentaire</h3>
+        <div class="form-grid">
+          <div class="form-group">
+            <label class="form-label">Auteur *</label>
+            <input type="text" class="form-input" formControlName="auteur" placeholder="Votre nom"
+              [class.is-invalid]="submitted && fc['auteur'].errors" />
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Type *</label>
+            <select class="form-input" formControlName="type" [class.is-invalid]="submitted && fc['type'].errors">
+              <option *ngFor="let type of typesCommentaires" [value]="type">{{ type }}</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-group full-width">
+          <label class="form-label">Contenu *</label>
+          <textarea class="form-input" formControlName="contenu" rows="4" placeholder="Votre commentaire..."
+            [class.is-invalid]="submitted && fc['contenu'].errors"></textarea>
+        </div>
+      </div>
+
+      <div class="popup-actions">
+        <button type="button" class="btn-outline" (click)="closePopup()">Annuler</button>
+        <button type="submit" class="btn-primary">💾 Ajouter</button>
+      </div>
+    </form>
+  </div>
+</div>
